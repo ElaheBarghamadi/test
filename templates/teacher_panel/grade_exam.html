@@ -1,0 +1,588 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تصحیح آزمون {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --gray-100: #f8fafc;
+        --gray-200: #e2e8f0;
+        --gray-700: #334155;
+        --shadow: 0 1px 3px rgba(0,0,0,0.1);
+        --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body { background: #f1f5f9; font-family: 'IRANSans', 'Tahoma', sans-serif; }
+
+    .grade-container {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    /* هدر */
+    .hero {
+        background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 28px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .hero h1 { font-size: 28px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+    .hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; }
+    .hero-meta span { background: rgba(255,255,255,0.15); padding: 6px 16px; border-radius: 40px; font-size: 13px; backdrop-filter: blur(4px); }
+
+    /* تب‌ها */
+    .mode-switch {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 28px;
+        background: white;
+        padding: 6px;
+        border-radius: 60px;
+        width: fit-content;
+        box-shadow: var(--shadow);
+    }
+
+    .mode-btn {
+        padding: 10px 28px;
+        border: none;
+        background: transparent;
+        border-radius: 40px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--gray-700);
+    }
+
+    .mode-btn.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 2px 8px rgba(67,97,238,0.3);
+    }
+
+    /* فیلترها */
+    .filters-card {
+        background: white;
+        padding: 20px 24px;
+        border-radius: 24px;
+        margin-bottom: 28px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        box-shadow: var(--shadow);
+    }
+
+    .filter-item { flex: 1; min-width: 160px; }
+    .filter-item label { display: block; font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 500; }
+    .filter-item select, .filter-item input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--gray-200);
+        border-radius: 14px;
+        font-size: 14px;
+        background: white;
+        transition: all 0.2s;
+    }
+    .filter-item select:focus, .filter-item input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67,97,238,0.1); }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 14px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    /* پیشرفت */
+    .progress-card {
+        background: white;
+        padding: 20px 24px;
+        border-radius: 24px;
+        margin-bottom: 28px;
+        box-shadow: var(--shadow);
+    }
+
+    .stats-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .stat { font-size: 14px; color: #475569; }
+    .stat strong { font-size: 22px; color: var(--primary); margin-left: 6px; }
+
+    .progress-track {
+        background: var(--gray-200);
+        border-radius: 40px;
+        height: 10px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        background: linear-gradient(90deg, #10b981, #34d399);
+        width: 0%;
+        height: 100%;
+        border-radius: 40px;
+        transition: width 0.4s ease;
+    }
+
+    /* ناوبری */
+    .nav-card {
+        background: white;
+        padding: 16px 20px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow);
+    }
+
+    .tabs-list {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    .tabs-list::-webkit-scrollbar { height: 4px; }
+
+    .tab-btn {
+        min-width: 70px;
+        padding: 10px 16px;
+        border: none;
+        background: var(--gray-100);
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--primary); color: white; }
+    .tab-btn.completed { background: var(--success); color: white; }
+
+    .nav-row {
+        display: flex;
+        gap: 16px;
+        margin-top: 16px;
+    }
+    .nav-row button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        background: var(--gray-100);
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .nav-row button:hover { background: var(--gray-200); }
+
+    /* کارت پاسخ */
+    .answers-list { display: flex; flex-direction: column; gap: 20px; }
+
+    .answer-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: all 0.2s;
+        border-right: 4px solid var(--gray-200);
+    }
+    .answer-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .answer-card.correct { border-right-color: var(--success); background: linear-gradient(90deg, white, #f0fdf4); }
+    .answer-card.wrong { border-right-color: var(--danger); background: linear-gradient(90deg, white, #fef2f2); }
+
+    .card-head {
+        padding: 18px 24px;
+        background: var(--gray-100);
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .student-badge { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .student-name { font-weight: 700; color: #1e293b; }
+    .student-id { font-size: 12px; color: #64748b; }
+
+    .status-chip {
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .status-correct { background: #d1fae5; color: #065f46; }
+    .status-wrong { background: #fee2e2; color: #991b1b; }
+
+    .card-body { padding: 24px; }
+
+    .question-area {
+        background: var(--gray-100);
+        padding: 16px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+    }
+    .question-area p { margin-bottom: 8px; line-height: 1.6; }
+    .question-meta { font-size: 13px; color: #64748b; display: flex; gap: 16px; flex-wrap: wrap; }
+
+    .answer-area {
+        background: #fefce8;
+        padding: 16px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+    }
+    .answer-label { font-size: 12px; color: #64748b; margin-bottom: 8px; font-weight: 500; }
+    .answer-text { font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+    .empty-answer { color: #94a3b8; font-style: italic; }
+
+    .answer-img {
+        margin-top: 12px;
+        cursor: pointer;
+        display: inline-block;
+    }
+    .answer-img img {
+        max-width: 180px;
+        max-height: 160px;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        transition: 0.2s;
+    }
+    .answer-img img:hover { transform: scale(1.02); box-shadow: var(--shadow); }
+
+    .correct-hint {
+        background: #e0f2fe;
+        padding: 12px 16px;
+        border-radius: 16px;
+        margin: 16px 0;
+        font-size: 14px;
+        border-right: 3px solid #0284c7;
+    }
+
+    .score-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-200);
+    }
+
+    .score-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--gray-100);
+        padding: 4px 16px 4px 8px;
+        border-radius: 60px;
+    }
+    .score-input {
+        width: 90px;
+        padding: 10px;
+        border: none;
+        background: transparent;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 500;
+    }
+    .score-input:focus { outline: none; }
+
+    .btn-save, .btn-full {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-save { background: var(--primary); color: white; }
+    .btn-save:hover { background: var(--primary-dark); transform: scale(0.98); }
+    .btn-full { background: var(--success); color: white; }
+    .btn-full:hover { background: #0d9488; transform: scale(0.98); }
+
+    .saved-icon { color: var(--success); font-size: 14px; display: flex; align-items: center; gap: 4px; }
+
+    /* مودال */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .modal.active { display: flex; }
+    .modal img { max-width: 90%; max-height: 90%; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 28px;
+        color: #64748b;
+    }
+
+    @media (max-width: 640px) {
+        .grade-container { padding: 16px; }
+        .hero { padding: 20px; }
+        .card-head { flex-direction: column; }
+        .score-row { flex-direction: column; align-items: stretch; }
+        .btn-save, .btn-full { justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="grade-container">
+    <div class="hero">
+        <h1>📝 تصحیح آزمون {{ exam.title }}</h1>
+        <div class="hero-meta">
+            <span>🏫 {{ exam.grade.get_name_display }}</span>
+            <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
+            <span>📊 {{ questions|length }} سوال</span>
+            <span>👨‍🎓 {{ students|length }} دانش‌آموز</span>
+        </div>
+    </div>
+
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="switchMode('question')">📋 تصحیح سوالی</button>
+        <button class="mode-btn" onclick="switchMode('student')">👤 تصحیح فردی</button>
+    </div>
+
+    <div class="filters-card">
+        <div class="filter-item"><label>پایه تحصیلی</label><select id="filter-grade"><option value="all">همه پایه‌ها</option>{% for g in grades %}<option value="{{ g.id }}">{{ g.get_name_display }}</option>{% endfor %}</select></div>
+        <div class="filter-item"><label>وضعیت تصحیح</label><select id="filter-status"><option value="all">همه</option><option value="graded">تصحیح شده</option><option value="ungraded">تصحیح نشده</option></select></div>
+        <div class="filter-item"><label>جستجوی دانش‌آموز</label><input type="text" id="search-input" placeholder="نام یا نام خانوادگی..."></div>
+        <button class="btn-primary" onclick="applyFilters()">اعمال فیلتر</button>
+    </div>
+
+    <div class="progress-card">
+        <div class="stats-row">
+            <div class="stat">✅ تصحیح شده <strong id="graded-count">0</strong></div>
+            <div class="stat">⏳ باقیمانده <strong id="remaining-count">0</strong></div>
+            <div class="stat">📈 پیشرفت <strong id="progress-percent">0%</strong></div>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div id="question-mode">
+        <div class="nav-card">
+            <div class="tabs-list" id="question-tabs"></div>
+            <div class="nav-row"><button onclick="prevQuestion()">← سوال قبلی</button><button onclick="nextQuestion()">سوال بعدی →</button></div>
+        </div>
+        <div id="questions-container"></div>
+    </div>
+
+    <div id="student-mode" style="display:none">
+        <div class="nav-card">
+            <div class="tabs-list" id="student-tabs"></div>
+            <div class="nav-row"><button onclick="prevStudent()">← دانش‌آموز قبلی</button><button onclick="nextStudent()">دانش‌آموز بعدی →</button></div>
+        </div>
+        <div id="students-container"></div>
+    </div>
+</div>
+
+<div class="modal" id="imageModal" onclick="closeModal()"><span style="position:absolute; top:24px; right:32px; color:white; font-size:40px; cursor:pointer;">&times;</span><img id="modalImage" src=""></div>
+
+<script>
+    // دریافت داده از سرور
+    const students = [
+        {% for s in students %}
+        { id: {{ s.id }}, name: "{{ s.get_full_name|default:s.username|escapejs }}", code: "{{ s.student_code|default:'---'|escapejs }}", gradeId: {{ s.grade.id|default:'null' }} },
+        {% endfor %}
+    ];
+    const questions = [
+        {% for q in questions %}
+        {
+            id: {{ q.id }}, num: {{ forloop.counter }}, text: `{{ q.text|escapejs }}`, type: "{{ q.question_type }}",
+            maxScore: {{ q.max_score }}, correctAnswer: `{{ q.correct_answer|default:''|escapejs }}`,
+            answers: [
+                {% for a in q.answers_data %}
+                { studentId: {{ a.student.id }}, studentName: "{{ a.student.get_full_name|default:a.student.username|escapejs }}", answerText: `{{ a.answer_text|default:''|escapejs }}`, answerImage: "{{ a.answer_image.url|default:'' }}", answerId: {{ a.answer_id|default:'null' }}, score: {{ a.score|default:'null' }}, isCorrect: {{ a.is_correct|default:'false'|lower }} },
+                {% endfor %}
+            ]
+        },
+        {% endfor %}
+    ];
+
+    let mode = 'question';
+    let currentQIndex = 0, currentSIndex = 0;
+    let filters = { grade: 'all', status: 'all', search: '' };
+
+    function getFilteredStudents() {
+        let filtered = [...students];
+        if (filters.grade !== 'all') filtered = filtered.filter(s => s.gradeId == filters.grade);
+        if (filters.search) filtered = filtered.filter(s => s.name.includes(filters.search));
+        if (filters.status === 'graded') filtered = filtered.filter(s => questions.every(q => q.answers.find(a => a.studentId === s.id)?.score != null));
+        if (filters.status === 'ungraded') filtered = filtered.filter(s => questions.some(q => q.answers.find(a => a.studentId === s.id)?.score == null));
+        return filtered;
+    }
+
+    function calcProgress() {
+        let total = 0, graded = 0;
+        questions.forEach(q => q.answers.forEach(a => { total++; if (a.score != null && a.score !== '') graded++; }));
+        return { total, graded, percent: total ? (graded/total*100) : 0 };
+    }
+
+    function updateProgress() {
+        let p = calcProgress();
+        document.getElementById('graded-count').innerText = p.graded;
+        document.getElementById('remaining-count').innerText = p.total - p.graded;
+        document.getElementById('progress-percent').innerText = Math.round(p.percent)+'%';
+        document.getElementById('progress-fill').style.width = p.percent+'%';
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            if (questions[i]?.answers.every(a => a.score != null)) btn.classList.add('completed');
+            else btn.classList.remove('completed');
+        });
+    }
+
+    function renderQuestionTabs() {
+        let html = '';
+        questions.forEach((_, i) => { html += `<button class="tab-btn ${i===currentQIndex?'active':''}" onclick="changeQuestion(${i})">سوال ${i+1}</button>`; });
+        document.getElementById('question-tabs').innerHTML = html;
+        updateProgress();
+    }
+
+    function renderStudentTabs() {
+        let filtered = getFilteredStudents();
+        let html = filtered.map((s, i) => `<button class="tab-btn ${i===currentSIndex?'active':''}" onclick="changeStudent(${i})">${escapeHtml(s.name)}</button>`).join('');
+        document.getElementById('student-tabs').innerHTML = html;
+    }
+
+    function changeQuestion(idx) { currentQIndex = idx; renderQuestionTabs(); renderCurrent(); }
+    function changeStudent(idx) { currentSIndex = idx; renderStudentTabs(); renderCurrent(); }
+
+    function prevQuestion() { if (currentQIndex > 0) changeQuestion(currentQIndex-1); }
+    function nextQuestion() { if (currentQIndex < questions.length-1) changeQuestion(currentQIndex+1); }
+    function prevStudent() { if (currentSIndex > 0) changeStudent(currentSIndex-1); }
+    function nextStudent() { let filtered = getFilteredStudents(); if (currentSIndex < filtered.length-1) changeStudent(currentSIndex+1); }
+
+    function applyFilters() {
+        filters.grade = document.getElementById('filter-grade').value;
+        filters.status = document.getElementById('filter-status').value;
+        filters.search = document.getElementById('search-input').value;
+        currentSIndex = 0;
+        renderStudentTabs();
+        renderCurrent();
+    }
+
+    function renderCurrent() {
+        if (mode === 'question') renderQuestionMode();
+        else renderStudentMode();
+    }
+
+    function renderQuestionMode() {
+        let q = questions[currentQIndex];
+        if (!q) { document.getElementById('questions-container').innerHTML = '<div class="empty-state">سوالی وجود ندارد</div>'; return; }
+        let filtered = getFilteredStudents();
+        let html = `<div class="question-area"><p><strong>📖 سوال ${q.num}</strong></p><p>${escapeHtml(q.text)}</p><div class="question-meta"><span>🔢 ${getTypeText(q.type)}</span><span>⭐ ${q.maxScore} نمره</span>${q.correctAnswer ? `<span>✅ پاسخ صحیح: ${escapeHtml(q.correctAnswer)}</span>` : ''}</div></div><div class="answers-list">`;
+        filtered.forEach(s => {
+            let a = q.answers.find(x => x.studentId === s.id);
+            if (!a) return;
+            let cardClass = a.isCorrect ? 'correct' : (a.answerText ? 'wrong' : '');
+            html += `<div class="answer-card ${cardClass}"><div class="card-head"><div class="student-badge"><span class="student-name">👨‍🎓 ${escapeHtml(a.studentName)}</span><span class="student-id">🆔 ${s.code}</span></div>${a.isCorrect ? '<span class="status-chip status-correct">✓ صحیح</span>' : (a.answerText ? '<span class="status-chip status-wrong">✗ نادرست</span>' : '')}</div><div class="card-body"><div class="answer-area"><div class="answer-label">پاسخ دانش‌آموز</div><div class="answer-text">${a.answerText ? escapeHtml(a.answerText) : '<span class="empty-answer">پاسخی ثبت نشده</span>'}</div>${a.answerImage ? `<div class="answer-img" onclick="showImage('${a.answerImage}')"><img src="${a.answerImage}" alt="پاسخ"></div>` : ''}</div>${q.correctAnswer && a.answerText && !a.isCorrect && q.type !== 'long_answer' ? `<div class="correct-hint"><strong>📌 پاسخ صحیح:</strong> ${escapeHtml(q.correctAnswer)}</div>` : ''}<div class="score-row"><div class="score-input-wrapper"><span>نمره</span><input type="number" id="score_${a.answerId}" class="score-input" value="${a.score??''}" step="0.25" min="0" max="${q.maxScore}"></div><button class="btn-save" onclick="saveScore(${a.answerId}, ${q.maxScore})">💾 ذخیره</button><button class="btn-full" onclick="fullScore(${a.answerId}, ${q.maxScore})">⭐ نمره کامل</button>${a.score!=null?'<span class="saved-icon">✓ ذخیره شد</span>':''}</div></div></div>`;
+        });
+        html += '</div>';
+        document.getElementById('questions-container').innerHTML = html;
+    }
+
+    function renderStudentMode() {
+        let filtered = getFilteredStudents();
+        if (!filtered.length) { document.getElementById('students-container').innerHTML = '<div class="empty-state">دانش‌آموزی یافت نشد</div>'; return; }
+        if (currentSIndex >= filtered.length) currentSIndex = 0;
+        let s = filtered[currentSIndex];
+        let html = `<div class="question-area"><p><strong>👨‍🎓 ${escapeHtml(s.name)}</strong></p><p class="student-id">🆔 کد: ${s.code}</p></div><div class="answers-list">`;
+        questions.forEach((q, idx) => {
+            let a = q.answers.find(x => x.studentId === s.id);
+            if (!a) return;
+            let cardClass = a.isCorrect ? 'correct' : (a.answerText ? 'wrong' : '');
+            html += `<div class="answer-card ${cardClass}"><div class="card-head"><span class="student-name">📌 سوال ${idx+1}</span>${a.isCorrect ? '<span class="status-chip status-correct">✓ صحیح</span>' : (a.answerText ? '<span class="status-chip status-wrong">✗ نادرست</span>' : '')}</div><div class="card-body"><div class="question-area" style="margin-bottom:12px"><div class="answer-label">متن سوال</div><div>${escapeHtml(q.text)}</div><div class="question-meta"><span>⭐ ${q.maxScore} نمره</span>${q.correctAnswer ? `<span>✅ پاسخ صحیح: ${escapeHtml(q.correctAnswer)}</span>` : ''}</div></div><div class="answer-area"><div class="answer-label">پاسخ دانش‌آموز</div><div class="answer-text">${a.answerText ? escapeHtml(a.answerText) : '<span class="empty-answer">پاسخی ثبت نشده</span>'}</div>${a.answerImage ? `<div class="answer-img" onclick="showImage('${a.answerImage}')"><img src="${a.answerImage}" alt="پاسخ"></div>` : ''}</div>${q.correctAnswer && a.answerText && !a.isCorrect && q.type !== 'long_answer' ? `<div class="correct-hint"><strong>📌 پاسخ صحیح:</strong> ${escapeHtml(q.correctAnswer)}</div>` : ''}<div class="score-row"><div class="score-input-wrapper"><span>نمره</span><input type="number" id="score_${a.answerId}" class="score-input" value="${a.score??''}" step="0.25" min="0" max="${q.maxScore}"></div><button class="btn-save" onclick="saveScore(${a.answerId}, ${q.maxScore})">💾 ذخیره</button><button class="btn-full" onclick="fullScore(${a.answerId}, ${q.maxScore})">⭐ نمره کامل</button>${a.score!=null?'<span class="saved-icon">✓ ذخیره شد</span>':''}</div></div></div>`;
+        });
+        html += '</div>';
+        document.getElementById('students-container').innerHTML = html;
+    }
+
+    async function saveScore(answerId, maxScore) {
+        let input = document.getElementById(`score_${answerId}`);
+        let score = parseFloat(input.value);
+        if (isNaN(score)) { alert('لطفاً عدد وارد کنید'); return; }
+        if (score < 0 || score > maxScore) { alert(`نمره باید بین 0 تا ${maxScore} باشد`); return; }
+        let btn = event.target;
+        let orig = btn.innerHTML;
+        btn.innerHTML = '⏳ در حال ذخیره...';
+        btn.disabled = true;
+        try {
+            let res = await fetch('/teacher/save-score/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCookie('csrftoken') },
+                body: `answer_id=${answerId}&score=${score}`
+            });
+            let data = await res.json();
+            if (data.success) {
+                questions.forEach(q => { q.answers.forEach(a => { if (a.answerId == answerId) a.score = score; }); });
+                btn.innerHTML = '✓ ذخیره شد';
+                setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 1500);
+                updateProgress();
+                renderCurrent();
+            } else { alert('خطا در ذخیره'); btn.innerHTML = orig; btn.disabled = false; }
+        } catch(e) { console.error(e); alert('خطا در ارتباط با سرور'); btn.innerHTML = orig; btn.disabled = false; }
+    }
+
+    function fullScore(answerId, maxScore) {
+        let input = document.getElementById(`score_${answerId}`);
+        input.value = maxScore;
+        saveScore(answerId, maxScore);
+    }
+
+    function showImage(src) {
+        let modal = document.getElementById('imageModal');
+        document.getElementById('modalImage').src = src;
+        modal.classList.add('active');
+    }
+    function closeModal() { document.getElementById('imageModal').classList.remove('active'); }
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function getTypeText(t) { return { 'multiple_choice':'تستی','true_false':'صحیح/غلط','fill_blank':'جاخالی','short_answer':'پاسخ کوتاه','long_answer':'تشریحی','matching':'وصل کردنی' }[t]||t; }
+    function getCookie(n) { let v = '; '+document.cookie, p = v.split('; '+n+'='); return p.length===2 ? p.pop().split(';').shift() : null; }
+
+    function switchMode(newMode) {
+        mode = newMode;
+        document.querySelectorAll('.mode-btn').forEach((btn,i) => btn.classList.toggle('active', (mode==='question' && i===0) || (mode==='student' && i===1)));
+        document.getElementById('question-mode').style.display = mode === 'question' ? 'block' : 'none';
+        document.getElementById('student-mode').style.display = mode === 'student' ? 'block' : 'none';
+        if (mode === 'question') renderQuestionTabs();
+        else renderStudentTabs();
+        renderCurrent();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderQuestionTabs();
+        renderStudentTabs();
+        renderCurrent();
+    });
+</script>
+{% endblock %}

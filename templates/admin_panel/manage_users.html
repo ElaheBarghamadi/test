@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+{% block title %}مدیریت کاربران{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4f46e5;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --dark: #1e293b;
+        --gray: #64748b;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .page-header h1 { font-size: 1.6rem; color: var(--dark); }
+
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    .stat-box {
+        background: white;
+        border-radius: 20px;
+        padding: 16px 24px;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    /* فیلترها */
+    .filter-bar {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        border: 1px solid #e2e8f0;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 160px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 12px;
+        color: var(--gray);
+        margin-bottom: 6px;
+    }
+
+    .filter-group select, .filter-group input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        font-size: 14px;
+    }
+
+    .filter-group button {
+        background: var(--primary);
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        width: 100%;
+        font-weight: 500;
+    }
+
+    /* جدول */
+    .users-table {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 14px 12px;
+        text-align: center;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: var(--dark);
+    }
+
+    .role-badge {
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+    }
+    .role-student { background: #dbeafe; color: #1e40af; }
+    .role-teacher { background: #dcfce7; color: #166534; }
+    .role-admin { background: #fce7f3; color: #9d174d; }
+
+    .btn-icon {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        margin: 2px;
+        font-size: 12px;
+    }
+    .btn-edit { background: #3b82f6; color: white; }
+    .btn-delete { background: #ef4444; color: white; }
+
+    /* مودال‌ها */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 28px;
+        padding: 28px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .modal-content h3 { margin-bottom: 20px; color: var(--dark); }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        color: var(--gray);
+        margin-bottom: 6px;
+    }
+
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        font-size: 14px;
+    }
+
+    .import-area {
+        border: 2px dashed #cbd5e1;
+        border-radius: 20px;
+        padding: 30px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 20px;
+    }
+
+    .import-area:hover {
+        border-color: var(--primary);
+        background: #f5f3ff;
+    }
+
+    .import-result {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 16px;
+        margin-top: 16px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 24px;
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: var(--dark);
+    }
+
+    .pagination .current {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+        th, td { font-size: 12px; padding: 8px; }
+        .btn-icon { padding: 4px 8px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>👥 مدیریت کاربران</h1>
+    <div class="btn-group">
+        <button class="btn-primary" onclick="openAddModal()">➕ افزودن کاربر</button>
+        <button class="btn-success" onclick="openImportModal()">📂 آپلود فایل اکسل/CSV</button>
+        <a href="{% url 'download_users_template' %}" class="btn-primary" style="background:#64748b;">📥 دانلود نمونه فایل</a>
+    </div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-box"><div class="stat-number">{{ stats.total_students }}</div><div>دانش‌آموز</div></div>
+    <div class="stat-box"><div class="stat-number">{{ stats.total_teachers }}</div><div>معلم</div></div>
+    <div class="stat-box"><div class="stat-number">{{ stats.total_admins }}</div><div>ادمین</div></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-group"><label>نقش</label><select id="roleFilter"><option value="all">همه</option><option value="student">دانش‌آموز</option><option value="teacher">معلم</option><option value="admin">ادمین</option></select></div>
+    <div class="filter-group"><label>پایه</label><select id="gradeFilter"><option value="all">همه پایه‌ها</option>{% for grade in grades %}<option value="{{ grade.id }}">{{ grade.get_name_display }}</option>{% endfor %}</select></div>
+    <div class="filter-group"><label>جستجو</label><input type="text" id="searchInput" placeholder="نام، نام کاربری..."></div>
+    <div class="filter-group"><button id="applyFilter">🔍 اعمال فیلتر</button></div>
+</div>
+
+<div class="users-table">
+    <table id="usersTable">
+        <thead>
+            <tr><th>#</th><th>نام کاربری</th><th>نام و نام خانوادگی</th><th>نقش</th><th>پایه</th><th>کد دانش‌آموزی</th><th>عملیات</th></tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr data-role="{{ user.role }}" data-grade="{{ user.grade.id|default:'' }}" data-search="{{ user.username|lower }} {{ user.first_name|lower }} {{ user.last_name|lower }}">
+                <td>{{ forloop.counter }}</td>
+                <td style="text-align:right;"><strong>{{ user.username }}</strong></td>
+                <td>{{ user.get_full_name|default:'-' }}</td>
+                <td><span class="role-badge role-{{ user.role }}">{% if user.role == 'student' %}دانش‌آموز{% elif user.role == 'teacher' %}معلم{% else %}ادمین{% endif %}</span></td>
+                <td>{{ user.grade.get_name_display|default:'-' }}</td>
+                <td>{{ user.student_code|default:'-' }}</td>
+                <td>
+                    <button class="btn-icon btn-edit" onclick="editUser({{ user.id }})">✏️</button>
+                    <button class="btn-icon btn-delete" onclick="deleteUser({{ user.id }})">🗑️</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if users.has_other_pages %}
+<div class="pagination">
+    {% if users.has_previous %}<a href="?page={{ users.previous_page_number }}">قبلی</a>{% endif %}
+    <span class="current">صفحه {{ users.number }} از {{ users.paginator.num_pages }}</span>
+    {% if users.has_next %}<a href="?page={{ users.next_page_number }}">بعدی</a>{% endif %}
+</div>
+{% endif %}
+
+<!-- مودال افزودن/ویرایش کاربر -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">افزودن کاربر</h3>
+        <form id="userForm">
+            {% csrf_token %}
+            <input type="hidden" id="userId" name="user_id">
+            <div class="form-group"><label>نام کاربری *</label><input type="text" id="username" name="username" required></div>
+            <div class="form-group"><label>رمز عبور {% if not edit_mode %}<span style="color:red;">*</span>{% endif %}</label><input type="password" id="password" name="password" placeholder="حداقل 6 کاراکتر"></div>
+            <div class="form-group"><label>نام</label><input type="text" id="first_name" name="first_name"></div>
+            <div class="form-group"><label>نام خانوادگی</label><input type="text" id="last_name" name="last_name"></div>
+            <div class="form-group"><label>نقش</label><select id="role" name="role" onchange="toggleGradeField()"><option value="student">دانش‌آموز</option><option value="teacher">معلم</option><option value="admin">ادمین</option></select></div>
+            <div class="form-group" id="gradeGroup"><label>پایه تحصیلی</label><select id="grade" name="grade"><option value="">انتخاب کنید</option>{% for grade in grades %}<option value="{{ grade.id }}">{{ grade.get_name_display }}</option>{% endfor %}</select></div>
+            <div class="form-group" id="studentCodeGroup"><label>کد دانش‌آموزی</label><input type="text" id="student_code" name="student_code" placeholder="اختیاری"></div>
+            <button type="submit" style="background:var(--primary); color:white; padding:12px; border:none; border-radius:14px; width:100%; cursor:pointer; font-weight:500;">💾 ذخیره</button>
+            <button type="button" onclick="closeModal()" style="margin-top:10px; background:#64748b; color:white; padding:12px; border:none; border-radius:14px; width:100%; cursor:pointer;">انصراف</button>
+        </form>
+    </div>
+</div>
+
+<!-- مودال آپلود فایل -->
+<div id="importModal" class="modal">
+    <div class="modal-content">
+        <h3>📂 آپلود فایل کاربران</h3>
+        <p style="color:#64748b; font-size:13px; margin-bottom:16px;">فرمت‌های مجاز: اکسل (xlsx, xls) یا CSV</p>
+        <div class="import-area" onclick="document.getElementById('importFile').click()">
+            📁 کلیک کنید یا فایل را بکشید و رها کنید
+            <input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none">
+        </div>
+        <div id="importResult" class="import-result" style="display:none;"></div>
+        <button onclick="closeImportModal()" style="margin-top:16px; background:#64748b; color:white; padding:12px; border:none; border-radius:14px; width:100%; cursor:pointer;">بستن</button>
+    </div>
+</div>
+
+<script>
+    function getCSRF() { return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || ''; }
+
+    function toggleGradeField() {
+        const role = document.getElementById('role').value;
+        const gradeGroup = document.getElementById('gradeGroup');
+        const studentCodeGroup = document.getElementById('studentCodeGroup');
+        if (role === 'student') {
+            gradeGroup.style.display = 'block';
+            studentCodeGroup.style.display = 'block';
+        } else {
+            gradeGroup.style.display = 'none';
+            studentCodeGroup.style.display = 'none';
+        }
+    }
+
+    function openAddModal() {
+        document.getElementById('modalTitle').innerText = 'افزودن کاربر';
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+        document.getElementById('userModal').style.display = 'flex';
+        toggleGradeField();
+    }
+
+    function closeModal() { document.getElementById('userModal').style.display = 'none'; }
+
+    function openImportModal() {
+        document.getElementById('importModal').style.display = 'flex';
+        document.getElementById('importResult').style.display = 'none';
+        document.getElementById('importFile').value = '';
+    }
+
+    function closeImportModal() { document.getElementById('importModal').style.display = 'none'; }
+
+    async function editUser(id) {
+        const response = await fetch(`/admin-panel/users/${id}/get/`);
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('modalTitle').innerText = 'ویرایش کاربر';
+            document.getElementById('userId').value = user.id;
+            document.getElementById('username').value = user.username;
+            document.getElementById('first_name').value = user.first_name || '';
+            document.getElementById('last_name').value = user.last_name || '';
+            document.getElementById('role').value = user.role;
+            document.getElementById('grade').value = user.grade_id || '';
+            document.getElementById('student_code').value = user.student_code || '';
+            document.getElementById('password').value = '';
+            document.getElementById('userModal').style.display = 'flex';
+            toggleGradeField();
+        }
+    }
+
+    async function deleteUser(id) {
+        if (confirm('آیا از حذف این کاربر مطمئن هستید؟')) {
+            const response = await fetch(`/admin-panel/users/${id}/delete/`, { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
+            if (response.ok) location.reload();
+            else alert('خطا در حذف کاربر');
+        }
+    }
+
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userId = document.getElementById('userId').value;
+        const url = userId ? `/admin-panel/users/${userId}/edit/` : '/admin-panel/users/add/';
+        const formData = new FormData(e.target);
+        try {
+            const response = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCSRF() }, body: formData });
+            const result = await response.json();
+            if (response.ok && result.success) location.reload();
+            else alert(result.error || 'خطا در ذخیره');
+        } catch(e) { alert('خطا در ارتباط با سرور'); }
+    });
+
+    document.getElementById('importFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        document.getElementById('importResult').innerHTML = '<div style="text-align:center;">📤 در حال پردازش...</div>';
+        document.getElementById('importResult').style.display = 'block';
+        try {
+            const response = await fetch('/admin-panel/users/import/', { method: 'POST', headers: { 'X-CSRFToken': getCSRF() }, body: formData });
+            const result = await response.json();
+            if (result.success) {
+                let html = `<div style="color:#10b981;">✅ ${result.success_count} کاربر با موفقیت اضافه شدند.</div>`;
+                if (result.failed_count > 0) html += `<div style="color:#f59e0b;">⚠️ ${result.failed_count} خطا رخ داد.</div>`;
+                if (result.errors && result.errors.length) {
+                    html += `<div style="margin-top:10px;"><strong>خطاها:</strong><ul style="font-size:12px; margin-top:5px;">`;
+                    result.errors.forEach(err => html += `<li style="color:#ef4444;">${err}</li>`);
+                    html += `</ul></div>`;
+                }
+                if (result.created_users && result.created_users.length) {
+                    html += `<div style="margin-top:10px;"><strong>کاربران ایجاد شده:</strong><ul style="font-size:12px;">`;
+                    result.created_users.forEach(u => html += `<li>${u.full_name || u.username} (${u.role})</li>`);
+                    html += `</ul></div>`;
+                }
+                document.getElementById('importResult').innerHTML = html;
+                setTimeout(() => { location.reload(); }, 3000);
+            } else {
+                document.getElementById('importResult').innerHTML = `<div style="color:#ef4444;">❌ ${result.error}</div>`;
+            }
+        } catch(e) { document.getElementById('importResult').innerHTML = '<div style="color:#ef4444;">❌ خطا در آپلود فایل</div>'; }
+    });
+
+    function filterUsers() {
+        const role = document.getElementById('roleFilter').value;
+        const grade = document.getElementById('gradeFilter').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody tr');
+        rows.forEach(row => {
+            let show = true;
+            if (role !== 'all' && row.dataset.role !== role) show = false;
+            if (grade !== 'all' && row.dataset.grade != grade) show = false;
+            if (search && !row.dataset.search.includes(search)) show = false;
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    document.getElementById('applyFilter').addEventListener('click', filterUsers);
+    document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') filterUsers(); });
+    window.onclick = function(e) { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+</script>
+{% endblock %}

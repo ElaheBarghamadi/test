@@ -1,0 +1,719 @@
+{% extends 'base.html' %}
+{% block title %}ویرایش سوال - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 24px 32px;
+    }
+
+    .card-header h2 {
+        margin: 0 0 8px 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .card-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+
+    .card-body {
+        padding: 32px;
+    }
+
+    .form-section {
+        margin-bottom: 32px;
+        border-bottom: 2px solid var(--gray-200);
+        padding-bottom: 24px;
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--primary);
+        font-size: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--gray-700);
+        font-size: 14px;
+    }
+
+    .form-group label.required::after {
+        content: "*";
+        color: var(--danger);
+        margin-right: 4px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--gray-300);
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: var(--gray-50);
+        border-radius: 12px;
+        cursor: pointer;
+    }
+
+    .checkbox-group input {
+        width: auto;
+        margin: 0;
+    }
+
+    .checkbox-group label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .option-card {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .option-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .option-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .option-number {
+        width: 32px;
+        height: 32px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .matching-pair {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 12px;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr auto;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .matching-pair .arrow {
+        font-size: 20px;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    .btn-remove {
+        background: var(--danger);
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-remove:hover {
+        background: #dc2626;
+        transform: scale(1.05);
+    }
+
+    .btn-add {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 2px solid var(--gray-200);
+    }
+
+    .btn-submit {
+        background: var(--success);
+        color: white;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        flex: 1;
+    }
+
+    .btn-submit:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+        background: var(--gray-500);
+        color: white;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: all 0.3s ease;
+        flex: 1;
+    }
+
+    .btn-cancel:hover {
+        background: var(--gray-600);
+        transform: translateY(-1px);
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .help-text {
+        font-size: 12px;
+        color: var(--gray-500);
+        margin-top: 4px;
+    }
+
+    .current-image {
+        margin-top: 12px;
+        padding: 16px;
+        background: var(--gray-50);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .current-image img {
+        max-width: 150px;
+        border-radius: 8px;
+        border: 2px solid var(--gray-200);
+    }
+
+    .remove-image-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .remove-image-checkbox input {
+        width: auto;
+        margin: 0;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .alert-info {
+        background: #dbeafe;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+    }
+
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 20px;
+        }
+
+        .matching-pair {
+            grid-template-columns: 1fr;
+        }
+
+        .matching-pair .arrow {
+            text-align: center;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h2>✏️ ویرایش سوال</h2>
+            <p>آزمون: {{ exam.title }}</p>
+        </div>
+
+        <div class="card-body">
+            {% if question.correct_answer %}
+            <div class="alert alert-info">
+                <strong>📌 پاسخ صحیح فعلی:</strong>
+                {% if question.question_type == 'true_false' %}
+                    {% if question.correct_answer == 'true' %}✅ صحیح{% else %}❌ غلط{% endif %}
+                {% elif question.question_type == 'multiple_choice' %}
+                    گزینه {{ question.correct_answer }}
+                {% else %}
+                    {{ question.correct_answer|truncatechars:100 }}
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" id="questionForm">
+                {% csrf_token %}
+
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>📝</i>
+                        <span>اطلاعات پایه سوال</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">نوع سوال</label>
+                        <select name="question_type" id="questionType" required>
+                            <option value="true_false" {% if question.question_type == 'true_false' %}selected{% endif %}>✅ صحیح/غلط</option>
+                            <option value="multiple_choice" {% if question.question_type == 'multiple_choice' %}selected{% endif %}>🔘 تستی (چهار گزینه‌ای)</option>
+                            <option value="fill_blank" {% if question.question_type == 'fill_blank' %}selected{% endif %}>📝 جاخالی</option>
+                            <option value="short_answer" {% if question.question_type == 'short_answer' %}selected{% endif %}>✏️ پاسخ کوتاه</option>
+                            <option value="long_answer" {% if question.question_type == 'long_answer' %}selected{% endif %}>📄 پاسخ بلند</option>
+                            <option value="image_answer" {% if question.question_type == 'image_answer' %}selected{% endif %}>🖼️ پاسخ تصویری</option>
+                            <option value="matching" {% if question.question_type == 'matching' %}selected{% endif %}>🔗 وصل کردنی</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required">متن سوال</label>
+                        <textarea name="text" rows="5" placeholder="متن سوال را وارد کنید...">{{ question.text|default:'' }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="required">بارم (نمره)</label>
+                            <input type="number" name="max_score" step="0.25" value="{{ question.max_score }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>تصویر سوال (اختیاری)</label>
+                        <input type="file" name="image" accept="image/*">
+                        {% if question.image %}
+                        <div class="current-image">
+                            <img src="{{ question.image.url }}" alt="تصویر سوال">
+                            <div class="remove-image-checkbox">
+                                <input type="checkbox" name="remove_image" id="removeImage">
+                                <label for="removeImage">🗑️ حذف تصویر فعلی</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="allow_image_answer" id="allowImageAnswer" {% if question.allow_image_answer %}checked{% endif %}>
+                        <label for="allowImageAnswer">📷 اجازه آپلود عکس به عنوان پاسخ</label>
+                    </div>
+                </div>
+
+                <!-- بخش‌های اختصاصی هر نوع سوال -->
+                <div id="dynamicFields"></div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">💾 ذخیره تغییرات</button>
+                    <a href="{% url 'edit_exam' exam.id %}" class="btn-cancel">← بازگشت</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // داده‌های سوال از سرور - با استفاده از escapejs برای ایمنی
+    const questionData = {
+        question_type: "{{ question.question_type|escapejs }}",
+        correct_answer: "{{ question.correct_answer|default:''|escapejs }}",
+        options_type: "{{ question.options_type|default:'text'|escapejs }}",
+        instructions: "{{ question.instructions|default:''|escapejs }}",
+        max_length: "{{ question.max_length|default:'200' }}",
+        min_length: "{{ question.min_length|default:'100' }}"
+    };
+
+    // آرایه‌ها با حلقه در سمت سرور ساخته می‌شوند
+    {% if question.options %}
+    questionData.options = [
+        {% for opt in question.options %}
+            "{{ opt|escapejs }}",
+        {% endfor %}
+    ];
+    {% else %}
+    questionData.options = [];
+    {% endif %}
+
+    {% if question.blanks %}
+    questionData.blanks = [
+        {% for blank in question.blanks %}
+            "{{ blank|escapejs }}",
+        {% endfor %}
+    ];
+    {% else %}
+    questionData.blanks = [];
+    {% endif %}
+
+    {% if question.matching_pairs %}
+    questionData.matching_pairs = [
+        {% for pair in question.matching_pairs %}
+            {left: "{{ pair.left|escapejs }}", right: "{{ pair.right|escapejs }}"},
+        {% endfor %}
+    ];
+    {% else %}
+    questionData.matching_pairs = [];
+    {% endif %}
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    const questionTypeMap = {
+        true_false: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>✅</i>
+                        <span>تنظیمات سوال صحیح/غلط</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">پاسخ صحیح</label>
+                        <select name="correct_answer" required>
+                            <option value="true" ${questionData.correct_answer === 'true' ? 'selected' : ''}>✅ صحیح</option>
+                            <option value="false" ${questionData.correct_answer === 'false' ? 'selected' : ''}>❌ غلط</option>
+                        </select>
+                    </div>
+                </div>
+            `
+        },
+        multiple_choice: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>🔘</i>
+                        <span>تنظیمات سوال تستی</span>
+                    </div>
+                    <div class="form-group">
+                        <label>نوع گزینه‌ها</label>
+                        <select name="options_type">
+                            <option value="text" ${questionData.options_type === 'text' ? 'selected' : ''}>فقط متن</option>
+                            <option value="image" ${questionData.options_type === 'image' ? 'selected' : ''}>فقط تصویر</option>
+                            <option value="mixed" ${questionData.options_type === 'mixed' ? 'selected' : ''}>متن + تصویر</option>
+                        </select>
+                    </div>
+                    <div id="optionsContainer"></div>
+                    <div class="form-group">
+                        <label class="required">پاسخ صحیح (شماره گزینه)</label>
+                        <select name="correct_answer" required>
+                            ${[1,2,3,4].map(i => `<option value="${i}" ${questionData.correct_answer == i ? 'selected' : ''}>گزینه ${i}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+            `,
+            init: function() {
+                const container = document.getElementById('optionsContainer');
+                if (!container) return;
+                let html = '';
+                for (let i = 1; i <= 4; i++) {
+                    const savedValue = (questionData.options && questionData.options[i-1]) ? questionData.options[i-1] : '';
+                    html += `
+                        <div class="option-card">
+                            <div class="option-header">
+                                <div class="option-number">${i}</div>
+                                <div style="flex:1">
+                                    <input type="text" name="option_${i}" value="${escapeHtml(savedValue)}" placeholder="متن گزینه ${i}">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+            }
+        },
+        fill_blank: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>📝</i>
+                        <span>تنظیمات سوال جاخالی</span>
+                    </div>
+                    <div class="form-group">
+                        <label>جای خالی‌ها (با کاما جدا کنید)</label>
+                        <input type="text" name="blanks" value="${(questionData.blanks || []).join(',')}" placeholder="مثال: جاهای خالی, را, وارد کنید">
+                        <div class="help-text">مثال: ایران, تهران, فارسی</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="required">پاسخ صحیح</label>
+                        <textarea name="correct_answer" rows="3" placeholder="پاسخ صحیح را وارد کنید...">${escapeHtml(questionData.correct_answer)}</textarea>
+                    </div>
+                </div>
+            `
+        },
+        short_answer: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>✏️</i>
+                        <span>تنظیمات سوال پاسخ کوتاه</span>
+                    </div>
+                    <div class="form-group">
+                        <label>حداکثر طول پاسخ (تعداد کاراکتر)</label>
+                        <input type="number" name="max_length" value="${questionData.max_length}">
+                    </div>
+                    <div class="form-group">
+                        <label>پاسخ صحیح (اختیاری)</label>
+                        <input type="text" name="correct_answer" value="${escapeHtml(questionData.correct_answer)}" placeholder="پاسخ صحیح را وارد کنید...">
+                        <div class="help-text">برای تصحیح خودکار می‌توانید پاسخ صحیح را وارد کنید</div>
+                    </div>
+                </div>
+            `
+        },
+        long_answer: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>📄</i>
+                        <span>تنظیمات سوال پاسخ بلند</span>
+                    </div>
+                    <div class="form-group">
+                        <label>حداقل طول پاسخ (تعداد کاراکتر)</label>
+                        <input type="number" name="min_length" value="${questionData.min_length}">
+                    </div>
+                    <div class="form-group">
+                        <label>پاسخ صحیح (اختیاری)</label>
+                        <textarea name="correct_answer" rows="3" placeholder="پاسخ صحیح را وارد کنید...">${escapeHtml(questionData.correct_answer)}</textarea>
+                        <div class="help-text">برای تصحیح خودکار می‌توانید پاسخ صحیح را وارد کنید</div>
+                    </div>
+                </div>
+            `
+        },
+        image_answer: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>🖼️</i>
+                        <span>تنظیمات سوال پاسخ تصویری</span>
+                    </div>
+                    <div class="form-group">
+                        <label>توضیحات اضافی</label>
+                        <textarea name="instructions" rows="3" placeholder="مثال: حل خود را بنویسید و عکس بگیرید...">${escapeHtml(questionData.instructions)}</textarea>
+                    </div>
+                </div>
+            `
+        },
+        matching: {
+            fields: `
+                <div class="form-section">
+                    <div class="section-title">
+                        <i>🔗</i>
+                        <span>تنظیمات سوال وصل کردنی</span>
+                    </div>
+                    <div id="matchingPairsContainer"></div>
+                    <button type="button" class="btn-add" onclick="addMatchingPair()">+ اضافه کردن جفت جدید</button>
+                </div>
+            `,
+            init: function() {
+                matchingPairs = questionData.matching_pairs && questionData.matching_pairs.length > 0 ?
+                    [...questionData.matching_pairs] : [{left: '', right: ''}];
+                updateMatchingPairs();
+            }
+        }
+    };
+
+    let matchingPairs = [];
+
+    function updateMatchingPairs() {
+        const container = document.getElementById('matchingPairsContainer');
+        if (!container) return;
+
+        let html = '';
+        for (let i = 0; i < matchingPairs.length; i++) {
+            const pair = matchingPairs[i];
+            html += `
+                <div class="matching-pair" id="pair_${i}">
+                    <div>
+                        <input type="text" name="left_${i}" value="${escapeHtml(pair.left)}" placeholder="سمت راست (مثال: تهران)">
+                    </div>
+                    <div class="arrow">←→</div>
+                    <div>
+                        <input type="text" name="right_${i}" value="${escapeHtml(pair.right)}" placeholder="سمت چپ (مثال: پایتخت)">
+                    </div>
+                    <div>
+                        <button type="button" class="btn-remove" onclick="removeMatchingPair(${i})">✖</button>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function addMatchingPair() {
+        matchingPairs.push({left: '', right: ''});
+        updateMatchingPairs();
+    }
+
+    function removeMatchingPair(index) {
+        if (matchingPairs.length > 1) {
+            matchingPairs.splice(index, 1);
+            updateMatchingPairs();
+        } else {
+            alert('حداقل یک جفت باید وجود داشته باشد');
+        }
+    }
+
+    const questionTypeSelect = document.getElementById('questionType');
+    const dynamicFieldsDiv = document.getElementById('dynamicFields');
+
+    function loadQuestionFields() {
+        const selectedType = questionTypeSelect.value;
+
+        if (!selectedType) {
+            dynamicFieldsDiv.innerHTML = '';
+            return;
+        }
+
+        const typeConfig = questionTypeMap[selectedType];
+        if (typeConfig) {
+            dynamicFieldsDiv.innerHTML = typeConfig.fields;
+
+            if (typeConfig.init && typeof typeConfig.init === 'function') {
+                setTimeout(function() {
+                    typeConfig.init();
+                }, 0);
+            }
+        } else {
+            dynamicFieldsDiv.innerHTML = '';
+        }
+    }
+
+    // بارگذاری اولیه
+    loadQuestionFields();
+
+    questionTypeSelect.addEventListener('change', function() {
+        loadQuestionFields();
+    });
+</script>
+{% endblock %}

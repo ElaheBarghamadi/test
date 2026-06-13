@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأیید ثبت آزمون</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 40px 35px;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .icon {
+            font-size: 70px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #f59e0b;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        .exam-title {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #475569;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .warning-text {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            margin: 20px 0;
+        }
+        .timeout-warning {
+            background: #ef4444;
+            color: white;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            margin: 20px 0;
+        }
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .btn-yes {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn-no {
+            background: #e2e8f0;
+            color: #475569;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        .btn-only {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+        }
+        .btn-yes:hover, .btn-only:hover {
+            transform: translateY(-2px);
+        }
+        .btn-no:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        .btn-disabled {
+            background: #cbd5e1;
+            color: #64748b;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            cursor: not-allowed;
+            font-size: 15px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .info-note {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+        @media (max-width: 480px) {
+            .card {
+                padding: 25px 20px;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .btn-yes, .btn-no, .btn-only {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="icon">⚠️</div>
+
+    {% if is_timeout %}
+        <h2 style="color: #dc2626;">⏰ زمان آزمون به پایان رسید!</h2>
+        <div class="timeout-warning">
+            زمان مجاز برای پاسخگویی به پایان رسیده است.<br>
+            آزمون شما به صورت خودکار ثبت خواهد شد.
+        </div>
+    {% else %}
+        <h2>آیا مطمئن هستید؟</h2>
+    {% endif %}
+
+    <div class="exam-title">{{ exam.title }}</div>
+
+    {% if not is_timeout %}
+        <p>آیا می‌خواهید این آزمون را <strong>ثبت نهایی</strong> کنید؟</p>
+        <div class="warning-text">
+            🔒 بعد از ثبت، دیگر نمی‌توانید پاسخ‌ها را تغییر دهید.
+        </div>
+    {% else %}
+        <p>پاسخ‌های شما ذخیره شده است. برای ثبت نهایی روی دکمه زیر کلیک کنید.</p>
+    {% endif %}
+
+    <div class="button-group">
+        <form method="post" style="display: inline; width: {% if is_timeout %}100%{% else %}auto{% endif %};">
+            {% csrf_token %}
+            {% if is_timeout %}
+                <button type="submit" class="btn-only">✅ ثبت نهایی آزمون</button>
+            {% else %}
+                <button type="submit" class="btn-yes">✅ بله، ثبت نهایی</button>
+                <a href="{% url 'take_exam' exam.id %}" class="btn-no" id="backToExamBtn">← خیر، برگرد به آزمون</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if not is_timeout %}
+    <div class="info-note">
+        💡 پاسخ‌های شما قبلاً ذخیره شده‌اند. با برگشتن می‌توانید ادامه دهید.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // جلوگیری از بازگشت به آزمون اگر زمان تمام شده باشد
+    const backBtn = document.getElementById('backToExamBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function(e) {
+            // چک کردن زمان باقی‌مانده از طریق AJAX
+            fetch('/student/check-exam-time/{{ exam.id }}/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.remaining_seconds <= 0) {
+                        e.preventDefault();
+                        alert('زمان آزمون به پایان رسیده است! لطفاً آزمون را ثبت نهایی کنید.');
+                        window.location.reload();
+                    }
+                })
+                .catch(() => {
+                    // اگر خطا داشت، اجازه بده ادامه بده
+                });
+        });
+    }
+</script>
+</body>
+</html>

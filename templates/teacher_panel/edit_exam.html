@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+{% block title %}مدیریت سوالات - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* کارت اطلاعات آزمون */
+    .info-card {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 25px 30px;
+        margin-bottom: 25px;
+    }
+
+    .info-card h1 {
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+
+    .info-details {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 20px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary {
+        background: white;
+        color: #1e3c72;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* دکمه‌های مدیریتی جدید */
+    .management-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn-settings, .btn-cheats, .btn-answers {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        padding: 8px 18px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 13px;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .btn-settings:hover, .btn-cheats:hover, .btn-answers:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* کارت سوالات */
+    .questions-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .question-count {
+        background: #e2e8f0;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 13px;
+        color: #475569;
+    }
+
+    /* تب‌ها */
+    .tabs {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .tab-btn {
+        padding: 10px 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #64748b;
+        border-radius: 12px 12px 0 0;
+        transition: all 0.2s;
+    }
+    .tab-btn.active {
+        color: #4CAF50;
+        border-bottom: 3px solid #4CAF50;
+        background: #f0fdf4;
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+
+    /* لیست سوالات */
+    .questions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .question-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 18px;
+        transition: all 0.2s;
+        background: #fafafa;
+    }
+
+    .question-item:hover {
+        border-color: #4CAF50;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .question-badge {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .question-number {
+        background: #4CAF50;
+        color: white;
+        padding: 4px 14px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .question-type {
+        background: #e2e8f0;
+        color: #475569;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 12px;
+    }
+
+    .question-score {
+        color: #f59e0b;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .question-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-edit, .btn-delete, .btn-teacher-ans {
+        padding: 6px 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-teacher-ans {
+        background: #8b5cf6;
+        color: white;
+    }
+
+    .question-text {
+        color: #334155;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 8px;
+        padding-right: 10px;
+        border-right: 3px solid #4CAF50;
+    }
+
+    .question-image {
+        max-width: 150px;
+        max-height: 100px;
+        margin-top: 10px;
+        border-radius: 10px;
+    }
+
+    .teacher-answer {
+        background: #fef3c7;
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 12px;
+        font-size: 13px;
+    }
+
+    .teacher-answer-label {
+        font-weight: 600;
+        color: #92400e;
+        margin-bottom: 6px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #94a3b8;
+    }
+
+    /* استاتوس‌های تقلب */
+    .cheat-stats {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+    .cheat-stat-card {
+        background: #f1f5f9;
+        border-radius: 16px;
+        padding: 15px;
+        text-align: center;
+        min-width: 100px;
+        flex: 1;
+    }
+    .cheat-stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ef4444;
+    }
+    .cheat-stat-label {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 5px;
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+        .info-card {
+            padding: 18px;
+        }
+        .info-card h1 {
+            font-size: 20px;
+        }
+        .info-details {
+            gap: 15px;
+            font-size: 12px;
+        }
+        .questions-card {
+            padding: 18px;
+        }
+        .section-title {
+            font-size: 18px;
+        }
+        .question-item {
+            padding: 14px;
+        }
+        .question-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .question-actions {
+            align-self: flex-end;
+        }
+        .tabs {
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+        .cheat-stats {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- کارت اطلاعات آزمون -->
+    <div class="info-card">
+        <h1>📋 {{ exam.title }}</h1>
+        <div class="info-details">
+            <span>📚 {{ exam.grade.get_name_display }}</span>
+            <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
+            <span>📅 شروع: {{ exam.start_time|date:"Y/m/d H:i" }}</span>
+            <span>🏁 پایان: {{ exam.end_time|date:"Y/m/d H:i" }}</span>
+            <span>🔘 وضعیت: {% if exam.is_active %}✅ فعال{% else %}❌ غیرفعال{% endif %}</span>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'add_question' exam.id %}" class="btn-primary">➕ اضافه کردن سوال جدید</a>
+            <a href="{% url 'edit_exam_info' exam.id %}" class="btn-secondary">✏️ ویرایش اطلاعات آزمون</a>
+            <a href="{% url 'teacher_dashboard' %}" class="btn-secondary">← بازگشت به داشبورد</a>
+        </div>
+
+        <!-- دکمه‌های مدیریتی جدید -->
+        <div class="management-buttons">
+            <a href="{% url 'exam_settings' exam.id %}" class="btn-settings">⚙️ تنظیمات آزمون</a>
+            <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-cheats">⚠️ گزارش تقلب‌ها</a>
+            <a href="{% url 'view_student_answers' exam.id %}" class="btn-answers">📝 پاسخ‌های دانش‌آموزان</a>
+        </div>
+    </div>
+
+    <!-- تب‌ها -->
+    <div class="questions-card">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="questions">📝 سوالات آزمون</button>
+            <button class="tab-btn" data-tab="cheats">⚠️ گزارش تقلب</button>
+            <button class="tab-btn" data-tab="teacher-answers">👨‍🏫 پاسخ‌های تشریحی معلم</button>
+        </div>
+
+        <!-- تب 1: سوالات -->
+        <div id="tab-questions" class="tab-content active">
+            <div class="section-header">
+                <div>
+                    <span class="section-title">📝 سوالات آزمون</span>
+                    <span class="question-count">{{ questions|length }} سوال</span>
+                </div>
+                <a href="{% url 'add_question' exam.id %}" class="btn-primary" style="background: #4CAF50; color: white;">➕ سوال جدید</a>
+            </div>
+
+            <div class="questions-list">
+                {% if questions %}
+                {% for q in questions %}
+                <div class="question-item">
+                    <div class="question-header">
+                        <div class="question-badge">
+                            <span class="question-number">سوال {{ forloop.counter }}</span>
+                            <span class="question-type">{{ q.get_question_type_display }}</span>
+                            <span class="question-score">⭐ {{ q.max_score }} نمره</span>
+                        </div>
+                        <div class="question-actions">
+                            <a href="{% url 'edit_question' exam.id q.id %}" class="btn-edit">✏️ ویرایش</a>
+                            <a href="{% url 'add_teacher_answer' exam.id q.id %}" class="btn-teacher-ans">📝 پاسخ معلم</a>
+                            <!-- جایگزین دکمه حذف قدیمی با این -->
+                            <a href="{% url 'delete_exam' exam.id %}"
+                               class="btn btn-delete"
+                               onclick="return confirm('آیا از حذف این آزمون مطمئن هستید؟');"
+                               title="حذف آزمون">
+                                🗑️ حذف
+                            </a>
+                        </div>
+                    </div>
+                    <div class="question-text">
+                        {{ q.text|truncatewords:30|default:"متن سوال وارد نشده" }}
+                    </div>
+                    {% if q.image %}
+                    <img src="{{ q.image.url }}" class="question-image" alt="تصویر سوال">
+                    {% endif %}
+
+                    <!-- نمایش پاسخ تشریحی معلم اگر وجود داشته باشد -->
+                    {% for ta in questions_with_teacher_answer %}
+                        {% if ta.question.id == q.id and ta.answer_text %}
+                        <div class="teacher-answer">
+                            <div class="teacher-answer-label">📌 پاسخ تشریحی معلم:</div>
+                            {{ ta.answer_text|truncatewords:20 }}
+                            {% if ta.answer_image %}
+                            <br><img src="{{ ta.answer_image.url }}" style="max-width: 100px; margin-top: 8px; border-radius: 8px;">
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    📭 هنوز سوالی به این آزمون اضافه نشده است.<br>
+                    <a href="{% url 'add_question' exam.id %}"
+                       style="color: #4CAF50; margin-top: 10px; display: inline-block;">➕ افزودن سوال جدید</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- تب 2: گزارش تقلب -->
+        <div id="tab-cheats" class="tab-content">
+            <div class="section-header">
+                <span class="section-title">⚠️ گزارش تخلفات دانش‌آموزان</span>
+            </div>
+
+            {% if cheats_stats %}
+            <div class="cheat-stats">
+                <div class="cheat-stat-card">
+                    <div class="cheat-stat-number">{{ cheats_stats.total_cheats|default:0 }}</div>
+                    <div class="cheat-stat-label">کل تخلفات</div>
+                </div>
+                <div class="cheat-stat-card">
+                    <div class="cheat-stat-number">{{ cheats_stats.tab_switch|default:0 }}</div>
+                    <div class="cheat-stat-label">تغییر تب</div>
+                </div>
+                <div class="cheat-stat-card">
+                    <div class="cheat-stat-number">{{ cheats_stats.copy_paste|default:0 }}</div>
+                    <div class="cheat-stat-label">کپی/پیست</div>
+                </div>
+                <div class="cheat-stat-card">
+                    <div class="cheat-stat-number">{{ cheats_stats.multiple_tabs|default:0 }}</div>
+                    <div class="cheat-stat-label">چند تب همزمان</div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if recent_cheats %}
+            <div class="questions-list">
+                {% for cheat in recent_cheats %}
+                <div class="question-item">
+                    <div class="question-header">
+                        <div class="question-badge">
+                            <span class="question-number">{{ cheat.student_name }}</span>
+                            <span class="question-type">{{ cheat.cheat_type_display }}</span>
+                        </div>
+                        <span class="question-score">⏰ {{ cheat.created_at|date:"H:i:s" }}</span>
+                    </div>
+                    <div class="question-text">
+                        {{ cheat.detail|default:"جزئیات ثبت نشده" }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                📭 هنوز هیچ تخلفی ثبت نشده است.
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-primary" style="background: #ef4444;">🔍 مشاهده گزارش کامل تخلفات</a>
+            </div>
+        </div>
+
+        <!-- تب 3: پاسخ‌های تشریحی معلم -->
+        <div id="tab-teacher-answers" class="tab-content">
+            <div class="section-header">
+                <span class="section-title">👨‍🏫 پاسخ‌های تشریحی معلم</span>
+                <span class="question-count">{{ questions_with_teacher_answer|length }} سوال دارای پاسخ</span>
+            </div>
+
+            <div class="questions-list">
+                {% if questions_with_teacher_answer %}
+                {% for item in questions_with_teacher_answer %}
+                <div class="question-item">
+                    <div class="question-header">
+                        <div class="question-badge">
+                            <span class="question-number">سوال {{ item.question.order }}</span>
+                            <span class="question-type">{{ item.question.get_question_type_display }}</span>
+                        </div>
+                        <div class="question-actions">
+                            <a href="{% url 'add_teacher_answer' exam.id item.question.id %}" class="btn-edit">✏️ ویرایش پاسخ</a>
+                        </div>
+                    </div>
+                    <div class="question-text">
+                        <strong>متن سوال:</strong> {{ item.question.text|truncatewords:30 }}
+                    </div>
+                    <div class="teacher-answer">
+                        <div class="teacher-answer-label">📌 پاسخ تشریحی معلم:</div>
+                        {{ item.answer_text|default:"پاسخی ثبت نشده است" }}
+                        {% if item.answer_image %}
+                        <br><img src="{{ item.answer_image.url }}" style="max-width: 150px; margin-top: 8px; border-radius: 8px;">
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    📭 هنوز پاسخی ثبت نشده است.<br>
+                    برای هر سوال می‌توانید پاسخ تشریحی ثبت کنید.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // تب‌ها
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            this.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

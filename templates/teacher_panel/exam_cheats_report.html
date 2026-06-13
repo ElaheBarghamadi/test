@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}گزارش تخلفات آزمون - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+    }
+
+    .container {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* هدر */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        border-radius: 24px;
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .page-header .exam-meta {
+        margin-top: 8px;
+        font-size: 13px;
+        opacity: 0.9;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .btn-back {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 24px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* کارت‌های آمار */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: transform 0.2s;
+        border-bottom: 3px solid var(--danger);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .stat-number {
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--danger);
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--gray-500);
+        margin-top: 6px;
+    }
+
+    /* کارت‌ها */
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gray-800);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        font-size: 22px;
+    }
+
+    /* جدول دانش‌آموزان */
+    .students-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .students-table th {
+        text-align: right;
+        padding: 14px 12px;
+        background: var(--gray-50);
+        font-weight: 600;
+        color: var(--gray-700);
+        border-bottom: 2px solid var(--gray-200);
+        font-size: 13px;
+    }
+
+    .students-table td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--gray-200);
+        vertical-align: top;
+    }
+
+    .student-row {
+        transition: background 0.2s;
+    }
+
+    .student-row:hover {
+        background: var(--gray-50);
+    }
+
+    .student-name {
+        font-weight: 600;
+        color: var(--gray-800);
+    }
+
+    .badge-cheat {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        margin: 2px 4px 2px 0;
+    }
+
+    .badge-tab-switch {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-copy-paste {
+        background: #fed7aa;
+        color: #9a3412;
+    }
+
+    .badge-multiple-tabs {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-other {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .cheat-count {
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--danger);
+    }
+
+    /* لیست تخلفات اخیر */
+    .recent-cheats-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cheat-item {
+        background: var(--gray-50);
+        border-radius: 14px;
+        padding: 14px 18px;
+        border-right: 4px solid var(--danger);
+        transition: all 0.2s;
+    }
+
+    .cheat-item:hover {
+        background: #fef2f2;
+    }
+
+    .cheat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .cheat-student {
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+
+    .cheat-type {
+        font-size: 12px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .cheat-date {
+        font-size: 11px;
+        color: var(--gray-400);
+    }
+
+    .cheat-detail {
+        font-size: 13px;
+        color: var(--gray-600);
+        margin-top: 6px;
+        padding-right: 12px;
+        border-right: 2px solid var(--gray-300);
+    }
+
+    /* خالی بودن */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--gray-400);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    /* ریسپانسیو */
+    @media (max-width: 768px) {
+        .container {
+            padding: 12px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+        }
+
+        .page-header {
+            padding: 18px;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .students-table {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .students-table th, .students-table td {
+            padding: 10px 8px;
+            font-size: 12px;
+        }
+
+        .cheat-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- هدر صفحه -->
+    <div class="page-header">
+        <div>
+            <h1>⚠️ گزارش تخلفات آزمون</h1>
+            <div class="exam-meta">
+                <span>📚 {{ exam.title }}</span>
+                <span>🎓 {{ exam.grade.get_name_display }}</span>
+                <span>👥 {{ total_students|default:0 }} دانش‌آموز</span>
+                <span>🕐 تاریخ: {{ exam.start_time|date:"Y/m/d" }}</span>
+            </div>
+        </div>
+        <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت به آزمون</a>
+    </div>
+
+    <!-- آمار کلی تخلفات -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_cheats|default:0 }}</div>
+            <div class="stat-label">کل تخلفات ثبت شده</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_students_with_cheat|default:0 }}</div>
+            <div class="stat-label">دانش‌آموزان متخلف</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ tab_switch_count|default:0 }}</div>
+            <div class="stat-label">تغییر تب</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ copy_paste_count|default:0 }}</div>
+            <div class="stat-label">کپی/پیست</div>
+        </div>
+    </div>
+
+    <!-- جدول دانش‌آموزان متخلف -->
+    <div class="card">
+        <div class="card-title">
+            <i>📋</i> لیست دانش‌آموزان
+        </div>
+
+        {% if sessions_data %}
+        <table class="students-table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>نام دانش‌آموز</th>
+                <th>تعداد تخلفات</th>
+                <th>نوع تخلفات</th>
+                <th>IP آدرس</th>
+                <th>وضعیت جلسه</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for data in sessions_data %}
+            <tr class="student-row">
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <div class="student-name">{{ data.student_name }}</div>
+                    <div style="font-size: 11px; color: var(--gray-400);">کد: {{ data.student_code }}</div>
+                </td>
+                <td class="cheat-count">{{ data.cheat_count }}</td>
+                <td>
+                    {% for cheat in data.cheats %}
+                    <span class="badge-cheat badge-{{ cheat.cheat_type|default:'other' }}">
+                        {{ cheat.get_cheat_type_display }}
+                    </span>
+                    {% empty %}
+                    <span style="color: var(--gray-400);">-</span>
+                    {% endfor %}
+                </td>
+                <td><code style="font-size: 12px;">{{ data.ip_address }}</code></td>
+                <td>
+                    {% if data.is_active %}
+                    <span style="color: var(--success);">🟢 فعال</span>
+                    {% else %}
+                    <span style="color: var(--gray-400);">⚪ غیرفعال</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <i>✅</i>
+            هیچ جلسه فعالی برای این آزمون ثبت نشده است.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- آخرین تخلفات ثبت شده -->
+    <div class="card">
+        <div class="card-title">
+            <i>🕐</i> آخرین تخلفات ثبت شده
+        </div>
+
+        {% if recent_cheats %}
+        <div class="recent-cheats-list">
+            {% for cheat in recent_cheats %}
+            <div class="cheat-item">
+                <div class="cheat-header">
+                    <div>
+                        <span class="cheat-student">👤 {{ cheat.student_name }}</span>
+                        <span class="cheat-type badge-{{ cheat.cheat_type|default:'other' }}">
+                            {{ cheat.cheat_type_display }}
+                        </span>
+                    </div>
+                    <div class="cheat-date">🕐 {{ cheat.created_at|date:"Y/m/d H:i:s" }}</div>
+                </div>
+                {% if cheat.detail %}
+                <div class="cheat-detail">
+                    📝 {{ cheat.detail }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i>📭</i>
+            هنوز تخلفی ثبت نشده است.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- راهنمای تنظیمات -->
+    <div class="card" style="background: var(--gray-50);">
+        <div class="card-title" style="border-bottom-color: var(--gray-300);">
+            <i>💡</i> نکات مهم
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 8px;">🔍 انواع تخلفات:</div>
+                <ul style="margin-right: 20px; color: var(--gray-600); font-size: 13px;">
+                    <li><span style="color: var(--danger);">●</span> تغییر تب (Tab Switch) - دانش‌آموز از صفحه آزمون
+                        خارج شده
+                    </li>
+                    <li><span style="color: var(--warning);">●</span> کپی/پیست (Copy/Paste) - تلاش برای کپی کردن متن
+                    </li>
+                    <li><span style="color: var(--info);">●</span> چند تب همزمان - باز کردن آزمون در چند تب</li>
+                </ul>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; margin-bottom: 8px;">⚙️ چگونه تخلفات را کاهش دهیم؟</div>
+                <ul style="margin-right: 20px; color: var(--gray-600); font-size: 13px;">
+                    <li>فعال کردن گزینه "جلوگیری از تغییر تب" در تنظیمات آزمون</li>
+                    <li>فعال کردن گزینه "جلوگیری از کپی/پیست"</li>
+                    <li>فعال کردن "ردیابی IP" برای شناسایی ورود همزمان</li>
+                    <li>استفاده از حالت "نمایش تصادفی سوالات"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

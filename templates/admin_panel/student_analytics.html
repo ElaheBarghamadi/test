@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}تحلیل عملکرد دانش‌آموزان{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { --primary: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --gray: #64748b; }
+    .page-header { margin-bottom: 24px; }
+    .filter-bar { background: white; border-radius: 20px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #e2e8f0; }
+    .filter-group { flex: 1; min-width: 180px; }
+    .filter-group label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
+    .filter-group select, .filter-group input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 14px; }
+    .filter-group button { background: var(--primary); color: white; padding: 10px 24px; border: none; border-radius: 14px; cursor: pointer; width: 100%; font-weight: 500; }
+    .students-table { background: white; border-radius: 24px; overflow-x: auto; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th, td { padding: 14px 12px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f8fafc; font-weight: 600; color: var(--dark); }
+    .progress-bar { height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; width: 100px; margin: 0 auto; }
+    .progress-fill { height: 100%; border-radius: 10px; }
+    .badge-excellent { background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 30px; font-size: 11px; }
+    .badge-good { background: #fed7aa; color: #9a3412; padding: 4px 12px; border-radius: 30px; font-size: 11px; }
+    .badge-poor { background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 30px; font-size: 11px; }
+    .stats-summary { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .stat-box { background: white; border-radius: 20px; padding: 16px 24px; flex: 1; text-align: center; border: 1px solid #e2e8f0; }
+    .stat-number { font-size: 28px; font-weight: 800; color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>🎓 تحلیل عملکرد دانش‌آموزان</h1></div>
+
+<div class="filter-bar">
+    <div class="filter-group"><label>پایه</label><select id="gradeFilter"><option value="">همه پایه‌ها</option>{% for grade in grades %}<option value="{{ grade.id }}" {% if selected_grade|stringformat:"s" == grade.id|stringformat:"s" %}selected{% endif %}>{{ grade.get_name_display }}</option>{% endfor %}</select></div>
+    <div class="filter-group"><label>جستجو</label><input type="text" id="searchInput" placeholder="نام، نام خانوادگی، کد دانش‌آموزی..." value="{{ search|default:'' }}"></div>
+    <div class="filter-group"><button id="applyFilter">🔍 اعمال فیلتر</button></div>
+</div>
+
+<div class="students-table">
+    <table>
+        <thead><tr><th>#</th><th>نام دانش‌آموز</th><th>پایه</th><th>کد دانش‌آموزی</th><th>تعداد آزمون</th><th>میانگین نمرات</th><th>وضعیت</th><th>آخرین فعالیت</th></tr></thead>
+        <tbody>
+            {% for item in students_data %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td style="text-align:right;"><strong>{{ item.student.get_full_name|default:item.student.username }}</strong></td>
+                <td>{{ item.student.grade.get_name_display|default:'-' }}</td>
+                <td>{{ item.student.student_code|default:'-' }}</td>
+                <td>{{ item.total_exams }}</td>
+                <td>
+                    <span style="color:{% if item.avg_percentage >= 70 %}#10b981{% elif item.avg_percentage >= 50 %}#f59e0b{% else %}#ef4444{% endif %}; font-weight:700;">{{ item.avg_percentage }}%</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: {{ item.avg_percentage }}%; background: {% if item.avg_percentage >= 70 %}#10b981{% elif item.avg_percentage >= 50 %}#f59e0b{% else %}#ef4444{% endif %};"></div></div>
+                </td>
+                <td>
+                    {% if item.avg_percentage >= 70 %}
+                        <span class="badge-excellent">🎉 عالی</span>
+                    {% elif item.avg_percentage >= 50 %}
+                        <span class="badge-good">📚 قابل قبول</span>
+                    {% else %}
+                        <span class="badge-poor">⚠️ نیاز به تلاش</span>
+                    {% endif %}
+                </td>
+                <td style="font-size:12px;">{{ item.last_activity|date:"Y/m/d H:i"|default:'-' }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center; padding:40px;">📭 دانش‌آموزی یافت نشد</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function applyFilters() {
+        const grade = document.getElementById('gradeFilter').value;
+        const search = document.getElementById('searchInput').value;
+        let url = '{% url "student_analytics" %}?';
+        if (grade) url += `grade=${grade}&`;
+        if (search) url += `search=${encodeURIComponent(search)}&`;
+        window.location.href = url;
+    }
+    document.getElementById('applyFilter').addEventListener('click', applyFilters);
+    document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') applyFilters(); });
+    document.getElementById('gradeFilter').addEventListener('change', applyFilters);
+</script>
+{% endblock %}

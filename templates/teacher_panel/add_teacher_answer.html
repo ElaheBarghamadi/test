@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}پاسخ تشریحی معلم - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        color: #1e293b;
+    }
+
+    .question-box {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+    }
+
+    .question-text {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #334155;
+        margin-top: 10px;
+        padding-right: 10px;
+        border-right: 3px solid #4CAF50;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .current-image {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f1f5f9;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .current-image img {
+        max-width: 150px;
+        border-radius: 8px;
+    }
+
+    .btn-save {
+        background: #4CAF50;
+        color: white;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .btn-back {
+        background: #64748b;
+        color: white;
+        padding: 12px 28px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>📝 پاسخ تشریحی معلم</h3>
+            <p style="color: #64748b; margin-top: 5px;">آزمون: {{ exam.title }}</p>
+        </div>
+
+        <div class="question-box">
+            <strong>📌 متن سوال:</strong>
+            <div class="question-text">
+                {{ question.text|default:"متن سوال وارد نشده" }}
+            </div>
+            {% if question.image %}
+            <img src="{{ question.image.url }}" style="max-width: 150px; margin-top: 10px; border-radius: 8px;">
+            {% endif %}
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>پاسخ تشریحی (متن)</label>
+                <textarea name="answer_text" rows="8" placeholder="پاسخ تشریحی سوال را وارد کنید...">{{ teacher_answer.answer_text|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label>تصویر پاسخ (اختیاری)</label>
+                <input type="file" name="answer_image" accept="image/*">
+                {% if teacher_answer and teacher_answer.answer_image %}
+                <div class="current-image">
+                    <img src="{{ teacher_answer.answer_image.url }}" alt="تصویر پاسخ فعلی">
+                    <label>
+                        <input type="checkbox" name="remove_image"> حذف تصویر فعلی
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">💾 ذخیره پاسخ</button>
+                <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

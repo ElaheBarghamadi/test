@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}صفحه یافت نشد - 404{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 30px;
+        padding: 50px 40px;
+        max-width: 550px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .error-code {
+        font-size: 100px;
+        font-weight: 800;
+        color: #e2e8f0;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        color: #1e293b;
+        margin-bottom: 15px;
+    }
+
+    p {
+        color: #64748b;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn-home {
+        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 40px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 500;
+        transition: transform 0.2s;
+    }
+
+    .btn-home:hover {
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 640px) {
+        .error-card {
+            padding: 30px 25px;
+        }
+
+        .error-code {
+            font-size: 60px;
+        }
+
+        .error-icon {
+            font-size: 60px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">🔍</div>
+        <div class="error-code">۴۰۴</div>
+        <h1>صفحه مورد نظر یافت نشد!</h1>
+        <p>متأسفیم، صفحه‌ای که به دنبال آن هستید وجود ندارد یا حذف شده است.</p>
+        <a href="/" class="btn-home">🏠 بازگشت به صفحه اصلی</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+from django.core.cache import cache
+from django.utils.deprecation import MiddlewareMixin
+from django.shortcuts import redirect
+
+
+class SingleSessionMiddleware(MiddlewareMixin):
+    """محدودیت همزمانی - فقط یک سشن فعال برای هر کاربر"""
+
+    def process_request(self, request):
+        # مسیرهایی که نباید چک شوند
+        exclude_paths = ['/login/', '/logout/', '/admin/', '/favicon.ico', '/media/']
+
+        for path in exclude_paths:
+            if request.path.startswith(path):
+                return None
+
+        # اگر کاربر وارد نشده، کاری نکن
+        if not request.user.is_authenticated:
+            return None
+
+        user_id = str(request.user.id)
+        session_key = request.session.session_key
+
+        if not session_key:
+            return None
+
+        # گرفتن سشن ذخیره شده از کش
+        cached_session = cache.get(f'user_session_{user_id}')
+
+        if cached_session and cached_session != session_key:
+            # کاربر جای دیگری وارد شده، سشن فعلی را باطل کن
+            request.session.flush()
+            return redirect('login')
+        else:
+            # ذخیره سشن فعلی در کش
+            cache.set(f'user_session_{user_id}', session_key, 86400)
+
+        return None

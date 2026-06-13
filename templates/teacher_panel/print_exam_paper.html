@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}برگه امتحان - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none;
+        }
+    }
+
+    .print-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+    }
+
+    .print-header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #1e3c72;
+        padding-bottom: 20px;
+    }
+
+    .exam-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e3c72;
+    }
+
+    .exam-info {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #64748b;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .question {
+        margin-bottom: 30px;
+        page-break-inside: avoid;
+    }
+
+    .question-header {
+        font-weight: 700;
+        font-size: 16px;
+        color: #1e293b;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+
+    .question-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #334155;
+        margin-bottom: 10px;
+    }
+
+    .question-image {
+        max-width: 300px;
+        max-height: 200px;
+        margin: 10px 0;
+        border-radius: 8px;
+    }
+
+    .options {
+        margin: 10px 0 10px 20px;
+    }
+
+    .option {
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    .answer-lines {
+        margin-top: 15px;
+    }
+
+    .answer-line {
+        border-bottom: 1px solid #cbd5e1;
+        margin-bottom: 8px;
+        height: 30px;
+    }
+
+    .score {
+        font-size: 12px;
+        color: #f59e0b;
+    }
+
+    .print-footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    .btn-print {
+        background: #4CAF50;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 10px;
+    }
+
+    .btn-close {
+        background: #64748b;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 10px;
+    }
+
+    .button-bar {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 640px) {
+        .print-container {
+            padding: 15px;
+        }
+        .exam-title {
+            font-size: 18px;
+        }
+        .question-header {
+            font-size: 14px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="print-container">
+    <div class="button-bar no-print">
+        <button class="btn-print" onclick="window.print()">🖨️ چاپ برگه امتحان</button>
+        <button class="btn-close" onclick="window.close()">✖ بستن</button>
+    </div>
+
+    <div class="print-header">
+        <div class="exam-title">{{ exam.title }}</div>
+        <div class="exam-info">
+            <span>📚 {{ exam.grade.get_name_display }}</span>
+            <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
+            <span>📅 {{ exam.start_time|date:"Y/m/d" }}</span>
+        </div>
+    </div>
+
+    {% for question in questions %}
+    <div class="question">
+        <div class="question-header">
+            <span>سوال {{ forloop.counter }}</span>
+            <span class="score">(بارم: {{ question.max_score }} نمره)</span>
+        </div>
+        <div class="question-text">
+            {{ question.text|linebreaks }}
+        </div>
+        {% if question.image %}
+            <div>
+                <img src="{{ question.image.url }}" class="question-image" alt="تصویر سوال">
+            </div>
+        {% endif %}
+
+        {% if question.question_type == 'multiple_choice' %}
+            <div class="options">
+                {% for option in question.options %}
+                    <div class="option">□ {{ option }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if question.question_type == 'true_false' %}
+            <div class="options">
+                <div class="option">□ صحیح</div>
+                <div class="option">□ غلط</div>
+            </div>
+        {% endif %}
+
+        <div class="answer-lines">
+            <div class="answer-line"></div>
+            <div class="answer-line"></div>
+            <div class="answer-line"></div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="print-footer">
+        موفق باشید 🌹
+    </div>
+</div>
+{% endblock %}

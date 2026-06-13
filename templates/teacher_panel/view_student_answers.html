@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}پاسخ دانش‌آموزان - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container { max-width: 1000px; margin: 0 auto; }
+    .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
+    .student-card { border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 20px; overflow: hidden; }
+    .student-header { background: #f8fafc; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; cursor: pointer; }
+    .student-name { font-weight: 700; font-size: 16px; }
+    .student-score { background: #4CAF50; color: white; padding: 4px 12px; border-radius: 30px; font-size: 13px; }
+    .answers-list { display: none; padding: 20px; border-top: 1px solid #e2e8f0; }
+    .answers-list.show { display: block; }
+    .answer-item { border-bottom: 1px solid #e2e8f0; padding: 15px; margin-bottom: 10px; }
+    .question-title { font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; }
+    .student-answer { background: #f1f5f9; padding: 12px; border-radius: 12px; margin: 10px 0; }
+    .teacher-answer { background: #fef3c7; padding: 12px; border-radius: 12px; margin-top: 10px; }
+    .score-input { width: 80px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: center; }
+    .save-score-btn { background: #4CAF50; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-right: 10px; }
+    .score-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; }
+    .score-correct { background: #d1fae5; color: #065f46; }
+    .score-wrong { background: #fee2e2; color: #991b1b; }
+    .btn-back { background: #64748b; color: white; padding: 8px 20px; border-radius: 12px; text-decoration: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>📝 پاسخ‌های دانش‌آموزان - {{ exam.title }}</h3>
+            <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت</a>
+        </div>
+
+        {% for data in students_data %}
+        <div class="student-card">
+            <div class="student-header" onclick="toggleAnswers(this)">
+                <span class="student-name">👤 {{ data.student.get_full_name }}</span>
+                <span class="student-score">⭐ نمره: {{ data.total_score|floatformat:1 }} از {{ data.total_possible|floatformat:1 }} ({{ data.percentage }}%)</span>
+            </div>
+            <div class="answers-list">
+                {% for answer in data.answers %}
+                <div class="answer-item" data-question-id="{{ answer.question.id }}" data-student-id="{{ data.student.id }}">
+                    <div class="question-title">
+                        <span>سوال {{ forloop.counter }}: {{ answer.question.text|truncatewords:20 }}</span>
+                        <span class="score-badge {% if answer.is_correct %}score-correct{% else %}score-wrong{% endif %}">
+                            {% if answer.is_correct %}✓ صحیح{% else %}✗ نادرست{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="student-answer">
+                        <strong>📝 پاسخ دانش‌آموز:</strong>
+                        {% if answer.answer and answer.answer.answer_text %}
+                        <p>{{ answer.answer.answer_text }}</p>
+                        {% elif answer.answer and answer.answer.answer_image %}
+                        <img src="{{ answer.answer.answer_image.url }}" style="max-width: 150px; border-radius: 8px;">
+                        {% else %}
+                        <p style="color: #94a3b8;">پاسخی ثبت نشده</p>
+                        {% endif %}
+                    </div>
+
+                    {% if answer.teacher_answer and answer.teacher_answer.answer_text %}
+                    <div class="teacher-answer">
+                        <strong>👨‍🏫 پاسخ صحیح (معلم):</strong>
+                        <p>{{ answer.teacher_answer.answer_text }}</p>
+                        {% if answer.teacher_answer.answer_image %}
+                        <img src="{{ answer.teacher_answer.answer_image.url }}" style="max-width: 150px; border-radius: 8px;">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div style="margin-top: 10px;">
+                        <label>نمره:</label>
+                        <input type="number" class="score-input" value="{{ answer.score|default:0 }}" step="0.25" min="0" max="{{ answer.max_score }}">
+                        <button class="save-score-btn" onclick="saveScore(this, {{ exam.id }}, {{ data.student.id }}, {{ answer.question.id }}, {{ answer.max_score }})">💾 ذخیره نمره</button>
+                        <span class="max-score-hint">از {{ answer.max_score|floatformat:1 }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 60px; color: #94a3b8;">📭 هنوز دانش‌آموزی آزمون را تکمیل نکرده است.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function toggleAnswers(header) {
+        header.nextElementSibling.classList.toggle('show');
+    }
+
+    function getCSRFToken() {
+        return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || '';
+    }
+
+    async function saveScore(btn, examId, studentId, questionId, maxScore) {
+        const scoreInput = btn.parentElement.querySelector('.score-input');
+        let score = parseFloat(scoreInput.value);
+
+        if (isNaN(score)) score = 0;
+        if (score > maxScore) score = maxScore;
+        if (score < 0) score = 0;
+
+        scoreInput.value = score;
+        btn.disabled = true;
+        btn.textContent = '⏳ در حال ذخیره...';
+
+        try {
+            const response = await fetch(`/teacher/save-score/${examId}/${studentId}/${questionId}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+                body: JSON.stringify({ score: score })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                btn.textContent = '✅ ذخیره شد';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.textContent = '💾 ذخیره نمره';
+                    btn.style.background = '#4CAF50';
+                    btn.disabled = false;
+                }, 1500);
+            } else {
+                btn.textContent = '❌ خطا';
+                btn.style.background = '#ef4444';
+                setTimeout(() => {
+                    btn.textContent = '💾 ذخیره نمره';
+                    btn.style.background = '#4CAF50';
+                    btn.disabled = false;
+                }, 2000);
+            }
+        } catch (error) {
+            btn.textContent = '❌ خطا';
+            btn.style.background = '#ef4444';
+            setTimeout(() => {
+                btn.textContent = '💾 ذخیره نمره';
+                btn.style.background = '#4CAF50';
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+</script>
+{% endblock %}

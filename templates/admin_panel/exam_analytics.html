@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}تحلیل آزمون‌ها{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root { --primary: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --gray: #64748b; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.6rem; color: var(--dark); }
+    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+    .stat-box { background: white; border-radius: 20px; padding: 16px 24px; flex: 1; min-width: 140px; text-align: center; border: 1px solid #e2e8f0; }
+    .stat-number { font-size: 28px; font-weight: 800; color: var(--primary); }
+    .filter-bar { background: white; border-radius: 20px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #e2e8f0; }
+    .filter-group { flex: 1; min-width: 150px; }
+    .filter-group label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
+    .filter-group select, .filter-group input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 14px; }
+    .filter-group button { background: var(--primary); color: white; padding: 10px 24px; border: none; border-radius: 14px; cursor: pointer; width: 100%; font-weight: 500; }
+    .analytics-table { background: white; border-radius: 24px; overflow-x: auto; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th, td { padding: 14px 12px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+    th { background: #f8fafc; font-weight: 600; color: var(--dark); }
+    .badge-active { background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 30px; font-size: 12px; }
+    .badge-inactive { background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 30px; font-size: 12px; }
+    .progress-bar { height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; width: 100px; margin: 0 auto; }
+    .progress-fill { height: 100%; border-radius: 10px; }
+    @media (max-width: 768px) { th, td { font-size: 12px; padding: 8px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header"><h1>📈 تحلیل و گزارش‌گیری از آزمون‌ها</h1></div>
+
+<div class="stats-row">
+    <div class="stat-box"><div class="stat-number">{{ exams|length }}</div><div>کل آزمون‌ها</div></div>
+    <div class="stat-box"><div class="stat-number">{% with active_count=0 %}{% for e in exams %}{% if e.is_active %}{% endif %}{% endfor %}{% endwith %}{{ exams|length }}</div><div>آزمون فعال</div></div>
+</div>
+
+<div class="filter-bar">
+    <div class="filter-group"><label>پایه</label><select id="gradeFilter"><option value="">همه پایه‌ها</option>{% for grade in grades %}<option value="{{ grade.id }}" {% if selected_grade|stringformat:"s" == grade.id|stringformat:"s" %}selected{% endif %}>{{ grade.get_name_display }}</option>{% endfor %}</select></div>
+    <div class="filter-group"><label>وضعیت</label><select id="statusFilter"><option value="">همه</option><option value="active" {% if selected_status == 'active' %}selected{% endif %}>فعال</option><option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>غیرفعال</option></select></div>
+    <div class="filter-group"><label>از تاریخ</label><input type="date" id="dateFrom" value="{{ date_from|default:'' }}"></div>
+    <div class="filter-group"><label>تا تاریخ</label><input type="date" id="dateTo" value="{{ date_to|default:'' }}"></div>
+    <div class="filter-group"><button id="applyFilter">🔍 اعمال فیلتر</button></div>
+</div>
+
+<div class="analytics-table">
+    <table>
+        <thead><tr><th>#</th><th>عنوان آزمون</th><th>معلم</th><th>پایه</th><th>تعداد سوال</th><th>دانش‌آموز</th><th>شرکت‌کننده</th><th>درصد شرکت</th><th>وضعیت</th><th>تاریخ ایجاد</th></tr></thead>
+        <tbody>
+            {% for exam in exams %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td style="text-align:right;"><strong>{{ exam.title }}</strong></td>
+                <td>{{ exam.teacher.get_full_name|default:exam.teacher.username }}</td>
+                <td>{{ exam.grade.get_name_display|default:'-' }}</td>
+                <td>{{ exam.questions_count }}</td>
+                <td>{{ exam.students_count }}</td>
+                <td>{{ exam.submitted_count }}</td>
+                <td>
+                    {% widthratio exam.submitted_count exam.students_count 100 as participation %}
+                    <span>{{ participation|default:0 }}%</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: {{ participation|default:0 }}%; background: {% if participation >= 70 %}#10b981{% elif participation >= 50 %}#f59e0b{% else %}#ef4444{% endif %};"></div></div>
+                </td>
+                <td><span class="{% if exam.is_active %}badge-active{% else %}badge-inactive{% endif %}">{% if exam.is_active %}فعال{% else %}غیرفعال{% endif %}</span></td>
+                <td style="font-size:12px;">{{ exam.created_at|date:"Y/m/d" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" style="text-align:center; padding:40px;">📭 آزمونی یافت نشد</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function applyFilters() {
+        const grade = document.getElementById('gradeFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        let url = '{% url "exam_analytics" %}?';
+        if (grade) url += `grade=${grade}&`;
+        if (status) url += `status=${status}&`;
+        if (dateFrom) url += `date_from=${dateFrom}&`;
+        if (dateTo) url += `date_to=${dateTo}&`;
+        window.location.href = url;
+    }
+    document.getElementById('applyFilter').addEventListener('click', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('gradeFilter').addEventListener('change', applyFilters);
+</script>
+{% endblock %}

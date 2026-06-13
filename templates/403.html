@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}دسترسی غیرمجاز - 403{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 30px;
+        padding: 50px 40px;
+        max-width: 550px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .error-code {
+        font-size: 100px;
+        font-weight: 800;
+        color: #fed7aa;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        color: #9a3412;
+        margin-bottom: 15px;
+    }
+
+    p {
+        color: #64748b;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn-home {
+        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 40px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 500;
+    }
+
+    .btn-back {
+        background: #e2e8f0;
+        color: #475569;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 40px;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">🚫</div>
+        <div class="error-code">۴۰۳</div>
+        <h1>دسترسی غیرمجاز!</h1>
+        <p>شما اجازه دسترسی به این صفحه را ندارید. لطفاً با حساب کاربری مناسب وارد شوید.</p>
+        <a href="javascript:history.back()" class="btn-back">← بازگشت</a>
+        <a href="/" class="btn-home">🏠 صفحه اصلی</a>
+    </div>
+</div>
+{% endblock %}

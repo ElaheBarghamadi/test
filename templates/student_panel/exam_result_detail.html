@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}نتیجه آزمون - {{ exam.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>📊 نتیجه آزمون: {{ exam.title }}</h3>
+        </div>
+        <div class="result-summary">
+            <div class="score-box">
+                <div class="score-number">{{ total_score|floatformat:1 }}</div>
+                <div>از {{ total_possible|floatformat:1 }} نمره</div>
+                <div class="percentage">{{ percentage }}%</div>
+            </div>
+        </div>
+
+        <div class="questions-list">
+            {% for item in question_scores %}
+            <div class="question-item">
+                <div class="question-header">
+                    <span class="question-number">سوال {{ forloop.counter }}</span>
+                    <span class="question-score">نمره: {{ item.score|floatformat:1 }} / {{ item.max_score|floatformat:1 }}</span>
+                </div>
+                <div class="question-text">{{ item.question.text|truncatewords:50 }}</div>
+                <div class="student-answer">
+                    <strong>پاسخ شما:</strong>
+                    {% if item.answer and item.answer.answer_text %}
+                        <p>{{ item.answer.answer_text }}</p>
+                    {% elif item.answer and item.answer.answer_image %}
+                        <img src="{{ item.answer.answer_image.url }}" style="max-width: 150px;">
+                    {% else %}
+                        <p class="no-answer">پاسخی ثبت نشده</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'student_dashboard' %}" class="btn-back">← بازگشت به داشبورد</a>
+    </div>
+</div>
+
+<style>
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: white; border-radius: 20px; padding: 25px; margin: 20px; }
+    .card-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
+    .result-summary { text-align: center; margin-bottom: 30px; }
+    .score-box { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 30px; border-radius: 20px; }
+    .score-number { font-size: 48px; font-weight: 700; }
+    .percentage { font-size: 24px; margin-top: 10px; }
+    .question-item { border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+    .question-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .question-number { background: #4CAF50; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+    .question-score { color: #f59e0b; font-weight: 600; }
+    .student-answer { background: #f8fafc; padding: 12px; border-radius: 12px; margin-top: 10px; }
+    .no-answer { color: #94a3b8; }
+    .btn-back { background: #64748b; color: white; padding: 10px 24px; border-radius: 12px; text-decoration: none; display: inline-block; margin-top: 20px; }
+</style>
+{% endblock %}

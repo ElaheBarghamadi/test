@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}خطای سرور - 500{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 30px;
+        padding: 50px 40px;
+        max-width: 550px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .error-code {
+        font-size: 100px;
+        font-weight: 800;
+        color: #fee2e2;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        color: #991b1b;
+        margin-bottom: 15px;
+    }
+
+    p {
+        color: #64748b;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn-home {
+        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 40px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 500;
+        transition: transform 0.2s;
+    }
+
+    .btn-home:hover {
+        transform: translateY(-2px);
+    }
+
+    .contact-link {
+        margin-top: 20px;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">⚠️</div>
+        <div class="error-code">۵۰۰</div>
+        <h1>خطای داخلی سرور!</h1>
+        <p>متأسفیم، مشکلی در سرور رخ داده است. لطفاً چند دقیقه دیگر تلاش کنید.</p>
+        <a href="/" class="btn-home">🏠 بازگشت به صفحه اصلی</a>
+        <div class="contact-link">
+            در صورت تکرار مشکل، با پشتیبانی تماس بگیرید.
+        </div>
+    </div>
+</div>
+{% endblock %}

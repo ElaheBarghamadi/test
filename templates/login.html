@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}ورود به سامانه آزمون{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ریست کامل برای صفحه ورود */
+    body {
+        overflow: hidden;
+    }
+
+    .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .login-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: #eef2f8;
+        z-index: 100;
+        overflow: auto;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 28px;
+        padding: 40px 38px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.25s ease;
+        border: 1px solid #e2e8f0;
+    }
+
+    .login-card:hover {
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-icon {
+        font-size: 56px;
+        margin-bottom: 12px;
+    }
+
+    .login-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 6px;
+    }
+
+    .login-sub {
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #334155;
+        font-size: 13px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: white;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #2a5298;
+        box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.08);
+    }
+
+    .form-group input::placeholder {
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 12px;
+        background: #2a5298;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 8px;
+    }
+
+    .login-btn:hover {
+        background: #1e3c72;
+    }
+
+    .error-msg {
+        background: #fef2f2;
+        color: #dc2626;
+        padding: 12px 16px;
+        border-radius: 24px;
+        font-size: 13px;
+        margin-bottom: 22px;
+        text-align: center;
+        border-right: 3px solid #dc2626;
+    }
+
+    .demo-info {
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 1px solid #edf2f7;
+        text-align: center;
+    }
+
+    .demo-title {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-bottom: 10px;
+        letter-spacing: 0.3px;
+    }
+
+    .demo-accounts {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .demo-item {
+        background: #f8fafc;
+        padding: 6px 14px;
+        border-radius: 40px;
+        font-size: 11px;
+        font-weight: 500;
+        color: #334155;
+        transition: all 0.2s;
+        border: 1px solid #eef2f6;
+    }
+
+    .demo-item:hover {
+        background: #f1f5f9;
+    }
+
+    .demo-item strong {
+        color: #2a5298;
+        font-weight: 700;
+    }
+
+    /* مخفی کردن نوار و فوتر */
+    .navbar, .footer {
+        display: none !important;
+    }
+
+    @media (max-width: 640px) {
+        .login-card {
+            padding: 28px 22px;
+            border-radius: 24px;
+        }
+
+        .login-title {
+            font-size: 22px;
+        }
+
+        .login-icon {
+            font-size: 48px;
+        }
+
+        .form-group input {
+            padding: 10px 14px;
+        }
+
+        .demo-accounts {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .demo-item {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-icon">📚</div>
+            <div class="login-title">سامانه آزمون غیرحضوری</div>
+            <div class="login-sub">ورود معلمان و دانش‌آموزان</div>
+        </div>
+
+        {% if error %}
+        <div class="error-msg">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>نام کاربری</label>
+                <input type="text" name="username" placeholder="teacher1 / student1" required autofocus>
+            </div>
+            <div class="form-group">
+                <label>رمز عبور</label>
+                <input type="password" name="password" placeholder="رمز عبور خود را وارد کنید" required>
+            </div>
+            <button type="submit" class="login-btn">
+                ورود به سامانه
+            </button>
+        </form>
+
+        <div class="demo-info">
+            <div class="demo-title">دبیرستان فرزانگان 1 سبزوار | حقوق محفوظ است .</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

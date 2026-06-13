@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}تداخل ورود{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin: 100px auto; text-align: center;">
+    <div class="card" style="background: white; border-radius: 20px; padding: 40px;">
+        <div class="icon" style="font-size: 60px;">⚠️</div>
+        <h2 style="color: #dc2626;">تداخل در ورود!</h2>
+        <p style="margin: 20px 0; color: #475569;">
+            شما در جای دیگری با همین حساب کاربری وارد شده‌اید.<br>
+            برای ادامه، لطفاً از مرورگر دیگر خارج شوید.
+        </p>
+        <a href="{% url 'logout_view' %}" class="btn"
+           style="background: #dc2626; color: white; padding: 10px 25px; border-radius: 30px; text-decoration: none;">خروج
+            از حساب</a>
+    </div>
+</div>
+{% endblock %}

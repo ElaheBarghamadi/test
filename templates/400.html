@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}درخواست نادرست - 400{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 30px;
+        padding: 50px 40px;
+        max-width: 550px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .error-code {
+        font-size: 100px;
+        font-weight: 800;
+        color: #cbd5e1;
+        line-height: 1;
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        color: #475569;
+        margin-bottom: 15px;
+    }
+
+    p {
+        color: #64748b;
+        margin-bottom: 30px;
+    }
+
+    .btn-home {
+        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 40px;
+        text-decoration: none;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">❓</div>
+        <div class="error-code">۴۰۰</div>
+        <h1>درخواست نادرست!</h1>
+        <p>درخواست شما توسط سرور قابل پردازش نیست. لطفاً دوباره تلاش کنید.</p>
+        <a href="/" class="btn-home">🏠 صفحه اصلی</a>
+    </div>
+</div>
+{% endblock %}

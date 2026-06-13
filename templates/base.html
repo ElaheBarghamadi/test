@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>{% block title %}سامانه آزمون فرزانگان 1 سبزوار{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, 'Vazirmatn', system-ui, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== Glassmorphism Navbar ========== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(30, 60, 114, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            gap: 15px;
+        }
+
+        /* Logo */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 5px 15px;
+            border-radius: 40px;
+        }
+
+        .logo-icon {
+            font-size: 26px;
+        }
+
+        .logo-text {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .logo-sub {
+            font-size: 9px;
+            opacity: 0.75;
+        }
+
+        /* Desktop Menu */
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 7px 16px;
+            border-radius: 35px;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Dropdown - با کلیک باز می‌شود */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 7px 16px;
+            border-radius: 35px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropdown-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 42px;
+            background: white;
+            min-width: 200px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-radius: 16px;
+            z-index: 1001;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .dropdown-content a {
+            color: #1e293b;
+            padding: 12px 18px;
+            text-decoration: none;
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .dropdown-content a:hover {
+            background: #f1f5f9;
+        }
+
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        /* کلاس برای نمایش منو */
+        .dropdown-content.show {
+            display: block;
+        }
+
+        /* ========== Hamburger Menu (Mobile) ========== */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 10px;
+            border-radius: 12px;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background: white;
+            margin: 3px 0;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 65px;
+            right: 0;
+            left: 0;
+            background: #1e3c72;
+            padding: 16px 20px;
+            border-radius: 0 0 20px 20px;
+            z-index: 999;
+            flex-direction: column;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-menu a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 40px;
+            font-size: 14px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mobile-menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mobile-menu .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.15);
+            margin: 5px 0;
+        }
+
+        .logout-item {
+            color: #fca5a5;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: #64748b;
+            font-size: 11px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 40px;
+            background: white;
+            border-radius: 25px 25px 0 0;
+        }
+
+        /* ========== Responsive ========== */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 8px 16px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .logo-text {
+                font-size: 15px;
+            }
+
+            .logo-sub {
+                display: none;
+            }
+
+            .logo {
+                padding: 4px 12px;
+            }
+
+            .main-content {
+                padding: 0 12px;
+                margin: 12px auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-icon {
+                font-size: 22px;
+            }
+
+            .logo-text {
+                font-size: 13px;
+            }
+        }
+
+        @media print {
+            .navbar, .footer, .hamburger, .mobile-menu {
+                display: none;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <div class="nav-container">
+        <div class="logo">
+            <span class="logo-icon">📚</span>
+            <div>
+                <div class="logo-text">سامانه آزمون</div>
+                <div class="logo-sub">فرزانگان 1 سبزوار</div>
+            </div>
+        </div>
+
+        <!-- Desktop Menu -->
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+            <a href="{% url 'admin_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+            <a href="{% url 'manage_users' %}" class="nav-link">👥 مدیریت کاربران</a>
+            <a href="{% url 'manage_exams' %}" class="nav-link">📋 مدیریت آزمون‌ها</a>
+            <a href="{% url 'system_logs' %}" class="nav-link">📜 لاگ سیستم</a>
+            {% elif user.role == 'teacher' %}
+            <a href="{% url 'teacher_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+            <a href="{% url 'create_exam' %}" class="nav-link">➕ آزمون جدید</a>
+            {% elif user.role == 'student' %}
+            <a href="{% url 'student_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+            {% endif %}
+
+            <div class="dropdown" id="userDropdown">
+                <button class="dropdown-btn" id="dropdownBtn"
+                        style="font-family: inherit; font-size: 13px; font-weight: 500;">
+                    {% if user.role == 'admin' %}🛡️{% elif user.role == 'teacher' %}👨‍🏫{% else %}👤{% endif %}
+                    {{ user.get_full_name|default:user.username }}
+                    <span style="font-size: 11px; opacity: 0.7; font-family: inherit;">
+        ({% if user.role == 'admin' %}ادمین{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %})
+    </span>
+                    ▼
+                </button>
+                <div class="dropdown-content" id="dropdownContent">
+                    <a href="#">👤 پروفایل</a>
+                    {% if user.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}">🏠 داشبورد</a>
+                    <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
+                    <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
+                    <a href="{% url 'system_logs' %}">📜 لاگ سیستم</a>
+                    {% elif user.role == 'teacher' %}
+                    <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
+                    {% elif user.role == 'student' %}
+                    <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
+                    {% endif %}
+                    <a href="{% url 'logout_view' %}" style="color: #dc2626;">🚪 خروج</a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{% url 'login' %}" class="nav-link">🔐 ورود</a>
+            {% endif %}
+        </div>
+
+        <!-- Hamburger Icon (Mobile) -->
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+    {% if user.is_authenticated %}
+    {% if user.role == 'admin' %}
+    <a href="{% url 'admin_dashboard' %}">🏠 داشبورد</a>
+    <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
+    <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
+    <a href="{% url 'system_logs' %}">📜 لاگ سیستم</a>
+    {% elif user.role == 'teacher' %}
+    <a href="{% url 'teacher_dashboard' %}">🏠 داشبورد</a>
+    <a href="{% url 'create_exam' %}">➕ آزمون جدید</a>
+    {% elif user.role == 'student' %}
+    <a href="{% url 'student_dashboard' %}">🏠 داشبورد</a>
+    {% endif %}
+    <div class="divider"></div>
+    <a href="#">👤 پروفایل</a>
+    {% if user.role == 'admin' %}
+    <a href="{% url 'admin_dashboard' %}">🏠 داشبورد</a>
+    <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
+    {% elif user.role == 'teacher' %}
+    <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
+    {% elif user.role == 'student' %}
+    <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
+    {% endif %}
+    <a href="{% url 'logout_view' %}" class="logout-item">🚪 خروج</a>
+    {% else %}
+    <a href="{% url 'login' %}">🔐 ورود به سامانه</a>
+    {% endif %}
+</div>
+
+<div class="main-content">
+    {% block content %}{% endblock %}
+</div>
+
+<div class="footer">
+    سامانه آزمون غیرحضوری | طراحی شده برای فرزانگان 1 سبزوار | © ۱۴۰۵
+</div>
+
+<script>
+    // Hamburger Menu Toggle
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    let menuOpen = false;
+
+    if (hamburger && mobileMenu) {
+        hamburger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!menuOpen) {
+                mobileMenu.style.display = 'flex';
+                menuOpen = true;
+            } else {
+                mobileMenu.style.display = 'none';
+                menuOpen = false;
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!hamburger.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.style.display = 'none';
+                menuOpen = false;
+            }
+        });
+    }
+
+    // ========== Dropdown با کلیک (hover نیست) ==========
+    const dropdownBtn = document.getElementById('dropdownBtn');
+    const dropdownContent = document.getElementById('dropdownContent');
+    let dropdownOpen = false;
+
+    if (dropdownBtn && dropdownContent) {
+        dropdownBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!dropdownOpen) {
+                dropdownContent.classList.add('show');
+                dropdownOpen = true;
+            } else {
+                dropdownContent.classList.remove('show');
+                dropdownOpen = false;
+            }
+        });
+
+        // بستن منو با کلیک بیرون
+        document.addEventListener('click', function (e) {
+            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                dropdownContent.classList.remove('show');
+                dropdownOpen = false;
+            }
+        });
+
+        // جلوگیری از بسته شدن منو هنگام کلیک روی لینک‌های داخل
+        dropdownContent.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+</script>
+</body>
+</html>
