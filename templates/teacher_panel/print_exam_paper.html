@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}برگه امتحان - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
@@ -7,6 +9,10 @@
         .no-print {
             display: none;
         }
+        .print-container {
+            padding: 20px;
+            background: white;
+        }
     }
 
     .print-container {
@@ -14,131 +20,179 @@
         margin: 0 auto;
         background: white;
         padding: 30px;
+        border-radius: 0;
     }
 
+    .button-bar {
+        text-align: center;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    /* Glass Buttons */
+    .btn-print, .btn-close {
+        padding: 10px 28px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #a07830, #8b6914);
+        color: white;
+        box-shadow: 0 2px 8px rgba(139, 105, 20, 0.2);
+    }
+
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(139, 105, 20, 0.3);
+    }
+
+    .btn-close {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .btn-close:hover {
+        background: #cbd5e1;
+        transform: translateY(-2px);
+    }
+
+    /* Print Header */
     .print-header {
         text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #1e3c72;
+        margin-bottom: 35px;
+        border-bottom: 2px solid #c49a2b;
         padding-bottom: 20px;
     }
 
     .exam-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #1e3c72;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #5a3e2b;
+        letter-spacing: -0.3px;
     }
 
     .exam-info {
-        margin-top: 10px;
-        font-size: 13px;
-        color: #64748b;
+        margin-top: 12px;
+        font-size: 0.75rem;
+        color: #8b6b4a;
         display: flex;
         justify-content: center;
         gap: 20px;
         flex-wrap: wrap;
     }
 
+    /* Question Styling */
     .question {
-        margin-bottom: 30px;
+        margin-bottom: 35px;
         page-break-inside: avoid;
     }
 
     .question-header {
         font-weight: 700;
-        font-size: 16px;
-        color: #1e293b;
-        margin-bottom: 10px;
-        padding-bottom: 5px;
-        border-bottom: 1px solid #e2e8f0;
+        font-size: 1rem;
+        color: #4a3220;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(200, 180, 140, 0.5);
         display: flex;
         justify-content: space-between;
+        align-items: center;
         flex-wrap: wrap;
+        gap: 8px;
     }
 
     .question-text {
-        font-size: 14px;
-        line-height: 1.6;
+        font-size: 0.9rem;
+        line-height: 1.65;
         color: #334155;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
 
     .question-image {
-        max-width: 300px;
-        max-height: 200px;
-        margin: 10px 0;
-        border-radius: 8px;
+        max-width: 280px;
+        max-height: 180px;
+        margin: 12px 0;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
     }
 
     .options {
-        margin: 10px 0 10px 20px;
+        margin: 12px 0 12px 20px;
     }
 
     .option {
-        margin-bottom: 5px;
-        font-size: 14px;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .option-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 4px;
+        display: inline-block;
     }
 
     .answer-lines {
-        margin-top: 15px;
+        margin-top: 18px;
     }
 
     .answer-line {
-        border-bottom: 1px solid #cbd5e1;
-        margin-bottom: 8px;
-        height: 30px;
+        border-bottom: 1px dashed #cbd5e1;
+        margin-bottom: 10px;
+        height: 28px;
     }
 
-    .score {
-        font-size: 12px;
-        color: #f59e0b;
+    .score-badge {
+        font-size: 0.7rem;
+        background: #fef3c7;
+        color: #d4a017;
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-weight: 600;
     }
 
     .print-footer {
         text-align: center;
-        margin-top: 40px;
+        margin-top: 45px;
         padding-top: 15px;
         border-top: 1px solid #e2e8f0;
-        font-size: 11px;
+        font-size: 0.7rem;
         color: #94a3b8;
     }
 
-    .btn-print {
-        background: #4CAF50;
-        color: white;
-        padding: 10px 25px;
-        border: none;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 14px;
-        margin: 10px;
-    }
-
-    .btn-close {
-        background: #64748b;
-        color: white;
-        padding: 10px 25px;
-        border: none;
-        border-radius: 30px;
-        cursor: pointer;
-        font-size: 14px;
-        margin: 10px;
-    }
-
-    .button-bar {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
+    /* Responsive */
     @media (max-width: 640px) {
         .print-container {
             padding: 15px;
         }
         .exam-title {
-            font-size: 18px;
+            font-size: 1.2rem;
         }
         .question-header {
-            font-size: 14px;
+            font-size: 0.9rem;
+        }
+        .question-text {
+            font-size: 0.85rem;
+        }
+        .btn-print, .btn-close {
+            padding: 8px 20px;
+            font-size: 0.75rem;
         }
     }
 </style>
@@ -148,7 +202,7 @@
 <div class="print-container">
     <div class="button-bar no-print">
         <button class="btn-print" onclick="window.print()">🖨️ چاپ برگه امتحان</button>
-        <button class="btn-close" onclick="window.close()">✖ بستن</button>
+        <button class="btn-close" onclick="window.history.back()">✖ بازگشت</button>
     </div>
 
     <div class="print-header">
@@ -164,10 +218,10 @@
     <div class="question">
         <div class="question-header">
             <span>سوال {{ forloop.counter }}</span>
-            <span class="score">(بارم: {{ question.max_score }} نمره)</span>
+            <span class="score-badge">⭐ {{ question.max_score|floatformat:2 }} نمره</span>
         </div>
         <div class="question-text">
-            {{ question.text|linebreaks }}
+            {{ question.text|linebreaksbr }}
         </div>
         {% if question.image %}
             <div>
@@ -178,15 +232,24 @@
         {% if question.question_type == 'multiple_choice' %}
             <div class="options">
                 {% for option in question.options %}
-                    <div class="option">□ {{ option }}</div>
+                    <div class="option">
+                        <span class="option-checkbox"></span>
+                        <span>{{ option }}</span>
+                    </div>
                 {% endfor %}
             </div>
         {% endif %}
 
         {% if question.question_type == 'true_false' %}
             <div class="options">
-                <div class="option">□ صحیح</div>
-                <div class="option">□ غلط</div>
+                <div class="option">
+                    <span class="option-checkbox"></span>
+                    <span>✅ صحیح</span>
+                </div>
+                <div class="option">
+                    <span class="option-checkbox"></span>
+                    <span>❌ غلط</span>
+                </div>
             </div>
         {% endif %}
 
@@ -199,7 +262,17 @@
     {% endfor %}
 
     <div class="print-footer">
-        موفق باشید 🌹
+        موفق باشید 🌹 | با آرزوی بهترین نتیجه‌ها
     </div>
 </div>
+
+<script>
+    // پشتیبانی از چاپ (حذف هدر و فوتر خودکار)
+    window.onbeforeprint = function() {
+        document.body.style.background = 'white';
+    };
+    window.onafterprint = function() {
+        document.body.style.background = '';
+    };
+</script>
 {% endblock %}

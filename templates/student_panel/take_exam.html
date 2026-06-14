@@ -1,125 +1,93 @@
+{% load static %}
 <!DOCTYPE html>
-<html dir="rtl" lang="fa">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>{{ exam.title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{{ exam.title }} | آزمون آنلاین</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
+            background: linear-gradient(145deg, #f5f0e6 0%, #e8e0d0 100%);
             min-height: 100vh;
-            padding: 16px;
-            padding-top: 80px;
-            padding-bottom: 100px;
+            padding: 10px;
+            padding-bottom: 40px;
         }
 
-        .cheat-alert {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: #ef4444;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 13px;
-            z-index: 2000;
-            display: none;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .timer-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            padding: 12px 16px;
-            z-index: 1000;
+        .exam-header {
+            background: rgba(255, 250, 240, 0.95);
+            border-radius: 20px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
+            border: 1px solid #e0d4c0;
+            position: sticky;
+            top: 8px;
+            z-index: 100;
         }
         .exam-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1e293b;
-            flex: 1;
-            word-break: break-word;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #5a3e2b;
         }
         .timer-box {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #8b6914, #c49a2b);
             color: white;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 22px;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
             font-weight: 700;
             font-family: monospace;
-            letter-spacing: 2px;
         }
-        .timer-box.warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            animation: pulse 1s infinite;
-        }
-        .timer-box.danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            animation: pulse 0.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
+        .timer-box.warning { background: linear-gradient(135deg, #e68a2e, #f59e0b); }
+        .timer-box.danger { background: linear-gradient(135deg, #dc2626, #ef4444); animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
 
-        .warning-message {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            background: #fef3c7;
-            color: #92400e;
-            padding: 12px;
+        .progress-bar {
+            background: #e0d4c0;
+            border-radius: 20px;
+            height: 4px;
+            margin-bottom: 6px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #c49a2b, #8b6914);
+            border-radius: 20px;
+            transition: width 0.3s;
+        }
+        .stats {
             text-align: center;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 999;
-            display: none;
-            border-bottom: 2px solid #f59e0b;
-        }
-
-        .questions-container {
-            max-width: 900px;
-            margin: 0 auto;
+            font-size: 0.65rem;
+            color: #7a5a3a;
+            margin-bottom: 14px;
         }
 
         .question-card {
             background: white;
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-            display: none;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #eee2d0;
         }
-        .question-card.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
+        .question-card.page-mode { display: none; }
+        .question-card.page-mode.active { display: block; animation: fadeIn 0.25s ease; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -128,290 +96,228 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e2e8f0;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0e2d0;
         }
         .question-number {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+            background: linear-gradient(135deg, #c49a2b, #a07830);
             color: white;
-            padding: 6px 18px;
+            padding: 3px 12px;
             border-radius: 30px;
-            font-size: 14px;
+            font-size: 0.7rem;
             font-weight: 600;
         }
         .question-score {
-            color: #f59e0b;
-            font-weight: 600;
-            font-size: 14px;
-            background: #fef3c7;
-            padding: 4px 12px;
+            color: #c49a2b;
+            font-size: 0.65rem;
+            background: #fef5e8;
+            padding: 3px 10px;
             border-radius: 20px;
         }
         .question-text {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #334155;
-            margin-bottom: 20px;
-            word-break: break-word;
+            font-size: 0.85rem;
+            line-height: 1.55;
+            color: #4a3727;
+            margin-bottom: 14px;
         }
         .question-image {
             max-width: 100%;
-            max-height: 300px;
-            margin: 15px 0;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            max-height: 180px;
+            border-radius: 14px;
+            margin-top: 10px;
             cursor: pointer;
-            object-fit: contain;
+            border: 1px solid #e8dcc8;
         }
 
-        .answer-area {
-            margin-top: 20px;
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 12px 0;
         }
-        textarea {
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: #fcf9f2;
+            border-radius: 40px;
+            border: 1px solid #e8dcc8;
+            cursor: pointer;
+        }
+        .option-item input {
+            width: 16px;
+            height: 16px;
+            accent-color: #c49a2b;
+            cursor: pointer;
+        }
+        .option-item span {
+            font-size: 0.8rem;
+            color: #4a3727;
+        }
+
+        textarea, input[type="text"] {
             width: 100%;
-            padding: 14px;
-            border: 1px solid #cbd5e1;
+            padding: 10px 12px;
+            border: 1px solid #e0d0b8;
             border-radius: 16px;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 0.8rem;
+            background: #fefcf8;
             resize: vertical;
-            transition: all 0.2s;
         }
-        textarea:focus {
+        textarea:focus, input:focus {
             outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
+            border-color: #c49a2b;
         }
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+
+        .matching-simple {
+            margin: 12px 0;
         }
-        .radio-group label {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            font-size: 15px;
-            padding: 12px 16px;
-            background: #f8fafc;
-            border-radius: 16px;
-            transition: all 0.2s;
-            border: 1px solid #e2e8f0;
-        }
-        .radio-group label:hover {
-            background: #e2e8f0;
-            transform: translateX(-5px);
-        }
-        .radio-group input {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        .matching-container {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 20px;
-        }
-        .matching-pairs {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .matching-row {
+        .match-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
             align-items: center;
-            justify-content: space-between;
-            background: white;
+            gap: 12px;
+            margin-bottom: 12px;
             padding: 12px;
-            border-radius: 12px;
+            background: #fcf9f2;
+            border-radius: 16px;
+            border: 1px solid #e8dcc8;
         }
-        .matching-left {
+        .match-left {
             flex: 1;
-            min-width: 150px;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 12px;
-            word-break: break-word;
+            min-width: 130px;
+            font-weight: 600;
+            color: #5a3e2b;
+            font-size: 0.85rem;
+            background: #fff5e8;
+            padding: 8px 12px;
+            border-radius: 30px;
+            text-align: center;
         }
-        .matching-arrow {
-            font-size: 20px;
-            color: #4CAF50;
-        }
-        .matching-right {
-            flex: 1;
-            min-width: 150px;
-        }
-        .matching-right select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 14px;
+        .match-select {
+            flex: 2;
+            min-width: 160px;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #d4b88c;
             background: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
         }
-        .image-upload-area {
-            margin-top: 16px;
-            padding: 20px;
-            border: 2px dashed #cbd5e1;
+        .match-clear {
+            background: #fee2e2;
+            color: #b45353;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .upload-area {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px dashed #d4b88c;
             border-radius: 16px;
             text-align: center;
             cursor: pointer;
-            background: #fafafa;
-            transition: all 0.2s;
-        }
-        .image-upload-area:hover {
-            border-color: #4CAF50;
-            background: #f0fdf4;
+            background: #fefaf2;
+            font-size: 0.7rem;
         }
         .image-preview {
-            max-width: 150px;
-            max-height: 120px;
-            margin-top: 10px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .btn-remove-image {
-            background: #fee2e2;
-            color: #dc2626;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
+            max-width: 70px;
+            max-height: 60px;
             margin-top: 8px;
-        }
-        .save-status {
-            font-size: 12px;
-            color: #10b981;
-            margin-top: 12px;
-            padding: 8px;
-            background: #d1fae5;
-            border-radius: 8px;
-            display: inline-block;
-        }
-
-        /* دکمه‌های ناوبری */
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-        }
-        .nav-question-btn {
-            background: #64748b;
-            color: white;
-            padding: 14px 24px;
-            border: none;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            flex: 1;
-            transition: all 0.2s;
         }
-        .nav-question-btn:hover:not(:disabled) {
-            background: #475569;
-            transform: translateY(-2px);
-        }
-        .nav-question-btn:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-            opacity: 0.6;
+        .save-badge {
+            font-size: 0.6rem;
+            color: #7a9c3e;
+            margin-top: 8px;
+            display: inline-block;
+            background: #e9f5e1;
+            padding: 2px 10px;
+            border-radius: 20px;
         }
 
-        /* نوار شماره سوالات پایین صفحه */
-        .bottom-nav-bar {
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #efe0ce;
+        }
+        .nav-btn {
+            background: #e8dccc;
+            color: #5a3e2b;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex: 1;
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .submit-exam-btn {
+            background: linear-gradient(135deg, #a07830, #c49a2b);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 16px auto 25px;
+            display: block;
+            width: 90%;
+            max-width: 240px;
+        }
+
+        .warning-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: white;
-            padding: 12px;
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            z-index: 1000;
-            box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
-            white-space: nowrap;
-            border-top: 1px solid #e2e8f0;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.65rem;
+            z-index: 99;
+            display: none;
         }
-        .bottom-nav-bar::-webkit-scrollbar {
-            height: 4px;
-        }
-        .bottom-nav-bar::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 4px;
-        }
-        .bottom-nav-bar::-webkit-scrollbar-thumb {
-            background: #4CAF50;
-            border-radius: 4px;
-        }
-        .bottom-nav-btn {
-            min-width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-        .bottom-nav-btn.answered {
-            background: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-        }
-        .bottom-nav-btn.current {
-            background: #2196F3;
-            color: white;
-            border-color: #2196F3;
-            transform: scale(1.05);
-        }
-        .bottom-nav-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .submit-section {
+        .timeout-modal {
             position: fixed;
-            bottom: 70px;
+            top: 0;
             left: 0;
             right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .timeout-card {
             background: white;
-            padding: 12px 20px;
+            padding: 24px;
+            border-radius: 28px;
             text-align: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 999;
-        }
-        .btn-submit {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            padding: 12px 32px;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
             max-width: 280px;
-            transition: all 0.2s;
-        }
-        .btn-submit:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76,175,80,0.3);
-        }
-        .btn-submit.disabled, .btn-submit:disabled {
-            background: #cbd5e1;
-            cursor: not-allowed;
-        }
-        .footer-space {
-            height: 130px;
         }
 
         .zoom-modal {
@@ -425,351 +331,194 @@
             z-index: 3000;
             justify-content: center;
             align-items: center;
-            cursor: zoom-out;
         }
-        .zoom-modal.active {
+        .zoom-modal.active { display: flex; }
+        .zoom-container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .zoom-canvas {
+            width: 100%;
+            height: 100%;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: grab;
         }
-        .zoom-modal-img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            cursor: zoom-out;
-            transition: transform 0.2s ease;
+        .zoom-canvas:active { cursor: grabbing; }
+        .zoom-img {
+            max-width: none;
+            transition: transform 0.05s linear;
+            pointer-events: none;
         }
-        .zoom-modal-close {
+        .zoom-close, .zoom-reset {
             position: absolute;
-            top: 20px;
-            right: 20px;
             background: rgba(255,255,255,0.2);
             color: white;
             border: none;
-            font-size: 30px;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            transition: all 0.2s;
+            z-index: 3001;
         }
-        .zoom-modal-close:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.1);
-        }
+        .zoom-close { top: 15px; right: 15px; font-size: 24px; }
+        .zoom-reset { bottom: 15px; right: 15px; font-size: 18px; }
 
-        .timeout-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 4000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-        .timeout-box {
-            background: white;
-            padding: 40px;
-            border-radius: 24px;
-            text-align: center;
-            max-width: 400px;
-            margin: 20px;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 12px;
-                padding-top: 80px;
-                padding-bottom: 120px;
-            }
-            .timer-header {
-                padding: 10px 12px;
-            }
-            .timer-box {
-                font-size: 18px;
-                padding: 6px 14px;
-            }
-            .exam-title {
-                font-size: 14px;
-            }
-            .question-card {
-                padding: 18px;
-            }
-            .question-number {
-                font-size: 12px;
-                padding: 4px 12px;
-            }
-            .question-score {
-                font-size: 12px;
-            }
-            .question-text {
-                font-size: 14px;
-            }
-            .navigation-buttons {
-                flex-direction: column;
-            }
-            .nav-question-btn {
-                padding: 12px;
-            }
-            .radio-group label {
-                font-size: 13px;
-                padding: 10px 12px;
-            }
-            .matching-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .matching-arrow {
-                text-align: center;
-            }
-            .matching-left, .matching-right {
-                width: 100%;
-            }
-            .bottom-nav-btn {
-                min-width: 38px;
-                height: 38px;
-                font-size: 12px;
-            }
-            .cheat-alert {
-                top: 80px;
-                right: 10px;
-                left: 10px;
-                text-align: center;
-            }
-            .submit-section {
-                bottom: 60px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .timer-box {
-                font-size: 14px;
-                padding: 4px 10px;
-            }
-            .question-card {
-                padding: 14px;
-            }
-            .bottom-nav-btn {
-                min-width: 34px;
-                height: 34px;
-                font-size: 11px;
-            }
+        @media (max-width: 550px) {
+            .match-row { flex-direction: column; align-items: stretch; }
+            .match-left { text-align: center; }
+            .match-select { width: 100%; }
+            .match-clear { align-self: center; }
         }
     </style>
 </head>
 <body>
 
-<div class="timer-header">
+<div class="exam-header">
     <div class="exam-title">{{ exam.title }}</div>
-    <div class="timer-box" id="timer">00:00:00</div>
+    <div class="timer-box" id="timerDisplay">--:--:--</div>
 </div>
 
-<div class="warning-message" id="warningMsg">
-    ⚠️ وقتت رو به اتمامه! لطفاً سریع پاسخ‌ها رو بررسی کن. ⚠️
+<div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
 </div>
+<div class="stats" id="statsText">0 از {{ questions|length }} پاسخ داده شده</div>
 
-<div class="cheat-alert" id="cheatAlert">
-    ⚠️ تخلف ثبت شد
-</div>
-
-<div class="questions-container" id="questionsContainer">
+<div id="questionsContainer">
     {% for question in questions %}
-    <div class="question-card" data-question-id="{{ question.id }}" data-question-type="{{ question.question_type }}" data-index="{{ forloop.counter0 }}">
+    <div class="question-card" data-qid="{{ question.id }}" data-type="{{ question.question_type }}" data-index="{{ forloop.counter0 }}">
         <div class="question-header">
             <span class="question-number">سوال {{ forloop.counter }}</span>
             <span class="question-score">⭐ {{ question.max_score }} نمره</span>
         </div>
         <div class="question-text">
-            {% if question.text %}
-                {{ question.text|linebreaks }}
-            {% endif %}
+            {{ question.text|linebreaksbr }}
             {% if question.image %}
-                <img src="{{ question.image.url }}" class="question-image zoomable" alt="تصویر سوال">
+                <br><img src="{{ question.image.url }}" class="question-image zoom-trigger" alt="تصویر سوال">
             {% endif %}
         </div>
-        <div class="answer-area" id="answer-area-{{ question.id }}"></div>
-        <div class="save-status" id="status-{{ question.id }}"></div>
-
-        <div class="navigation-buttons">
-            <button class="nav-question-btn" id="prevBtn-{{ question.id }}">← سوال قبلی</button>
-            <button class="nav-question-btn" id="nextBtn-{{ question.id }}">سوال بعدی →</button>
+        <div class="answer-area" id="answerArea{{ question.id }}"></div>
+        <div class="save-badge" id="saveStatus{{ question.id }}"></div>
+        {% if exam.show_questions_mode == 'one_by_one' %}
+        <div class="nav-buttons">
+            <button class="nav-btn prev-btn" data-idx="{{ forloop.counter0 }}">← قبلی</button>
+            <button class="nav-btn next-btn" data-idx="{{ forloop.counter0 }}">بعدی →</button>
         </div>
+        {% endif %}
     </div>
     {% endfor %}
 </div>
 
-<!-- نوار شماره سوالات پایین صفحه -->
-<div class="bottom-nav-bar" id="bottomNavBar">
-    {% for question in questions %}
-    <button class="bottom-nav-btn" data-q-index="{{ forloop.counter0 }}">{{ forloop.counter }}</button>
-    {% endfor %}
+<button class="submit-exam-btn" id="submitExamBtn" style="display: none;">📝 ثبت نهایی آزمون</button>
+<div class="warning-bar" id="warningBar">⏰ زمان باقی‌مانده کم است!</div>
+
+<div id="timeoutModal" class="timeout-modal">
+    <div class="timeout-card">
+        <div style="font-size: 40px;">⏰</div>
+        <h3>زمان آزمون به پایان رسید!</h3>
+        <button onclick="location.href='/student/dashboard/'" style="margin-top:16px;padding:8px 20px;background:#c49a2b;border:none;border-radius:30px;">باشه</button>
+    </div>
 </div>
 
-<div class="submit-section">
-    <button class="btn-submit" id="submitBtn">📝 ثبت نهایی آزمون</button>
-</div>
-<div class="footer-space"></div>
-
-<div id="zoomModal" class="zoom-modal" onclick="closeZoomModal()">
-    <button class="zoom-modal-close" onclick="closeZoomModal()">✕</button>
-    <img id="zoomModalImg" class="zoom-modal-img" src="" alt="بزرگنمایی">
-</div>
-
-<div id="timeoutOverlay" class="timeout-overlay">
-    <div class="timeout-box">
-        <div style="font-size: 50px;">⏰</div>
-        <h2>زمان آزمون به پایان رسید!</h2>
-        <p>پاسخ‌های شما به صورت خودکار ذخیره شد.</p>
-        <p>در حال انتقال به صفحه اصلی...</p>
+<div id="zoomModal" class="zoom-modal">
+    <button class="zoom-close" onclick="closeZoom()">✕</button>
+    <button class="zoom-reset" onclick="resetZoom()">⟳</button>
+    <div class="zoom-container">
+        <div class="zoom-canvas" id="zoomCanvas">
+            <img id="zoomImage" class="zoom-img" src="" draggable="false">
+        </div>
     </div>
 </div>
 
 <script>
-    // ========== داده‌های اولیه ==========
-    let currentRemaining = {{ remaining_seconds|default:0 }};
-    const examDuration = {{ duration_minutes|default:0 }} * 60;
-    const savedAnswers = {{ saved_answers|safe }};
-    const examId = {{ exam.id }};
-    const showBackButton = {{ exam.show_back_button|default:'true'|lower }};
+    // ========== تنظیمات از دیتابیس ==========
+    const EXAM_CONFIG = {
+        id: {{ exam.id }},
+        hashedId: "{{ hashed_exam_id|default:'' }}",
+        remainingSeconds: {{ remaining_seconds|default:0 }},
+        durationMinutes: {{ duration_minutes|default:0 }},
+        showMode: "{{ exam.show_questions_mode }}",
+        showBackBtn: {{ exam.show_back_button|yesno:"true,false" }},
+        randomQuestions: {{ exam.random_questions|yesno:"true,false" }},
+        preventCopy: {{ exam.prevent_copy_paste|yesno:"true,false" }},
+        preventTab: {{ exam.prevent_tab_switch|yesno:"true,false" }},
+        antiCheat: {{ exam.enable_anti_cheat|yesno:"true,false" }}
+    };
 
-    const storageKey = `exam_${examId}_remaining`;
-    const savedRemaining = localStorage.getItem(storageKey);
-    if (savedRemaining && !isNaN(parseInt(savedRemaining))) {
-        currentRemaining = parseInt(savedRemaining);
-    }
-
-    const questionsData = [
+    let questionsRaw = [
         {% for q in questions %}
         {
             id: {{ q.id }},
             type: "{{ q.question_type }}",
-            allowImage: {{ q.allow_image_answer|lower|default:'false' }},
-            matchingPairs: {% if q.matching_pairs %}{{ q.matching_pairs|safe }}{% else %}[]{% endif %},
-            options: {% if q.options %}{{ q.options|safe }}{% else %}[]{% endif %}
-        },
+            allowImage: {{ q.allow_image_answer|yesno:"true,false" }},
+            options: {% if q.options %}{{ q.options|safe }}{% else %}[]{% endif %},
+            matchingPairs: {% if q.matching_pairs %}{{ q.matching_pairs|safe }}{% else %}[]{% endif %}
+        }{% if not forloop.last %},{% endif %}
         {% endfor %}
     ];
 
-    let timerInterval = null;
-    let isLocked = false;
-    let isSubmitted = false;
-    let saveTimeouts = {};
-    let currentQuestionIndex = 0;
-    const totalQuestions = {{ questions|length }};
-    let answeredStatus = new Array(totalQuestions).fill(false);
-    let lastSavedTime = currentRemaining;
+    // ذخیره نسخه اصلی جفت‌ها (بدون رندوم) برای رندر مجدد صحیح
+    const originalMatchingPairs = {};
+    questionsRaw.forEach(q => {
+        if (q.type === 'matching' && q.matchingPairs && q.matchingPairs.length) {
+            originalMatchingPairs[q.id] = JSON.parse(JSON.stringify(q.matchingPairs));
+            // اطمینان از وجود id برای هر جفت
+            originalMatchingPairs[q.id].forEach((pair, idx) => {
+                if (!pair.id) pair.id = `pair_${q.id}_${idx}`;
+            });
+            // به روز رسانی q.matchingPairs با id
+            q.matchingPairs = originalMatchingPairs[q.id];
+        }
+    });
 
-    // ========== توابع ضد تقلب ==========
-    let tabSwitchCount = 0;
-
-    function showCheatAlert(message) {
-        const alertDiv = document.getElementById('cheatAlert');
-        alertDiv.innerHTML = `⚠️ ${message}`;
-        alertDiv.style.display = 'block';
-        setTimeout(() => {
-            alertDiv.style.display = 'none';
-        }, 3000);
+    if (EXAM_CONFIG.randomQuestions) {
+        for (let i = questionsRaw.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [questionsRaw[i], questionsRaw[j]] = [questionsRaw[j], questionsRaw[i]];
+        }
     }
 
-    function logCheat(cheatType, detail) {
+    const questionsData = questionsRaw;
+    const totalQuestions = questionsData.length;
+    const savedAnswers = {{ saved_answers|safe }};
+
+    let userAnswers = {};
+    let answeredStatus = new Array(totalQuestions).fill(false);
+    let timerSeconds = EXAM_CONFIG.remainingSeconds;
+    let timerInterval = null;
+    let isSubmitted = false;
+    let isTimeout = false;
+    let currentPageIndex = 0;
+
+    // ========== توابع کمکی ==========
+    function getCsrf() { return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || ''; }
+
+    function logCheat(type, detail) {
+        if (!EXAM_CONFIG.antiCheat) return;
         fetch('/student/log-cheat/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            },
-            body: JSON.stringify({
-                exam_id: examId,
-                cheat_type: cheatType,
-                detail: detail
-            })
-        }).catch(e => console.error('Cheat log error:', e));
-        showCheatAlert(`تخلف: ${detail}`);
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+            body: JSON.stringify({ exam_id: EXAM_CONFIG.id, cheat_type: type, detail: detail })
+        }).catch(e => console.log);
     }
 
-    document.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        logCheat('right_click', 'کلیک راست ماوس');
-        return false;
-    });
+    if (EXAM_CONFIG.preventCopy) {
+        document.addEventListener('copy', e => { e.preventDefault(); logCheat('copy_paste', 'تلاش برای کپی'); });
+        document.addEventListener('paste', e => { e.preventDefault(); logCheat('copy_paste', 'تلاش برای پیست'); });
+        document.addEventListener('contextmenu', e => { e.preventDefault(); logCheat('right_click', 'کلیک راست'); });
+    }
 
-    document.addEventListener('copy', (e) => {
-        e.preventDefault();
-        logCheat('copy_paste', 'تلاش برای کپی');
-        return false;
-    });
-    document.addEventListener('paste', (e) => {
-        e.preventDefault();
-        logCheat('copy_paste', 'تلاش برای پیست');
-        return false;
-    });
-
+    let tabCount = 0;
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            tabSwitchCount++;
-            logCheat('tab_switch', `خروج از صفحه آزمون (دفعه ${tabSwitchCount})`);
-            localStorage.setItem(storageKey, currentRemaining);
-        } else {
-            const saved = localStorage.getItem(storageKey);
-            if (saved && !isLocked && !isSubmitted) {
-                currentRemaining = parseInt(saved);
-                updateTimerDisplay();
-            }
+        if (document.hidden && EXAM_CONFIG.preventTab && !isSubmitted && !isTimeout) {
+            tabCount++;
+            logCheat('tab_switch', `تغییر تب (دفعه ${tabCount})`);
         }
     });
-
-    window.addEventListener('beforeunload', (e) => {
-        if (!isLocked && !isSubmitted && currentRemaining > 0) {
-            localStorage.setItem(storageKey, currentRemaining);
-            e.preventDefault();
-            e.returnValue = 'آیا مطمئن هستید؟ پاسخ‌های شما ذخیره خواهد شد.';
-            return e.returnValue;
-        }
-    });
-
-    function getCSRFToken() {
-        return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || '';
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
-    }
-
-    // ========== زوم تصاویر ==========
-    let currentZoomScale = 1;
-
-    function openZoomModal(src) {
-        const modal = document.getElementById('zoomModal');
-        const img = document.getElementById('zoomModalImg');
-        currentZoomScale = 1;
-        modal.classList.add('active');
-        img.src = src;
-        img.style.transform = `scale(${currentZoomScale})`;
-
-        img.onwheel = (e) => {
-            e.preventDefault();
-            if (e.deltaY < 0) {
-                currentZoomScale = Math.min(currentZoomScale + 0.1, 3);
-            } else {
-                currentZoomScale = Math.max(currentZoomScale - 0.1, 0.5);
-            }
-            img.style.transform = `scale(${currentZoomScale})`;
-        };
-    }
-
-    function closeZoomModal() {
-        document.getElementById('zoomModal').classList.remove('active');
-    }
-
-    function initZoomableImages() {
-        document.querySelectorAll('.question-image.zoomable, .image-preview').forEach(img => {
-            img.removeEventListener('click', img._zoomHandler);
-            img._zoomHandler = () => openZoomModal(img.src);
-            img.addEventListener('click', img._zoomHandler);
-        });
-    }
 
     // ========== تایمر ==========
     function formatTime(s) {
@@ -777,394 +526,510 @@
         let h = Math.floor(s / 3600);
         let m = Math.floor((s % 3600) / 60);
         let sec = s % 60;
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+        return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
     }
 
-    function updateTimerDisplay() {
-        const timerEl = document.getElementById('timer');
-        if (!timerEl) return;
-        timerEl.textContent = formatTime(currentRemaining);
-
-        timerEl.classList.remove('warning', 'danger');
-        if (currentRemaining <= 60) {
-            timerEl.classList.add('danger');
-        } else if (currentRemaining <= examDuration * 0.15) {
-            timerEl.classList.add('warning');
-            document.getElementById('warningMsg').style.display = 'block';
-        }
-
-        if (!isLocked && !isSubmitted) {
-            localStorage.setItem(storageKey, currentRemaining);
+    function updateTimerUI() {
+        const el = document.getElementById('timerDisplay');
+        if (!el) return;
+        el.innerText = formatTime(timerSeconds);
+        el.classList.remove('warning', 'danger');
+        if (timerSeconds <= 60) {
+            el.classList.add('danger');
+            document.getElementById('warningBar').style.display = 'block';
+        } else if (timerSeconds <= EXAM_CONFIG.durationMinutes * 60 * 0.15) {
+            el.classList.add('warning');
         }
     }
 
-    async function autoSubmitExam() {
-        if (isLocked || isSubmitted) return;
-
-        isLocked = true;
-        isSubmitted = true;
-
-        if (timerInterval) clearInterval(timerInterval);
-        localStorage.removeItem(storageKey);
-
-        document.getElementById('timeoutOverlay').style.display = 'flex';
-
-        try {
-            await fetch(`/student/submit/${examId}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCSRFToken() }
-            });
-        } catch(e) {}
-
+    async function autoSubmit() {
+        if (isSubmitted || isTimeout) return;
+        isTimeout = true;
+        clearInterval(timerInterval);
+        await saveAllAnswers();
+        document.getElementById('timeoutModal').style.display = 'flex';
         setTimeout(() => {
-            window.location.href = `/student/thanks/${examId}/`;
-        }, 2000);
+            window.location.href = `/student/submit/${EXAM_CONFIG.hashedId}/`;
+        }, 1500);
     }
 
     function startTimer() {
-        updateTimerDisplay();
-
-        if (timerInterval) clearInterval(timerInterval);
-
+        updateTimerUI();
         timerInterval = setInterval(() => {
-            if (isLocked || isSubmitted) return;
-
-            if (currentRemaining <= 1) {
+            if (isSubmitted || isTimeout) return;
+            if (timerSeconds <= 1) {
                 clearInterval(timerInterval);
-                currentRemaining = 0;
-                updateTimerDisplay();
-                autoSubmitExam();
+                timerSeconds = 0;
+                updateTimerUI();
+                autoSubmit();
             } else {
-                currentRemaining--;
-                updateTimerDisplay();
-
-                if (currentRemaining % 30 === 0 || lastSavedTime - currentRemaining >= 30) {
-                    saveAllAnswers();
-                    lastSavedTime = currentRemaining;
-                }
+                timerSeconds--;
+                updateTimerUI();
             }
         }, 1000);
     }
 
-    async function saveAllAnswers() {
-        for (let i = 0; i < totalQuestions; i++) {
-            const qId = questionsData[i].id;
-            await saveAnswer(qId, i);
-        }
-    }
-
-    // ========== ناوبری ==========
-    function showQuestion(index) {
-        const cards = document.querySelectorAll('.question-card');
-        cards.forEach((card, i) => {
-            if (i === index) {
-                card.classList.add('active');
+    // ========== ذخیره پاسخ ==========
+    async function saveAnswerToServer(qId, value) {
+        const statusDiv = document.getElementById(`saveStatus${qId}`);
+        if (statusDiv) statusDiv.innerText = '💾 ذخیره...';
+        try {
+            const res = await fetch('/student/save-answer/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                body: JSON.stringify({ question_id: qId, answer_text: value })
+            });
+            if (res.ok && statusDiv) {
+                statusDiv.innerText = '✅ ذخیره شد';
+                setTimeout(() => { if (statusDiv) statusDiv.innerText = ''; }, 1200);
             } else {
-                card.classList.remove('active');
+                const errorData = await res.json();
+                console.error('Save error:', errorData);
+                if(statusDiv) statusDiv.innerText = '❌ خطا';
             }
-        });
-
-        currentQuestionIndex = index;
-
-        const prevBtn = document.getElementById(`prevBtn-${questionsData[index].id}`);
-        const nextBtn = document.getElementById(`nextBtn-${questionsData[index].id}`);
-
-        if (prevBtn) {
-            prevBtn.disabled = (!showBackButton || index === 0);
-        }
-        if (nextBtn) {
-            nextBtn.disabled = (index === totalQuestions - 1);
-        }
-
-        updateNavButtons();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function changeQuestion(delta) {
-        const newIndex = currentQuestionIndex + delta;
-        if (newIndex >= 0 && newIndex < totalQuestions) {
-            showQuestion(newIndex);
+        } catch(e) {
+            console.error(e);
+            if(statusDiv) statusDiv.innerText = '❌ خطا';
         }
     }
 
-    function updateNavButtons() {
-        const navBtns = document.querySelectorAll('.bottom-nav-btn');
-        navBtns.forEach((btn, i) => {
-            btn.classList.remove('current');
-            if (i === currentQuestionIndex) btn.classList.add('current');
-            if (answeredStatus[i]) btn.classList.add('answered');
-            else btn.classList.remove('answered');
-        });
-    }
+    function updateAnswer(qId, value, questionIndex) {
+        userAnswers[qId] = value;
+        const isAnswered = (value && value.length > 0 && value !== '{}' && value !== '[]');
+        answeredStatus[questionIndex] = isAnswered;
 
-    function markAsAnswered(questionIndex) {
-        answeredStatus[questionIndex] = true;
-        updateNavButtons();
-    }
+        const answeredCount = answeredStatus.filter(v => v === true).length;
+        document.getElementById('statsText').innerHTML = `${answeredCount} از ${totalQuestions} پاسخ داده شده`;
+        document.getElementById('progressFill').style.width = (answeredCount / totalQuestions * 100) + '%';
 
-    // ========== رندر سوالات ==========
-    function renderQuestions() {
-        const questions = document.querySelectorAll('.question-card');
-        questions.forEach((card, idx) => {
-            const qId = parseInt(card.dataset.questionId);
-            const qData = questionsData.find(q => q.id === qId);
-            const answerDiv = document.getElementById(`answer-area-${qId}`);
-            const saved = savedAnswers ? savedAnswers[qId] : null;
-            const savedText = saved ? saved.answer_text : '';
-            const savedImage = saved ? saved.answer_image : null;
-
-            let html = '';
-
-            if (qData.type === 'true_false') {
-                html = `<div class="radio-group">
-                            <label><input type="radio" name="q_${qId}" value="true" ${savedText === 'true' ? 'checked' : ''}> ✅ صحیح</label>
-                            <label><input type="radio" name="q_${qId}" value="false" ${savedText === 'false' ? 'checked' : ''}> ❌ غلط</label>
-                        </div>`;
-            }
-            else if (qData.type === 'multiple_choice') {
-                const options = qData.options || ['گزینه 1', 'گزینه 2', 'گزینه 3', 'گزینه 4'];
-                html = `<div class="radio-group">`;
-                for (let i = 0; i < options.length; i++) {
-                    const val = (i + 1).toString();
-                    const isChecked = (savedText === val);
-                    html += `<label><input type="radio" name="q_${qId}" value="${val}" ${isChecked ? 'checked' : ''}> ${escapeHtml(options[i])}</label>`;
-                }
-                html += `</div>`;
-            }
-            else if (qData.type === 'matching') {
-                const pairs = qData.matchingPairs || [];
-                let optionsHtml = '<option value="">انتخاب کنید...</option>';
-                for (let i = 0; i < pairs.length; i++) {
-                    optionsHtml += `<option value="${i}">${escapeHtml(pairs[i].right || `گزینه ${i+1}`)}</option>`;
-                }
-                html = `<div class="matching-container"><div class="matching-pairs">`;
-                for (let i = 0; i < pairs.length; i++) {
-                    let savedVal = '';
-                    try {
-                        if (savedText) savedVal = JSON.parse(savedText)[i] || '';
-                    } catch(e) {}
-                    html += `<div class="matching-row">
-                                <div class="matching-left">${escapeHtml(pairs[i].left)}</div>
-                                <div class="matching-arrow">←→</div>
-                                <div class="matching-right">
-                                    <select name="match_${qId}_${i}" data-pair-index="${i}">${optionsHtml}</select>
-                                </div>
-                            </div>`;
-                }
-                html += `</div></div>`;
-            }
-            else {
-                html = `<textarea rows="6" id="text_${qId}" placeholder="پاسخ خود را وارد کنید...">${escapeHtml(savedText) || ''}</textarea>`;
-            }
-
-            if (qData.allowImage === true || qData.type === 'image_answer') {
-                html += `<div class="image-upload-area" onclick="document.getElementById('fileInput_${qId}').click()">
-                            📷 کلیک کنید یا عکس را بکشید و رها کنید
-                            <input type="file" id="fileInput_${qId}" accept="image/*" style="display:none">
-                        </div>
-                        <div id="imagePreview_${qId}"></div>
-                        <button type="button" class="btn-remove-image" id="removeImage_${qId}" style="display:none;">🗑️ حذف عکس</button>`;
-            }
-
-            answerDiv.innerHTML = html;
-            attachAutoSave(qId, qData, idx);
-
-            if (savedText && savedText.length > 0) markAsAnswered(idx);
-            if (savedImage && (qData.allowImage || qData.type === 'image_answer')) {
-                const previewDiv = document.getElementById(`imagePreview_${qId}`);
-                if (previewDiv) {
-                    previewDiv.innerHTML = `<img src="${savedImage}" class="image-preview" onclick="openZoomModal('${savedImage}')">`;
-                    document.getElementById(`removeImage_${qId}`).style.display = 'block';
-                }
-                markAsAnswered(idx);
-            }
-
-            if (qData.allowImage || qData.type === 'image_answer') {
-                const fileInput = document.getElementById(`fileInput_${qId}`);
-                if (fileInput) fileInput.addEventListener('change', (e) => handleImageUpload(qId, e.target.files[0], idx));
-                const removeBtn = document.getElementById(`removeImage_${qId}`);
-                if (removeBtn) removeBtn.addEventListener('click', () => removeImage(qId, idx));
-            }
-        });
-
-        document.querySelectorAll('.bottom-nav-btn').forEach((btn, i) => {
-            btn.addEventListener('click', () => showQuestion(i));
-        });
-
-        questionsData.forEach((q, idx) => {
-            const prevBtn = document.getElementById(`prevBtn-${q.id}`);
-            const nextBtn = document.getElementById(`nextBtn-${q.id}`);
-            if (prevBtn) prevBtn.addEventListener('click', () => changeQuestion(-1));
-            if (nextBtn) nextBtn.addEventListener('click', () => changeQuestion(1));
-        });
-
-        showQuestion(0);
-        initZoomableImages();
-    }
-
-    async function handleImageUpload(questionId, file, questionIndex) {
-        if (isLocked || isSubmitted) return;
-        if (!file) return;
-
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            const statusDiv = document.getElementById(`status-${questionId}`);
-            if (statusDiv) {
-                statusDiv.innerHTML = '❌ حجم فایل نباید بیشتر از 5 مگابایت باشد';
-                setTimeout(() => { if (statusDiv) statusDiv.innerHTML = ''; }, 3000);
-            }
-            return;
+        if (EXAM_CONFIG.showMode === 'one_by_one') {
+            const submitBtn = document.getElementById('submitExamBtn');
+            submitBtn.style.display = (currentPageIndex === totalQuestions - 1) ? 'block' : 'none';
         }
 
-        const formData = new FormData();
-        formData.append('question_id', questionId);
-        formData.append('answer_image', file);
+        saveAnswerToServer(qId, value);
+    }
 
-        const statusDiv = document.getElementById(`status-${questionId}`);
-        if (statusDiv) statusDiv.innerHTML = '📤 در حال آپلود...';
+    async function saveAllAnswers() {
+        for (let qId in userAnswers) {
+            if (userAnswers[qId]) await saveAnswerToServer(parseInt(qId), userAnswers[qId]);
+        }
+    }
 
-        try {
-            const response = await fetch('/student/save-answer-image/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCSRFToken() },
-                body: formData
+    // ========== رندر انواع سوال ==========
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+    }
+
+    // رندر سوالات وصل کردنی با استفاده از ID ثابت - حل مشکل رندوم و ذخیره‌سازی صحیح
+    function renderMatching(qId, pairs, savedAnswerMap, questionIndex) {
+        if (!pairs || pairs.length === 0) return '<div>داده‌ای وجود ندارد</div>';
+
+        // ساخت ستون راست با رندوم کردن (اما حفظ ID اصلی)
+        let rightItems = pairs.map(p => ({ id: p.id, text: p.right }));
+        for (let i = rightItems.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rightItems[i], rightItems[j]] = [rightItems[j], rightItems[i]];
+        }
+
+        let html = `<div class="matching-simple" data-matching-qid="${qId}">`;
+        for (let i = 0; i < pairs.length; i++) {
+            const pair = pairs[i];
+            const savedValue = (savedAnswerMap && savedAnswerMap[pair.id]) ? savedAnswerMap[pair.id] : '';
+
+            html += `<div class="match-row" data-row-idx="${i}" data-left-id="${pair.id}">
+                        <div class="match-left">${escapeHtml(pair.left)}</div>
+                        <select class="match-select" data-left-id="${pair.id}">
+                            <option value="">-- انتخاب کنید --</option>`;
+
+            for (let j = 0; j < rightItems.length; j++) {
+                const selected = (savedValue === rightItems[j].id) ? 'selected' : '';
+                html += `<option value="${escapeHtml(rightItems[j].id)}" ${selected}>${escapeHtml(rightItems[j].text)}</option>`;
+            }
+
+            html += `</select>
+                    <button type="button" class="match-clear" data-left-id="${pair.id}" ${!savedValue ? 'style="display:none"' : ''}>✕</button>
+                    </div>`;
+        }
+        html += `</div>`;
+
+        return { html, rightItems };
+    }
+
+    // تابع جمع‌آوری پاسخ matching
+    function collectMatchingAnswer(qId) {
+        const container = document.querySelector(`#answerArea${qId} .matching-simple`);
+        if (!container) return '{}';
+
+        const selects = container.querySelectorAll('.match-select');
+        const answerMap = {};
+        selects.forEach(select => {
+            const leftId = select.dataset.leftId;
+            const selectedValue = select.value;
+            if (selectedValue) {
+                answerMap[leftId] = selectedValue;
+            }
+        });
+        return JSON.stringify(answerMap);
+    }
+
+    // رندر سوالات تشریحی و چند گزینه‌ای
+    function renderQuestion(qId, qData, savedValue, savedImage, questionIndex) {
+        const container = document.getElementById(`answerArea${qId}`);
+        if (!container) return;
+
+        let html = '';
+        let matchingRightItems = null;
+
+        if (qData.type === 'true_false') {
+            html = `<div class="options-group">
+                        <label class="option-item"><input type="radio" name="q_${qId}" value="true" ${savedValue === 'true' ? 'checked' : ''}> <span>✅ صحیح</span></label>
+                        <label class="option-item"><input type="radio" name="q_${qId}" value="false" ${savedValue === 'false' ? 'checked' : ''}> <span>❌ غلط</span></label>
+                    </div>`;
+        }
+        else if (qData.type === 'multiple_choice') {
+            const opts = qData.options.length ? qData.options : ['گزینه 1', 'گزینه 2', 'گزینه 3', 'گزینه 4'];
+            html = `<div class="options-group">`;
+            opts.forEach((opt, i) => {
+                const val = (i+1).toString();
+                html += `<label class="option-item"><input type="radio" name="q_${qId}" value="${val}" ${savedValue === val ? 'checked' : ''}> <span>${escapeHtml(opt)}</span></label>`;
             });
-            const result = await response.json();
-            if (result.success) {
-                const previewDiv = document.getElementById(`imagePreview_${questionId}`);
-                if (previewDiv) {
-                    previewDiv.innerHTML = `<img src="${result.image_url}" class="image-preview" onclick="openZoomModal('${result.image_url}')">`;
-                }
-                document.getElementById(`removeImage_${questionId}`).style.display = 'block';
-                if (statusDiv) {
-                    statusDiv.innerHTML = '✅ عکس ذخیره شد';
-                    setTimeout(() => { if (statusDiv) statusDiv.innerHTML = ''; }, 2000);
-                }
-                markAsAnswered(questionIndex);
-                initZoomableImages();
-            }
-        } catch (error) {
-            if (statusDiv) {
-                statusDiv.innerHTML = '❌ خطا در آپلود';
-                setTimeout(() => { if (statusDiv) statusDiv.innerHTML = ''; }, 2000);
-            }
+            html += `</div>`;
         }
-    }
+        else if (qData.type === 'matching') {
+            let savedMap = {};
+            try {
+                const parsed = JSON.parse(savedValue || '{}');
+                if (typeof parsed === 'object' && parsed !== null) savedMap = parsed;
+            } catch(e) { savedMap = {}; }
+            const result = renderMatching(qId, qData.matchingPairs, savedMap, questionIndex);
+            html = result.html;
+            matchingRightItems = result.rightItems;
+        }
+        else if (qData.type === 'short_answer') {
+            html = `<textarea rows="3" id="text_${qId}" placeholder="پاسخ کوتاه خود را وارد کنید...">${escapeHtml(savedValue)}</textarea>`;
+        }
+        else if (qData.type === 'long_answer') {
+            html = `<textarea rows="5" id="text_${qId}" placeholder="پاسخ تشریحی خود را بنویسید...">${escapeHtml(savedValue)}</textarea>`;
+        }
+        else {
+            html = `<textarea rows="4" id="text_${qId}" placeholder="پاسخ خود را وارد کنید...">${escapeHtml(savedValue)}</textarea>`;
+        }
 
-    async function removeImage(questionId, questionIndex) {
-        if (isLocked || isSubmitted) return;
+        if (qData.allowImage || qData.type === 'image_answer') {
+            html += `<div class="upload-area" onclick="document.getElementById('file_${qId}').click()">
+                        📷 آپلود تصویر
+                        <input type="file" id="file_${qId}" accept="image/*" style="display:none">
+                    </div>
+                    <div id="preview_${qId}">${savedImage ? `<img src="${savedImage}" class="image-preview zoom-trigger">` : ''}</div>
+                    <button type="button" class="remove-img-btn" id="removeImg_${qId}" style="${savedImage ? 'display:inline-block' : 'display:none'}">🗑️ حذف</button>`;
+        }
 
-        try {
-            await fetch('/student/remove-answer-image/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-                body: JSON.stringify({ question_id: questionId })
-            });
-            document.getElementById(`imagePreview_${questionId}`).innerHTML = '';
-            document.getElementById(`removeImage_${questionId}`).style.display = 'none';
-        } catch(e) {}
-    }
+        container.innerHTML = html;
 
-    function attachAutoSave(questionId, qData, questionIndex) {
-        if (isLocked) return;
-
+        // اتصال رویدادها
         if (qData.type === 'true_false' || qData.type === 'multiple_choice') {
-            document.querySelectorAll(`input[name="q_${questionId}"]`).forEach(radio => {
+            const radios = document.querySelectorAll(`input[name="q_${qId}"]`);
+            radios.forEach(radio => {
                 radio.addEventListener('change', () => {
-                    saveAnswer(questionId, questionIndex);
-                    markAsAnswered(questionIndex);
+                    const selected = document.querySelector(`input[name="q_${qId}"]:checked`);
+                    if (selected) updateAnswer(qId, selected.value, questionIndex);
                 });
             });
         }
         else if (qData.type === 'matching') {
-            document.querySelectorAll(`select[name^="match_${questionId}_"]`).forEach(select => {
+            // اتصال رویدادهای matching
+            const selects = document.querySelectorAll(`#answerArea${qId} .match-select`);
+            const clears = document.querySelectorAll(`#answerArea${qId} .match-clear`);
+
+            const saveMatchingCallback = () => {
+                const answerMap = {};
+                selects.forEach(select => {
+                    const leftId = select.dataset.leftId;
+                    if (select.value) {
+                        answerMap[leftId] = select.value;
+                    }
+                });
+                updateAnswer(qId, JSON.stringify(answerMap), questionIndex);
+            };
+
+            selects.forEach(select => {
                 select.addEventListener('change', () => {
-                    saveAnswer(questionId, questionIndex);
-                    markAsAnswered(questionIndex);
+                    const leftId = select.dataset.leftId;
+                    const clearBtn = document.querySelector(`#answerArea${qId} .match-clear[data-left-id="${leftId}"]`);
+                    if (clearBtn) clearBtn.style.display = select.value ? 'inline-block' : 'none';
+                    saveMatchingCallback();
+                });
+            });
+
+            clears.forEach(clear => {
+                clear.addEventListener('click', () => {
+                    const leftId = clear.dataset.leftId;
+                    const select = document.querySelector(`#answerArea${qId} .match-select[data-left-id="${leftId}"]`);
+                    if (select) select.value = '';
+                    clear.style.display = 'none';
+                    saveMatchingCallback();
                 });
             });
         }
         else {
-            const textarea = document.getElementById(`text_${questionId}`);
+            const textarea = document.getElementById(`text_${qId}`);
             if (textarea) {
+                let timeout;
                 textarea.addEventListener('input', () => {
-                    if (saveTimeouts[questionId]) clearTimeout(saveTimeouts[questionId]);
-                    saveTimeouts[questionId] = setTimeout(() => {
-                        saveAnswer(questionId, questionIndex);
-                        if (textarea.value.trim().length > 0) markAsAnswered(questionIndex);
-                    }, 800);
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        updateAnswer(qId, textarea.value, questionIndex);
+                    }, 600);
                 });
             }
         }
-    }
 
-    async function saveAnswer(questionId, questionIndex) {
-        if (isLocked || isSubmitted) return;
-
-        let answerText = '';
-        const questionCard = document.querySelector(`.question-card[data-question-id="${questionId}"]`);
-        const qType = questionCard?.dataset.questionType;
-
-        if (qType === 'true_false' || qType === 'multiple_choice') {
-            const selected = document.querySelector(`input[name="q_${questionId}"]:checked`);
-            answerText = selected ? selected.value : '';
-        }
-        else if (qType === 'matching') {
-            const selects = document.querySelectorAll(`select[name^="match_${questionId}_"]`);
-            const matches = {};
-            selects.forEach(select => { if (select.value) matches[select.dataset.pairIndex] = select.value; });
-            answerText = JSON.stringify(matches);
-        }
-        else {
-            const textarea = document.getElementById(`text_${questionId}`);
-            answerText = textarea ? textarea.value : '';
-        }
-
-        const statusDiv = document.getElementById(`status-${questionId}`);
-        if (statusDiv) statusDiv.innerHTML = '💾 در حال ذخیره...';
-
-        try {
-            const response = await fetch('/student/save-answer/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-                body: JSON.stringify({ question_id: questionId, answer_text: answerText })
+        // آپلود تصویر
+        const fileInput = document.getElementById(`file_${qId}`);
+        if (fileInput) {
+            fileInput.addEventListener('change', async (e) => {
+                if (!e.target.files[0]) return;
+                const fd = new FormData();
+                fd.append('question_id', qId);
+                fd.append('answer_image', e.target.files[0]);
+                const statusDiv = document.getElementById(`saveStatus${qId}`);
+                if(statusDiv) statusDiv.innerText = '📤 آپلود...';
+                try {
+                    const res = await fetch('/student/save-answer-image/', {
+                        method: 'POST', headers: { 'X-CSRFToken': getCsrf() }, body: fd
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const preview = document.getElementById(`preview_${qId}`);
+                        if (preview) preview.innerHTML = `<img src="${data.image_url}" class="image-preview zoom-trigger">`;
+                        document.getElementById(`removeImg_${qId}`).style.display = 'inline-block';
+                        updateAnswer(qId, data.image_url, questionIndex);
+                        if(statusDiv) statusDiv.innerText = '✅ عکس ذخیره شد';
+                        setTimeout(() => { if(statusDiv) statusDiv.innerText = ''; }, 1200);
+                        initZoomTriggers();
+                    }
+                } catch(e) { if(statusDiv) statusDiv.innerText = '❌ خطا'; }
             });
-            const result = await response.json();
-            if (result.success && statusDiv) {
-                statusDiv.innerHTML = '✅ ذخیره شد';
-                setTimeout(() => { if (statusDiv) statusDiv.innerHTML = ''; }, 1500);
-            }
-        } catch (error) {
-            if (statusDiv) {
-                statusDiv.innerHTML = '❌ خطا';
-                setTimeout(() => { if (statusDiv) statusDiv.innerHTML = ''; }, 1500);
-            }
+        }
+
+        const removeBtn = document.getElementById(`removeImg_${qId}`);
+        if (removeBtn) {
+            removeBtn.addEventListener('click', async () => {
+                await fetch('/student/remove-answer-image/', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                    body: JSON.stringify({ question_id: qId })
+                });
+                document.getElementById(`preview_${qId}`).innerHTML = '';
+                removeBtn.style.display = 'none';
+                updateAnswer(qId, '', questionIndex);
+            });
         }
     }
 
-    // ========== ثبت نهایی ==========
-    const submitBtn = document.getElementById('submitBtn');
-    let submitClicked = false;
+    // ========== مدیریت حالت نمایش ==========
+    function applyDisplayMode() {
+        const cards = document.querySelectorAll('.question-card');
+        const submitBtn = document.getElementById('submitExamBtn');
 
-    submitBtn.addEventListener('click', async () => {
-        if (isLocked || isSubmitted || submitClicked) {
-            alert('آزمون قبلاً ثبت شده است!');
+        if (EXAM_CONFIG.showMode === 'one_by_one') {
+            cards.forEach((card, i) => {
+                card.classList.add('page-mode');
+                card.classList.toggle('active', i === currentPageIndex);
+            });
+            submitBtn.style.display = (currentPageIndex === totalQuestions - 1) ? 'block' : 'none';
+            updateNavButtons();
+        } else {
+            cards.forEach(card => card.classList.remove('page-mode', 'active'));
+            submitBtn.style.display = 'block';
+        }
+    }
+
+    function updateNavButtons() {
+        const prevBtn = document.querySelector(`.prev-btn[data-idx="${currentPageIndex}"]`);
+        const nextBtn = document.querySelector(`.next-btn[data-idx="${currentPageIndex}"]`);
+        if (prevBtn) {
+            prevBtn.disabled = (!EXAM_CONFIG.showBackBtn || currentPageIndex === 0);
+            prevBtn.onclick = () => { if (currentPageIndex > 0) showPageQuestion(currentPageIndex - 1); };
+        }
+        if (nextBtn) {
+            nextBtn.disabled = (currentPageIndex === totalQuestions - 1);
+            nextBtn.onclick = () => { if (currentPageIndex < totalQuestions - 1) showPageQuestion(currentPageIndex + 1); };
+        }
+    }
+
+    function showPageQuestion(index) {
+        if (index < 0 || index >= totalQuestions) return;
+        currentPageIndex = index;
+        const cards = document.querySelectorAll('.question-card');
+        cards.forEach((card, i) => card.classList.toggle('active', i === index));
+        updateNavButtons();
+        const submitBtn = document.getElementById('submitExamBtn');
+        submitBtn.style.display = (currentPageIndex === totalQuestions - 1) ? 'block' : 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========== زوم ==========
+    let zoomScale = 1, zoomX = 0, zoomY = 0;
+    let isPanning = false, panStartX = 0, panStartY = 0, panStartZoomX = 0, panStartZoomY = 0;
+
+    function updateZoomTransform() {
+        const img = document.getElementById('zoomImage');
+        if (img) img.style.transform = `translate(${zoomX}px, ${zoomY}px) scale(${zoomScale})`;
+    }
+
+    function openZoom(src) {
+        const modal = document.getElementById('zoomModal');
+        const img = document.getElementById('zoomImage');
+        zoomScale = 1; zoomX = 0; zoomY = 0;
+        img.src = src;
+        updateZoomTransform();
+        modal.classList.add('active');
+    }
+
+    function closeZoom() { document.getElementById('zoomModal').classList.remove('active'); }
+    function resetZoom() { zoomScale = 1; zoomX = 0; zoomY = 0; updateZoomTransform(); }
+
+    function setupZoomEvents() {
+        const canvas = document.getElementById('zoomCanvas');
+        if (!canvas) return;
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            zoomScale = Math.min(Math.max(zoomScale + delta, 0.8), 3);
+            updateZoomTransform();
+        }, { passive: false });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (zoomScale <= 1) return;
+            isPanning = true;
+            panStartX = e.clientX;
+            panStartY = e.clientY;
+            panStartZoomX = zoomX;
+            panStartZoomY = zoomY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            zoomX = panStartZoomX + (e.clientX - panStartX);
+            zoomY = panStartZoomY + (e.clientY - panStartY);
+            updateZoomTransform();
+        });
+
+        window.addEventListener('mouseup', () => { isPanning = false; canvas.style.cursor = 'grab'; });
+
+        let touchStartX = 0, touchStartY = 0, touchStartZoomX = 0, touchStartZoomY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1 && zoomScale > 1) {
+                e.preventDefault();
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartZoomX = zoomX;
+                touchStartZoomY = zoomY;
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1 && zoomScale > 1) {
+                e.preventDefault();
+                zoomX = touchStartZoomX + (e.touches[0].clientX - touchStartX);
+                zoomY = touchStartZoomY + (e.touches[0].clientY - touchStartY);
+                updateZoomTransform();
+            }
+        });
+        canvas.style.cursor = 'grab';
+    }
+
+    function initZoomTriggers() {
+        document.querySelectorAll('.zoom-trigger').forEach(img => {
+            img.removeEventListener('click', img._zoomHandler);
+            img._zoomHandler = (e) => { e.stopPropagation(); openZoom(img.src); };
+            img.addEventListener('click', img._zoomHandler);
+        });
+    }
+
+    // ========== مقداردهی اولیه ==========
+    function initQuestions() {
+        const cards = document.querySelectorAll('.question-card');
+        cards.forEach((card, idx) => {
+            const qId = parseInt(card.dataset.qid);
+            const qData = questionsData.find(q => q.id === qId);
+            if (!qData) return;
+
+            // بازیابی پاسخ ذخیره شده
+            let savedText = '';
+            let savedImg = null;
+
+            if (savedAnswers && savedAnswers[qId]) {
+                savedText = savedAnswers[qId].answer_text || '';
+                savedImg = savedAnswers[qId].answer_image || null;
+            }
+
+            // اگر سوال matching است و savedText خالی نباشد، آن را معتبر می‌کنیم
+            if (qData.type === 'matching' && savedText) {
+                try {
+                    const parsed = JSON.parse(savedText);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        savedText = JSON.stringify(parsed);
+                        userAnswers[qId] = savedText;
+                        if (Object.keys(parsed).length > 0) answeredStatus[idx] = true;
+                    } else {
+                        userAnswers[qId] = '{}';
+                        savedText = '{}';
+                    }
+                } catch(e) {
+                    userAnswers[qId] = '{}';
+                    savedText = '{}';
+                }
+            } else if (savedText && savedText.length > 0 && savedText !== '{}' && savedText !== '[]') {
+                userAnswers[qId] = savedText;
+                answeredStatus[idx] = true;
+            } else {
+                if (qData.type === 'matching') {
+                    userAnswers[qId] = '{}';
+                    savedText = '{}';
+                } else {
+                    userAnswers[qId] = '';
+                }
+            }
+
+            if (savedImg) {
+                userAnswers[qId] = savedImg;
+                answeredStatus[idx] = true;
+            }
+
+            renderQuestion(qId, qData, savedText, savedImg, idx);
+        });
+
+        const answeredCount = answeredStatus.filter(v => v === true).length;
+        document.getElementById('statsText').innerHTML = `${answeredCount} از ${totalQuestions} پاسخ داده شده`;
+        document.getElementById('progressFill').style.width = (answeredCount / totalQuestions * 100) + '%';
+
+        applyDisplayMode();
+    }
+
+    document.getElementById('submitExamBtn').onclick = async () => {
+        if (isSubmitted || isTimeout) {
+            alert('آزمون قبلاً ثبت شده است');
             return;
         }
-
-        if (confirm('آیا مطمئن هستید؟ پس از ثبت نمی‌توانید پاسخ‌ها را تغییر دهید.')) {
-            submitClicked = true;
-            submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ در حال ثبت...';
+        if (confirm('آیا از ثبت نهایی آزمون مطمئن هستید؟')) {
+            isSubmitted = true;
+            clearInterval(timerInterval);
+            const btn = document.getElementById('submitExamBtn');
+            btn.disabled = true;
+            btn.innerText = '⏳ در حال ثبت...';
             await saveAllAnswers();
-            localStorage.removeItem(storageKey);
-            window.location.href = `/student/submit/${examId}/`;
+            window.location.href = `/student/submit/${EXAM_CONFIG.hashedId}/`;
         }
-    });
+    };
 
-    // ========== راه‌اندازی ==========
-    renderQuestions();
+    initQuestions();
+    initZoomTriggers();
+    setupZoomEvents();
     startTimer();
 </script>
 </body>
-</html>
+</html>a

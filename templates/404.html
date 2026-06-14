@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}صفحه یافت نشد - 404{% endblock %}
+{% load static %}
+
+{% block title %}صفحه یافت نشد - ۴۰۴{% endblock %}
 
 {% block extra_css %}
 <style>
     .error-container {
-        min-height: 60vh;
+        min-height: 70vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -12,66 +14,205 @@
         padding: 40px 20px;
     }
 
+    /* Glassmorphism Card */
     .error-card {
-        background: white;
-        border-radius: 30px;
-        padding: 50px 40px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 48px;
+        padding: 55px 45px;
         max-width: 550px;
         margin: 0 auto;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+        animation: fadeInUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        transition: all 0.3s;
     }
 
+    .error-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 35px 60px rgba(0, 0, 0, 0.12);
+        border-color: rgba(200, 180, 140, 0.5);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Animated Icon */
     .error-icon {
-        font-size: 80px;
+        font-size: 85px;
         margin-bottom: 20px;
+        display: inline-block;
+        animation: shakeIcon 0.6s ease-in-out;
     }
 
+    @keyframes shakeIcon {
+        0%, 100% {
+            transform: rotate(0deg);
+        }
+        25% {
+            transform: rotate(-15deg);
+        }
+        75% {
+            transform: rotate(15deg);
+        }
+    }
+
+    /* Animated Code */
     .error-code {
         font-size: 100px;
         font-weight: 800;
-        color: #e2e8f0;
+        background: linear-gradient(135deg, #a07830, #8b6914, #c49a2b);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
         line-height: 1;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        letter-spacing: 8px;
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% {
+            text-shadow: 0 0 5px rgba(160, 120, 48, 0.2);
+        }
+        50% {
+            text-shadow: 0 0 20px rgba(160, 120, 48, 0.4);
+        }
     }
 
     h1 {
-        color: #1e293b;
+        color: #5a3e2b;
         margin-bottom: 15px;
+        font-size: 1.6rem;
+        font-weight: 700;
     }
 
-    p {
-        color: #64748b;
+    .error-message {
+        color: #8b6b4a;
         margin-bottom: 30px;
-        line-height: 1.6;
+        line-height: 1.7;
+        font-size: 0.9rem;
     }
 
+    /* Glass Button */
     .btn-home {
-        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        background: linear-gradient(135deg, #a07830, #8b6914);
         color: white;
-        padding: 12px 30px;
+        padding: 12px 32px;
         border: none;
-        border-radius: 40px;
+        border-radius: 60px;
         text-decoration: none;
-        display: inline-block;
-        font-weight: 500;
-        transition: transform 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+        box-shadow: 0 4px 15px rgba(139, 105, 20, 0.25);
     }
 
     .btn-home:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(139, 105, 20, 0.35);
     }
 
-    @media (max-width: 640px) {
+    .btn-home:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    .suggestion-box {
+        margin-top: 25px;
+        padding: 15px 20px;
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 28px;
+        backdrop-filter: blur(4px);
+    }
+
+    .suggestion-text {
+        font-size: 0.7rem;
+        color: #b89a6a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .suggestion-text a {
+        color: #c49a2b;
+        text-decoration: none;
+    }
+
+    .suggestion-text a:hover {
+        text-decoration: underline;
+    }
+
+    /* Floating Search Icon Animation */
+    .floating-search {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: rgba(200, 180, 140, 0.15);
+        backdrop-filter: blur(8px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        animation: float 3s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 550px) {
         .error-card {
-            padding: 30px 25px;
+            padding: 35px 25px;
+            border-radius: 32px;
         }
 
         .error-code {
-            font-size: 60px;
+            font-size: 65px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
         }
 
         .error-icon {
             font-size: 60px;
+        }
+
+        .btn-home {
+            padding: 10px 24px;
+            font-size: 0.8rem;
+        }
+
+        .floating-search {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            bottom: 20px;
+            right: 20px;
         }
     }
 </style>
@@ -83,8 +224,26 @@
         <div class="error-icon">🔍</div>
         <div class="error-code">۴۰۴</div>
         <h1>صفحه مورد نظر یافت نشد!</h1>
-        <p>متأسفیم، صفحه‌ای که به دنبال آن هستید وجود ندارد یا حذف شده است.</p>
-        <a href="/" class="btn-home">🏠 بازگشت به صفحه اصلی</a>
+        <p class="error-message">
+            متأسفیم، صفحه‌ای که به دنبال آن هستید وجود ندارد یا حذف شده است.
+        </p>
+        <a href="/" class="btn-home">
+            🏠 بازگشت به صفحه اصلی
+        </a>
+        <div class="suggestion-box">
+            <div class="suggestion-text">
+                <span>💡 پیشنهاد:</span>
+                <a href="{% url 'student_dashboard' %}">داشبورد دانش‌آموزی</a>
+                <span>•</span>
+                <a href="{% url 'teacher_dashboard' %}">داشبورد معلم</a>
+                <span>•</span>
+                <a href="/">صفحه اصلی</a>
+            </div>
+        </div>
     </div>
+</div>
+
+<div class="floating-search">
+    🔍
 </div>
 {% endblock %}

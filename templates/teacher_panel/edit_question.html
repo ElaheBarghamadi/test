@@ -1,24 +1,25 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}ویرایش سوال - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
     :root {
-        --primary: #4f46e5;
-        --primary-dark: #4338ca;
-        --success: #10b981;
-        --danger: #ef4444;
+        --primary: #a07830;
+        --primary-dark: #8b6914;
+        --success: #7a9c3e;
+        --danger: #dc8686;
         --warning: #f59e0b;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
+        --gray-50: #faf8f3;
+        --gray-100: #f5f0e6;
+        --gray-200: #e8e0d0;
+        --gray-300: #d4c4a8;
+        --gray-400: #b89a6a;
+        --gray-500: #a08060;
+        --gray-600: #8b6b4a;
+        --gray-700: #6b4c3a;
+        --gray-800: #5a3e2b;
     }
 
     .container {
@@ -27,29 +28,35 @@
         padding: 20px;
     }
 
-    .card {
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
 
     .card-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #a07830, #8b6914);
+        padding: 28px 32px;
         color: white;
-        padding: 24px 32px;
     }
 
     .card-header h2 {
         margin: 0 0 8px 0;
-        font-size: 24px;
+        font-size: 1.3rem;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .card-header p {
         margin: 0;
         opacity: 0.9;
-        font-size: 14px;
+        font-size: 0.8rem;
     }
 
     .card-body {
@@ -58,7 +65,7 @@
 
     .form-section {
         margin-bottom: 32px;
-        border-bottom: 2px solid var(--gray-200);
+        border-bottom: 2px solid rgba(200, 180, 140, 0.3);
         padding-bottom: 24px;
     }
 
@@ -69,18 +76,13 @@
     }
 
     .section-title {
-        font-size: 18px;
+        font-size: 1rem;
         font-weight: 700;
-        color: var(--gray-800);
+        color: #5a3e2b;
         margin-bottom: 20px;
         display: flex;
         align-items: center;
         gap: 10px;
-    }
-
-    .section-title i {
-        color: var(--primary);
-        font-size: 20px;
     }
 
     .form-group {
@@ -91,13 +93,13 @@
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: var(--gray-700);
-        font-size: 14px;
+        color: #6b4c3a;
+        font-size: 0.8rem;
     }
 
     .form-group label.required::after {
         content: "*";
-        color: var(--danger);
+        color: #dc8686;
         margin-right: 4px;
     }
 
@@ -107,20 +109,22 @@
     select,
     textarea {
         width: 100%;
-        padding: 10px 12px;
-        border: 1px solid var(--gray-300);
-        border-radius: 12px;
-        font-size: 14px;
-        transition: all 0.3s ease;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 16px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
         font-family: inherit;
+        color: #5a3e2b;
     }
 
     input:focus,
     select:focus,
     textarea:focus {
         outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        border-color: #c49a2b;
+        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1);
     }
 
     .row {
@@ -132,35 +136,39 @@
     .checkbox-group {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 12px;
-        background: var(--gray-50);
-        border-radius: 12px;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 20px;
         cursor: pointer;
+        margin: 15px 0;
     }
 
     .checkbox-group input {
-        width: auto;
+        width: 18px;
+        height: 18px;
         margin: 0;
+        accent-color: #c49a2b;
     }
 
     .checkbox-group label {
         margin: 0;
         cursor: pointer;
+        color: #5a3e2b;
     }
 
     .option-card {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
+        background: rgba(200, 180, 140, 0.08);
+        border: 1px solid rgba(200, 180, 140, 0.3);
+        border-radius: 20px;
         padding: 16px;
         margin-bottom: 12px;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
     }
 
     .option-card:hover {
-        border-color: var(--primary);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-color: #c49a2b;
+        background: rgba(200, 180, 140, 0.15);
     }
 
     .option-header {
@@ -173,20 +181,20 @@
     .option-number {
         width: 32px;
         height: 32px;
-        background: var(--primary);
+        background: linear-gradient(135deg, #a07830, #8b6914);
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 14px;
+        font-size: 0.8rem;
     }
 
     .matching-pair {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
+        background: rgba(200, 180, 140, 0.08);
+        border: 1px solid rgba(200, 180, 140, 0.3);
+        border-radius: 20px;
         padding: 16px;
         margin-bottom: 12px;
         display: grid;
@@ -196,43 +204,44 @@
     }
 
     .matching-pair .arrow {
-        font-size: 20px;
-        color: var(--primary);
+        font-size: 1.2rem;
+        color: #c49a2b;
         font-weight: bold;
     }
 
     .btn-remove {
-        background: var(--danger);
+        background: #dc8686;
         color: white;
         border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
+        font-size: 1rem;
     }
 
     .btn-remove:hover {
-        background: #dc2626;
+        background: #b85a3a;
         transform: scale(1.05);
     }
 
     .btn-add {
-        background: var(--primary);
+        background: linear-gradient(135deg, #a07830, #8b6914);
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 12px;
+        padding: 10px 24px;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.8rem;
         font-weight: 600;
         margin-top: 12px;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
     }
 
     .btn-add:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 105, 20, 0.3);
     }
 
     .form-actions {
@@ -240,45 +249,45 @@
         gap: 16px;
         margin-top: 32px;
         padding-top: 24px;
-        border-top: 2px solid var(--gray-200);
+        border-top: 2px solid rgba(200, 180, 140, 0.3);
     }
 
     .btn-submit {
-        background: var(--success);
+        background: linear-gradient(135deg, #7a9c3e, #6b8a32);
         color: white;
         padding: 12px 28px;
         border: none;
-        border-radius: 12px;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 0.85rem;
         font-weight: 600;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
         flex: 1;
     }
 
     .btn-submit:hover {
-        background: #059669;
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(122, 156, 62, 0.3);
     }
 
     .btn-cancel {
-        background: var(--gray-500);
-        color: white;
+        background: rgba(200, 180, 140, 0.25);
+        color: #5a3e2b;
         padding: 12px 28px;
-        border: none;
-        border-radius: 12px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
         text-align: center;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
         flex: 1;
     }
 
     .btn-cancel:hover {
-        background: var(--gray-600);
-        transform: translateY(-1px);
+        background: rgba(200, 180, 140, 0.4);
+        transform: translateY(-2px);
     }
 
     .hidden {
@@ -286,16 +295,16 @@
     }
 
     .help-text {
-        font-size: 12px;
-        color: var(--gray-500);
-        margin-top: 4px;
+        font-size: 0.65rem;
+        color: #b89a6a;
+        margin-top: 6px;
     }
 
     .current-image {
         margin-top: 12px;
         padding: 16px;
-        background: var(--gray-50);
-        border-radius: 12px;
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 20px;
         display: flex;
         align-items: center;
         gap: 16px;
@@ -303,9 +312,9 @@
     }
 
     .current-image img {
-        max-width: 150px;
-        border-radius: 8px;
-        border: 2px solid var(--gray-200);
+        max-width: 130px;
+        border-radius: 12px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
     }
 
     .remove-image-checkbox {
@@ -314,21 +323,14 @@
         gap: 8px;
     }
 
-    .remove-image-checkbox input {
-        width: auto;
-        margin: 0;
-    }
-
-    .alert {
-        padding: 12px 16px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-    }
-
     .alert-info {
-        background: #dbeafe;
-        border: 1px solid #bfdbfe;
-        color: #1e40af;
+        background: rgba(196, 154, 43, 0.1);
+        border-right: 3px solid #c49a2b;
+        padding: 14px 18px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        font-size: 0.8rem;
+        color: #8b6b4a;
     }
 
     @media (max-width: 768px) {
@@ -353,15 +355,18 @@
 
 {% block content %}
 <div class="container">
-    <div class="card">
+    <div class="glass-card">
         <div class="card-header">
-            <h2>✏️ ویرایش سوال</h2>
+            <h2>
+                <span>✏️</span>
+                ویرایش سوال
+            </h2>
             <p>آزمون: {{ exam.title }}</p>
         </div>
 
         <div class="card-body">
             {% if question.correct_answer %}
-            <div class="alert alert-info">
+            <div class="alert-info">
                 <strong>📌 پاسخ صحیح فعلی:</strong>
                 {% if question.question_type == 'true_false' %}
                     {% if question.correct_answer == 'true' %}✅ صحیح{% else %}❌ غلط{% endif %}
@@ -378,7 +383,7 @@
 
                 <div class="form-section">
                     <div class="section-title">
-                        <i>📝</i>
+                        <span>📝</span>
                         <span>اطلاعات پایه سوال</span>
                     </div>
 
@@ -427,7 +432,6 @@
                     </div>
                 </div>
 
-                <!-- بخش‌های اختصاصی هر نوع سوال -->
                 <div id="dynamicFields"></div>
 
                 <div class="form-actions">
@@ -440,7 +444,7 @@
 </div>
 
 <script>
-    // داده‌های سوال از سرور - با استفاده از escapejs برای ایمنی
+    // Data from server
     const questionData = {
         question_type: "{{ question.question_type|escapejs }}",
         correct_answer: "{{ question.correct_answer|default:''|escapejs }}",
@@ -450,7 +454,6 @@
         min_length: "{{ question.min_length|default:'100' }}"
     };
 
-    // آرایه‌ها با حلقه در سمت سرور ساخته می‌شوند
     {% if question.options %}
     questionData.options = [
         {% for opt in question.options %}
@@ -496,7 +499,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>✅</i>
+                        <span>✅</span>
                         <span>تنظیمات سوال صحیح/غلط</span>
                     </div>
                     <div class="form-group">
@@ -513,7 +516,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>🔘</i>
+                        <span>🔘</span>
                         <span>تنظیمات سوال تستی</span>
                     </div>
                     <div class="form-group">
@@ -557,13 +560,12 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>📝</i>
+                        <span>📝</span>
                         <span>تنظیمات سوال جاخالی</span>
                     </div>
                     <div class="form-group">
                         <label>جای خالی‌ها (با کاما جدا کنید)</label>
                         <input type="text" name="blanks" value="${(questionData.blanks || []).join(',')}" placeholder="مثال: جاهای خالی, را, وارد کنید">
-                        <div class="help-text">مثال: ایران, تهران, فارسی</div>
                     </div>
                     <div class="form-group">
                         <label class="required">پاسخ صحیح</label>
@@ -576,7 +578,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>✏️</i>
+                        <span>✏️</span>
                         <span>تنظیمات سوال پاسخ کوتاه</span>
                     </div>
                     <div class="form-group">
@@ -586,7 +588,6 @@
                     <div class="form-group">
                         <label>پاسخ صحیح (اختیاری)</label>
                         <input type="text" name="correct_answer" value="${escapeHtml(questionData.correct_answer)}" placeholder="پاسخ صحیح را وارد کنید...">
-                        <div class="help-text">برای تصحیح خودکار می‌توانید پاسخ صحیح را وارد کنید</div>
                     </div>
                 </div>
             `
@@ -595,7 +596,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>📄</i>
+                        <span>📄</span>
                         <span>تنظیمات سوال پاسخ بلند</span>
                     </div>
                     <div class="form-group">
@@ -605,7 +606,6 @@
                     <div class="form-group">
                         <label>پاسخ صحیح (اختیاری)</label>
                         <textarea name="correct_answer" rows="3" placeholder="پاسخ صحیح را وارد کنید...">${escapeHtml(questionData.correct_answer)}</textarea>
-                        <div class="help-text">برای تصحیح خودکار می‌توانید پاسخ صحیح را وارد کنید</div>
                     </div>
                 </div>
             `
@@ -614,7 +614,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>🖼️</i>
+                        <span>🖼️</span>
                         <span>تنظیمات سوال پاسخ تصویری</span>
                     </div>
                     <div class="form-group">
@@ -628,7 +628,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>🔗</i>
+                        <span>🔗</span>
                         <span>تنظیمات سوال وصل کردنی</span>
                     </div>
                     <div id="matchingPairsContainer"></div>
@@ -709,11 +709,7 @@
         }
     }
 
-    // بارگذاری اولیه
     loadQuestionFields();
-
-    questionTypeSelect.addEventListener('change', function() {
-        loadQuestionFields();
-    });
+    questionTypeSelect.addEventListener('change', loadQuestionFields);
 </script>
 {% endblock %}

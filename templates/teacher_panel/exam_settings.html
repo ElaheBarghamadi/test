@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}تنظیمات آزمون - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
@@ -7,118 +8,201 @@
     .settings-container {
         max-width: 900px;
         margin: 0 auto;
+        padding: 20px;
     }
-    .card {
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        transition: all 0.3s;
     }
+
     .card-header {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        background: linear-gradient(135deg, #a07830, #8b6914);
+        padding: 28px 32px;
         color: white;
-        padding: 24px 32px;
     }
+
     .card-header h3 {
         margin: 0;
-        font-size: 24px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
+
     .card-body {
         padding: 32px;
     }
+
+    /* Settings Sections */
     .settings-section {
-        background: #f8fafc;
-        border-radius: 20px;
+        background: rgba(200, 180, 140, 0.08);
+        backdrop-filter: blur(4px);
+        border-radius: 24px;
         padding: 24px;
         margin-bottom: 28px;
+        border: 1px solid rgba(200, 180, 140, 0.2);
+        transition: all 0.2s;
     }
+
+    .settings-section:hover {
+        border-color: rgba(200, 180, 140, 0.4);
+        background: rgba(200, 180, 140, 0.12);
+    }
+
     .settings-section h4 {
         margin: 0 0 20px 0;
-        color: #1e293b;
-        font-size: 18px;
-        border-right: 4px solid #4f46e5;
-        padding-right: 12px;
+        color: #5a3e2b;
+        font-size: 1rem;
+        font-weight: 700;
+        border-right: 3px solid #c49a2b;
+        padding-right: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
+
+    /* Setting Items */
     .setting-item {
         margin-bottom: 16px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         flex-wrap: wrap;
     }
+
     .setting-item label {
         cursor: pointer;
-        font-size: 14px;
-        color: #334155;
+        font-size: 0.85rem;
+        color: #5a3e2b;
         flex: 1;
+        font-weight: 500;
     }
+
     .setting-item input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         cursor: pointer;
+        accent-color: #c49a2b;
     }
+
     .setting-item select {
-        width: 250px;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-        font-size: 14px;
+        width: 260px;
+        padding: 10px 14px;
+        background: white;
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 40px;
+        font-size: 0.8rem;
+        color: #5a3e2b;
+        cursor: pointer;
+        transition: all 0.2s;
     }
+
+    .setting-item select:focus {
+        outline: none;
+        border-color: #c49a2b;
+        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1);
+    }
+
+    .help-text {
+        font-size: 0.65rem;
+        color: #b89a6a;
+        margin-top: 4px;
+        margin-right: 32px;
+        line-height: 1.5;
+    }
+
+    /* Form Actions */
     .form-actions {
         display: flex;
         gap: 16px;
         margin-top: 32px;
         padding-top: 24px;
-        border-top: 2px solid #e2e8f0;
+        border-top: 2px solid rgba(200, 180, 140, 0.3);
     }
+
     .btn-save {
-        background: #10b981;
+        background: linear-gradient(135deg, #a07830, #8b6914);
         color: white;
-        padding: 12px 28px;
+        padding: 12px 32px;
         border: none;
-        border-radius: 12px;
+        border-radius: 60px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.85rem;
         font-weight: 600;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(139, 105, 20, 0.3);
+    }
+
     .btn-back {
-        background: #64748b;
-        color: white;
-        padding: 12px 28px;
-        border: none;
-        border-radius: 12px;
+        background: rgba(200, 180, 140, 0.25);
+        color: #5a3e2b;
+        padding: 12px 32px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
+        border-radius: 60px;
         cursor: pointer;
         text-decoration: none;
-        display: inline-block;
-        font-size: 14px;
-        font-weight: 500;
-        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.25s;
     }
-    .help-text {
-        font-size: 12px;
-        color: #64748b;
-        margin-top: 4px;
-        margin-right: 32px;
+
+    .btn-back:hover {
+        background: rgba(200, 180, 140, 0.4);
+        transform: translateY(-2px);
     }
+
+    /* Responsive */
     @media (max-width: 640px) {
+        .settings-container {
+            padding: 12px;
+        }
+
         .card-body {
             padding: 20px;
         }
+
         .settings-section {
             padding: 16px;
         }
+
         .setting-item {
             flex-direction: column;
             align-items: flex-start;
         }
+
         .setting-item select {
             width: 100%;
         }
+
         .form-actions {
             flex-direction: column;
         }
+
         .btn-save, .btn-back {
             text-align: center;
+            justify-content: center;
+        }
+
+        .help-text {
+            margin-right: 0;
         }
     }
 </style>
@@ -126,23 +210,29 @@
 
 {% block content %}
 <div class="settings-container">
-    <div class="card">
+    <div class="glass-card">
         <div class="card-header">
-            <h3>⚙️ تنظیمات آزمون: {{ exam.title }}</h3>
+            <h3>
+                <span>⚙️</span>
+                تنظیمات آزمون: {{ exam.title }}
+            </h3>
         </div>
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
 
-                <!-- بخش 1: تنظیمات امنیتی و جلوگیری از تقلب -->
+                <!-- بخش 1: تنظیمات امنیتی -->
                 <div class="settings-section">
-                    <h4>🛡️ تنظیمات امنیتی و جلوگیری از تقلب</h4>
+                    <h4>
+                        <span>🛡️</span>
+                        تنظیمات امنیتی و جلوگیری از تقلب
+                    </h4>
 
                     <div class="setting-item">
                         <input type="checkbox" name="enable_anti_cheat" id="enable_anti_cheat" {% if exam.enable_anti_cheat %}checked{% endif %}>
                         <label for="enable_anti_cheat">✅ فعال کردن سیستم تشخیص تقلب</label>
                     </div>
-                    <div class="help-text">تشخیص تغییر تب، کپی/پیست، چند تب همزمان و ...</div>
+                    <div class="help-text">تشخیص تغییر تب، کپی/پیست، چند تب همزمان و ثبت تخلفات</div>
 
                     <div class="setting-item">
                         <input type="checkbox" name="prevent_tab_switch" id="prevent_tab_switch" {% if exam.prevent_tab_switch %}checked{% endif %}>
@@ -165,7 +255,10 @@
 
                 <!-- بخش 2: تنظیمات نمایش سوالات -->
                 <div class="settings-section">
-                    <h4>📄 تنظیمات نمایش سوالات</h4>
+                    <h4>
+                        <span>📄</span>
+                        تنظیمات نمایش سوالات
+                    </h4>
 
                     <div class="setting-item">
                         <label>نحوه نمایش سوالات:</label>
@@ -178,7 +271,7 @@
                             </option>
                         </select>
                     </div>
-                    <div class="help-text">در حالت "هر سوال در یک صفحه"، دانش‌آموز باید بین سوالات جابجا شود</div>
+                    <div class="help-text">در حالت "هر سوال در یک صفحه"، دانش‌آموز بین سوالات جابجا می‌شود</div>
 
                     <div class="setting-item">
                         <input type="checkbox" name="show_back_button" id="show_back_button" {% if exam.show_back_button %}checked{% endif %}>
@@ -189,7 +282,10 @@
 
                 <!-- بخش 3: تنظیمات پاسخ تشریحی -->
                 <div class="settings-section">
-                    <h4>📝 تنظیمات پاسخ تشریحی</h4>
+                    <h4>
+                        <span>📝</span>
+                        تنظیمات پاسخ تشریحی
+                    </h4>
 
                     <div class="setting-item">
                         <input type="checkbox" name="allow_teacher_answer" id="allow_teacher_answer" {% if exam.allow_teacher_answer %}checked{% endif %}>
@@ -205,8 +301,12 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-save">💾 ذخیره تنظیمات</button>
-                    <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت به ویرایش آزمون</a>
+                    <button type="submit" class="btn-save">
+                        💾 ذخیره تنظیمات
+                    </button>
+                    <a href="{% url 'edit_exam' exam.id %}" class="btn-back">
+                        ← بازگشت به ویرایش آزمون
+                    </a>
                 </div>
             </form>
         </div>

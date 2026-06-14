@@ -1,24 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}افزودن سوال جدید - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
     :root {
-        --primary: #4f46e5;
-        --primary-dark: #4338ca;
-        --success: #10b981;
-        --danger: #ef4444;
-        --warning: #f59e0b;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
-        --gray-800: #1f2937;
-        --gray-900: #111827;
+        --primary: #a07830;
+        --primary-dark: #8b6914;
+        --primary-light: #c49a2b;
+        --success: #7a9c3e;
+        --danger: #dc8686;
+        --warning: #f5a623;
+        --gray-50: #faf8f3;
+        --gray-100: #f5f0e6;
+        --gray-200: #e8e0d0;
+        --gray-300: #d4c4a8;
+        --gray-400: #b89a6a;
+        --gray-500: #a08060;
+        --gray-600: #8b6b4a;
+        --gray-700: #6b4c3a;
+        --gray-800: #5a3e2b;
     }
 
     .container {
@@ -27,29 +29,35 @@
         padding: 20px;
     }
 
-    .card {
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
 
     .card-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 28px 32px;
         color: white;
-        padding: 24px 32px;
     }
 
     .card-header h2 {
         margin: 0 0 8px 0;
-        font-size: 24px;
+        font-size: 1.3rem;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .card-header p {
         margin: 0;
         opacity: 0.9;
-        font-size: 14px;
+        font-size: 0.8rem;
     }
 
     .card-body {
@@ -58,7 +66,7 @@
 
     .form-section {
         margin-bottom: 32px;
-        border-bottom: 2px solid var(--gray-200);
+        border-bottom: 2px solid rgba(200, 180, 140, 0.3);
         padding-bottom: 24px;
     }
 
@@ -69,18 +77,13 @@
     }
 
     .section-title {
-        font-size: 18px;
+        font-size: 1rem;
         font-weight: 700;
         color: var(--gray-800);
         margin-bottom: 20px;
         display: flex;
         align-items: center;
-        gap: 10px;
-    }
-
-    .section-title i {
-        color: var(--primary);
-        font-size: 20px;
+        gap: 8px;
     }
 
     .form-group {
@@ -92,7 +95,7 @@
         margin-bottom: 8px;
         font-weight: 600;
         color: var(--gray-700);
-        font-size: 14px;
+        font-size: 0.8rem;
     }
 
     .form-group label.required::after {
@@ -107,20 +110,22 @@
     select,
     textarea {
         width: 100%;
-        padding: 10px 12px;
-        border: 1px solid var(--gray-300);
-        border-radius: 12px;
-        font-size: 14px;
-        transition: all 0.3s ease;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
         font-family: inherit;
+        color: var(--gray-700);
     }
 
     input:focus,
     select:focus,
     textarea:focus {
         outline: none;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1);
     }
 
     .row {
@@ -132,35 +137,39 @@
     .checkbox-group {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 12px;
-        background: var(--gray-50);
-        border-radius: 12px;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 20px;
         cursor: pointer;
+        margin: 15px 0;
     }
 
     .checkbox-group input {
-        width: auto;
+        width: 18px;
+        height: 18px;
         margin: 0;
+        accent-color: var(--primary);
     }
 
     .checkbox-group label {
         margin: 0;
         cursor: pointer;
+        color: var(--gray-700);
     }
 
     .option-card {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
+        background: rgba(200, 180, 140, 0.08);
+        border: 1px solid rgba(200, 180, 140, 0.3);
+        border-radius: 20px;
         padding: 16px;
         margin-bottom: 12px;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
     }
 
     .option-card:hover {
-        border-color: var(--primary);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-color: var(--primary-light);
+        background: rgba(200, 180, 140, 0.12);
     }
 
     .option-header {
@@ -173,20 +182,20 @@
     .option-number {
         width: 32px;
         height: 32px;
-        background: var(--primary);
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 14px;
+        font-size: 0.8rem;
     }
 
     .matching-pair {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 16px;
+        background: rgba(200, 180, 140, 0.08);
+        border: 1px solid rgba(200, 180, 140, 0.3);
+        border-radius: 20px;
         padding: 16px;
         margin-bottom: 12px;
         display: grid;
@@ -196,8 +205,8 @@
     }
 
     .matching-pair .arrow {
-        font-size: 20px;
-        color: var(--primary);
+        font-size: 1.2rem;
+        color: var(--primary-light);
         font-weight: bold;
     }
 
@@ -205,34 +214,35 @@
         background: var(--danger);
         color: white;
         border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
+        font-size: 1rem;
     }
 
     .btn-remove:hover {
-        background: #dc2626;
+        background: #b85a3a;
         transform: scale(1.05);
     }
 
     .btn-add {
-        background: var(--primary);
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         color: white;
         border: none;
-        padding: 10px 20px;
-        border-radius: 12px;
+        padding: 10px 24px;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.8rem;
         font-weight: 600;
         margin-top: 12px;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
     }
 
     .btn-add:hover {
-        background: var(--primary-dark);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 105, 20, 0.3);
     }
 
     .form-actions {
@@ -240,55 +250,61 @@
         gap: 16px;
         margin-top: 32px;
         padding-top: 24px;
-        border-top: 2px solid var(--gray-200);
+        border-top: 2px solid rgba(200, 180, 140, 0.3);
     }
 
     .btn-submit {
-        background: var(--success);
+        background: linear-gradient(135deg, var(--success), #6b8a32);
         color: white;
-        padding: 12px 28px;
+        padding: 12px 32px;
         border: none;
-        border-radius: 12px;
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.25s;
         flex: 1;
     }
 
     .btn-submit:hover {
-        background: #059669;
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(122, 156, 62, 0.3);
     }
 
     .btn-cancel {
-        background: var(--gray-500);
-        color: white;
-        padding: 12px 28px;
-        border: none;
-        border-radius: 12px;
+        background: rgba(200, 180, 140, 0.25);
+        color: var(--gray-700);
+        padding: 12px 32px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
+        border-radius: 40px;
         cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
         text-decoration: none;
         text-align: center;
-        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.25s;
         flex: 1;
     }
 
     .btn-cancel:hover {
-        background: var(--gray-600);
-        transform: translateY(-1px);
-    }
-
-    .hidden {
-        display: none;
+        background: rgba(200, 180, 140, 0.4);
+        transform: translateY(-2px);
     }
 
     .help-text {
-        font-size: 12px;
+        font-size: 0.65rem;
         color: var(--gray-500);
-        margin-top: 4px;
+        margin-top: 6px;
+    }
+
+    .alert-info {
+        background: rgba(196, 154, 43, 0.1);
+        border-right: 3px solid var(--primary-light);
+        padding: 12px 16px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+        font-size: 0.75rem;
+        color: var(--gray-700);
     }
 
     @media (max-width: 768px) {
@@ -307,25 +323,36 @@
         .form-actions {
             flex-direction: column;
         }
+
+        .option-header {
+            flex-wrap: wrap;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="card">
+    <div class="glass-card">
         <div class="card-header">
-            <h2>➕ افزودن سوال جدید</h2>
+            <h2>
+                <span>➕</span>
+                افزودن سوال جدید
+            </h2>
             <p>آزمون: {{ exam.title }}</p>
         </div>
 
         <div class="card-body">
+            <div class="alert-info">
+                💡 <strong>راهنما:</strong> ابتدا نوع سوال را انتخاب کنید، سپس فیلدهای مربوط به آن نمایش داده می‌شود.
+            </div>
+
             <form method="post" enctype="multipart/form-data" id="questionForm">
                 {% csrf_token %}
 
                 <div class="form-section">
                     <div class="section-title">
-                        <i>📝</i>
+                        <span>📝</span>
                         <span>اطلاعات پایه سوال</span>
                     </div>
 
@@ -358,7 +385,7 @@
                     <div class="form-group">
                         <label>تصویر سوال (اختیاری)</label>
                         <input type="file" name="image" accept="image/*">
-                        <div class="help-text">فرمت‌های مجاز: JPEG, PNG, GIF</div>
+                        <div class="help-text">فرمت‌های مجاز: JPEG, PNG, GIF, WEBP (حداکثر 2MB)</div>
                     </div>
 
                     <div class="checkbox-group">
@@ -385,7 +412,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>✅</i>
+                        <span>✅</span>
                         <span>تنظیمات سوال صحیح/غلط</span>
                     </div>
                     <div class="form-group">
@@ -402,7 +429,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>🔘</i>
+                        <span>🔘</span>
                         <span>تنظیمات سوال تستی</span>
                     </div>
                     <div class="form-group">
@@ -447,7 +474,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>📝</i>
+                        <span>📝</span>
                         <span>تنظیمات سوال جاخالی</span>
                     </div>
                     <div class="form-group">
@@ -466,7 +493,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>✏️</i>
+                        <span>✏️</span>
                         <span>تنظیمات سوال پاسخ کوتاه</span>
                     </div>
                     <div class="form-group">
@@ -485,7 +512,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>📄</i>
+                        <span>📄</span>
                         <span>تنظیمات سوال پاسخ بلند</span>
                     </div>
                     <div class="form-group">
@@ -495,7 +522,6 @@
                     <div class="form-group">
                         <label>پاسخ صحیح (اختیاری)</label>
                         <textarea name="correct_answer" rows="3" placeholder="پاسخ صحیح را وارد کنید..."></textarea>
-                        <div class="help-text">برای تصحیح خودکار می‌توانید پاسخ صحیح را وارد کنید</div>
                     </div>
                 </div>
             `
@@ -504,7 +530,7 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>🖼️</i>
+                        <span>🖼️</span>
                         <span>تنظیمات سوال پاسخ تصویری</span>
                     </div>
                     <div class="form-group">
@@ -518,36 +544,40 @@
             fields: `
                 <div class="form-section">
                     <div class="section-title">
-                        <i>🔗</i>
+                        <span>🔗</span>
                         <span>تنظیمات سوال وصل کردنی</span>
+                    </div>
+                    <div class="help-text" style="margin-bottom: 12px;">
+                        برای هر جفت، یک عبارت در سمت راست و معادل آن در سمت چپ وارد کنید.
                     </div>
                     <div id="matchingPairsContainer"></div>
                     <button type="button" class="btn-add" onclick="addMatchingPair()">+ اضافه کردن جفت جدید</button>
                 </div>
             `,
             init: function() {
-                matchingPairCounter = 1;
+                matchingPairs = [{left: '', right: ''}];
                 updateMatchingPairs();
             }
         }
     };
 
-    let matchingPairCounter = 1;
+    let matchingPairs = [];
 
     function updateMatchingPairs() {
         const container = document.getElementById('matchingPairsContainer');
         if (!container) return;
 
         let html = '';
-        for (let i = 0; i < matchingPairCounter; i++) {
+        for (let i = 0; i < matchingPairs.length; i++) {
+            const pair = matchingPairs[i];
             html += `
                 <div class="matching-pair" id="pair_${i}">
                     <div>
-                        <input type="text" name="left_${i}" placeholder="سمت راست (مثال: تهران)">
+                        <input type="text" name="left_${i}" value="${escapeHtml(pair.left)}" placeholder="سمت راست (مثال: تهران)">
                     </div>
                     <div class="arrow">←→</div>
                     <div>
-                        <input type="text" name="right_${i}" placeholder="سمت چپ (مثال: پایتخت)">
+                        <input type="text" name="right_${i}" value="${escapeHtml(pair.right)}" placeholder="سمت چپ (مثال: پایتخت)">
                     </div>
                     <div>
                         <button type="button" class="btn-remove" onclick="removeMatchingPair(${i})">✖</button>
@@ -559,17 +589,27 @@
     }
 
     function addMatchingPair() {
-        matchingPairCounter++;
+        matchingPairs.push({left: '', right: ''});
         updateMatchingPairs();
     }
 
     function removeMatchingPair(index) {
-        if (matchingPairCounter > 1) {
-            matchingPairCounter--;
+        if (matchingPairs.length > 1) {
+            matchingPairs.splice(index, 1);
             updateMatchingPairs();
         } else {
             alert('حداقل یک جفت باید وجود داشته باشد');
         }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
 
     const questionTypeSelect = document.getElementById('questionType');
@@ -587,9 +627,10 @@
         if (typeConfig) {
             dynamicFieldsDiv.innerHTML = typeConfig.fields;
 
-            // اجرای تابع init اگر وجود داشته باشد
             if (typeConfig.init && typeof typeConfig.init === 'function') {
-                typeConfig.init();
+                setTimeout(function() {
+                    typeConfig.init();
+                }, 0);
             }
         } else {
             dynamicFieldsDiv.innerHTML = '';
@@ -598,7 +639,6 @@
 
     questionTypeSelect.addEventListener('change', loadQuestionFields);
 
-    // بارگذاری اولیه اگر نوع سوال از قبل انتخاب شده باشد
     if (questionTypeSelect.value) {
         loadQuestionFields();
     }

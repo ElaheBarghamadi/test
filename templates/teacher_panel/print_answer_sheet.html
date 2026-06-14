@@ -9,6 +9,7 @@
         }
         .student-page {
             page-break-after: always;
+            break-inside: avoid;
         }
         .student-page:last-child {
             page-break-after: auto;
@@ -18,256 +19,357 @@
             margin: 0;
             padding: 0;
         }
+        .print-container {
+            padding: 0;
+            margin: 0;
+        }
+        .student-page {
+            box-shadow: none;
+            padding: 20px;
+            margin: 0;
+            border-radius: 0;
+        }
+        .btn-print, .btn-close {
+            display: none;
+        }
+        .questions-table {
+            page-break-inside: avoid;
+        }
+    }
+
+    * {
+        box-sizing: border-box;
     }
 
     .print-container {
-        max-width: 1100px;
+        max-width: 1400px;
         margin: 0 auto;
-        background: #f5f7fb;
-        padding: 20px;
+        background: #f0f4f8;
+        padding: 1rem;
+        min-height: 100vh;
     }
 
     .student-page {
         background: white;
-        padding: 40px;
-        margin-bottom: 30px;
-        border-radius: 16px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
         page-break-after: always;
+        transition: all 0.3s ease;
     }
 
+    /* هدر آزمون */
     .exam-header {
         text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #1e3c72;
-        padding-bottom: 20px;
+        margin-bottom: 1.8rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #1e3c72;
     }
     .exam-title {
-        font-size: 22px;
-        font-weight: 700;
+        font-size: clamp(1.2rem, 5vw, 1.8rem);
+        font-weight: 800;
         color: #1e3c72;
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
     }
     .exam-meta {
-        font-size: 13px;
-        color: #64748b;
+        font-size: clamp(0.7rem, 3vw, 0.85rem);
+        color: #5a6e8a;
         display: flex;
         justify-content: center;
-        gap: 25px;
+        gap: 1rem;
         flex-wrap: wrap;
+        row-gap: 0.5rem;
     }
 
+    /* اطلاعات دانش آموز */
     .student-info {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        padding: 15px 20px;
-        border-radius: 16px;
-        margin: 20px 0 25px;
+        background: linear-gradient(115deg, #eef2ff 0%, #e0e7ff 100%);
+        padding: 0.8rem 1.2rem;
+        border-radius: 20px;
+        margin: 1rem 0 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
-        border-right: 4px solid #2a5298;
+        gap: 0.8rem;
+        border-right: 5px solid #2a5298;
     }
     .student-name {
-        font-size: 18px;
+        font-size: clamp(0.9rem, 4vw, 1.1rem);
         font-weight: 700;
-        color: #1e293b;
+        color: #0f2b4d;
+        word-break: break-word;
     }
     .student-code {
-        font-size: 13px;
-        color: #475569;
+        font-size: 0.7rem;
         background: white;
-        padding: 4px 12px;
-        border-radius: 20px;
+        padding: 0.2rem 0.8rem;
+        border-radius: 30px;
+        color: #475569;
     }
     .student-grade {
-        font-size: 14px;
-        color: #2a5298;
+        font-size: 0.8rem;
         font-weight: 600;
+        background: #1e3c7220;
+        padding: 0.3rem 1rem;
+        border-radius: 40px;
+        color: #1e3c72;
     }
 
+    /* جدول سوالات - کاملاً ریسپانسیو */
     .questions-table {
         width: 100%;
         border-collapse: collapse;
-        margin: 20px 0;
-        table-layout: fixed;
+        margin: 1.2rem 0;
+        display: table;
     }
+
     .questions-table th {
         background: #f1f5f9;
-        padding: 12px 10px;
+        padding: 0.8rem 0.5rem;
         text-align: center;
         font-weight: 700;
         color: #1e293b;
-        border: 1px solid #e2e8f0;
-        font-size: 14px;
+        border: 1px solid #dce3ec;
+        font-size: clamp(0.7rem, 3vw, 0.85rem);
     }
+
     .questions-table td {
         border: 1px solid #e2e8f0;
-        padding: 12px 10px;
+        padding: 0.8rem 0.5rem;
         vertical-align: top;
         background: white;
+        font-size: clamp(0.75rem, 3.5vw, 0.9rem);
     }
-    /* تنظیم عرض ستون‌ها */
+
+    /* ستون شماره و بارم */
+    .q-num, .q-score {
+        text-align: center;
+        width: 55px;
+        background: #fafcff;
+    }
     .q-num {
-        text-align: center;
-        width: 50px;
-        background: #f8fafc;
+        font-weight: 600;
+        color: #2c3e66;
     }
-    .q-score {
-        text-align: center;
-        width: 65px;
-        background: #f8fafc;
-    }
+
+    /* ستون متن سوال */
     .q-text-col {
-        width: 30%;
-    }
-    .answer-col {
-        width: 35%;
+        min-width: 200px;
     }
     .q-text {
-        font-size: 13px;
-        color: #334155;
+        color: #1f2b48;
         line-height: 1.5;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        hyphens: auto;
     }
     .q-text strong {
-        color: #1e293b;
+        color: #0f2b4d;
+        display: block;
+        margin-bottom: 0.25rem;
     }
-    .answer-box {
-        background: #fefce8;
-        padding: 8px 10px;
+    .question-image {
+        margin-top: 0.5rem;
+        max-width: 100px;
+        max-height: 70px;
         border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #e0e7ff;
+    }
+
+    /* جعبه پاسخ دانش آموز */
+    .answer-box {
+        background: #fffbeb;
+        padding: 0.5rem 0.7rem;
+        border-radius: 12px;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        border-right: 3px solid #f59e0b;
     }
     .answer-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #854d0e;
-        margin-bottom: 4px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: #b45309;
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .answer-content {
-        font-size: 13px;
-        color: #334155;
-        line-height: 1.4;
+        font-size: clamp(0.7rem, 3vw, 0.85rem);
+        color: #2d3748;
+        line-height: 1.5;
         white-space: normal;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        max-width: 250px;
+        max-width: 100%;
     }
     .answer-image {
-        max-width: 120px;
-        max-height: 100px;
+        max-width: 100%;
+        max-height: 120px;
+        border-radius: 10px;
         margin-top: 6px;
-        border-radius: 6px;
+        border: 1px solid #fed7aa;
     }
     .no-answer {
         color: #dc2626;
         font-style: italic;
+        font-size: 0.75rem;
     }
+
+    /* ردیف نمره */
     .score-row td {
         border-top: 2px solid #cbd5e1;
-        padding: 12px;
+        background: #fefce8;
     }
     .score-label {
-        font-weight: 700;
+        font-weight: 800;
         color: #1e293b;
     }
     .score-value {
-        font-size: 16px;
-        font-weight: 700;
-        color: #2a5298;
+        font-size: clamp(0.9rem, 4vw, 1.2rem);
+        font-weight: 800;
+        color: #1e3c72;
         text-align: center;
+        letter-spacing: 1px;
     }
     .score-empty {
-        border-bottom: 1px solid #cbd5e1;
-        width: 70px;
+        border-bottom: 2px dashed #94a3b8;
         display: inline-block;
-        margin-right: 8px;
+        width: 55px;
+        margin-left: 5px;
     }
     .score-cell {
         text-align: center;
         vertical-align: middle;
+        background: #fef9e6;
     }
 
+    /* فوتر و امضاها */
     .exam-footer {
-        margin-top: 30px;
-        padding-top: 15px;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
         border-top: 1px solid #e2e8f0;
         text-align: center;
-        font-size: 11px;
-        color: #94a3b8;
+        font-size: 0.7rem;
+        color: #7c8ba0;
     }
     .signatures {
         display: flex;
         justify-content: space-between;
-        margin-top: 15px;
+        margin-top: 1rem;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 0.8rem;
+        background: #fafdff;
+        padding: 0.7rem;
+        border-radius: 16px;
     }
     .signature-item {
-        font-size: 11px;
-        color: #475569;
+        font-size: 0.7rem;
+        color: #334155;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.3px;
     }
 
+    /* دکمه‌ها */
     .button-bar {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.8rem;
+        flex-wrap: wrap;
     }
     .btn-print, .btn-close {
-        padding: 10px 25px;
+        padding: 0.7rem 1.8rem;
         border: none;
-        border-radius: 30px;
+        border-radius: 50px;
         cursor: pointer;
-        font-size: 14px;
-        margin: 0 8px;
-        transition: all 0.2s;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .btn-print {
-        background: #4CAF50;
+        background: #2b6e3c;
         color: white;
     }
     .btn-print:hover {
-        background: #45a049;
+        background: #1f5430;
         transform: translateY(-2px);
     }
     .btn-close {
-        background: #64748b;
+        background: #5a6e8a;
         color: white;
     }
     .btn-close:hover {
-        background: #475569;
+        background: #3f516b;
     }
 
-    @media (max-width: 768px) {
+    /* ریسپانسیو پیشرفته */
+    @media (max-width: 820px) {
+        .print-container {
+            padding: 0.5rem;
+        }
         .student-page {
-            padding: 20px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .questions-table {
+            display: block;
             overflow-x: auto;
+            white-space: normal;
+        }
+        .questions-table th,
+        .questions-table td {
+            min-width: 100px;
+        }
+        .q-num, .q-score {
+            min-width: 45px;
+            width: auto;
+        }
+        .answer-box {
+            padding: 0.4rem;
         }
         .student-info {
             flex-direction: column;
             align-items: flex-start;
         }
-        .questions-table {
-            font-size: 11px;
-        }
-        .questions-table th, .questions-table td {
-            padding: 6px;
-        }
-        .q-num, .q-score {
-            width: 40px;
-        }
-        .answer-content {
-            max-width: 150px;
-            font-size: 11px;
-        }
         .signatures {
             flex-direction: column;
-            align-items: center;
-            gap: 8px;
+            align-items: flex-start;
+            gap: 0.6rem;
         }
+    }
+
+    @media (max-width: 550px) {
+        .questions-table th:nth-child(3),
+        .questions-table td:nth-child(3) {
+            display: table-cell;
+        }
+        .answer-content {
+            font-size: 0.7rem;
+        }
+        .score-empty {
+            width: 35px;
+        }
+        .exam-title {
+            font-size: 1.2rem;
+        }
+        .btn-print, .btn-close {
+            padding: 0.5rem 1.2rem;
+            font-size: 0.75rem;
+        }
+        .student-name {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* رفع مشکلات طولانی شدن کلمات */
+    .q-text, .answer-content {
+        word-break: break-word;
+        hyphens: auto;
     }
 </style>
 {% endblock %}
@@ -284,89 +386,91 @@
         <div class="exam-header">
             <div class="exam-title">{{ exam.title }}</div>
             <div class="exam-meta">
-                <span>پایه: {{ exam.grade.get_name_display }}</span>
-                <span>تاریخ: {{ exam.start_time|date:"Y/m/d" }}</span>
-                <span>مدت: {{ exam.duration_minutes }} دقیقه</span>
+                <span>📖 پایه: {{ exam.grade.get_name_display }}</span>
+                <span>📅 تاریخ: {{ exam.start_time|date:"Y/m/d" }}</span>
+                <span>⏱️ مدت: {{ exam.duration_minutes }} دقیقه</span>
             </div>
         </div>
 
         <div class="student-info">
-            <div>
-                <span class="student-name">👤 {{ student_data.student.get_full_name|default:student_data.student.username }}</span>
+            <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
+                <span class="student-name">🧑‍🎓 {{ student_data.student.get_full_name|default:student_data.student.username }}</span>
                 {% if student_data.student.student_code %}
-                    <span class="student-code">کد: {{ student_data.student.student_code }}</span>
+                    <span class="student-code">🆔 کد: {{ student_data.student.student_code }}</span>
                 {% endif %}
             </div>
-            <div class="student-grade">📚 {{ exam.grade.get_name_display }}</div>
+            <div class="student-grade">🎓 {{ exam.grade.get_name_display }}</div>
         </div>
 
-        <table class="questions-table">
-            <thead>
-                <tr>
-                    <th style="width: 45px;">#</th>
-                    <th style="text-align: right;">متن سوال</th>
-                    <th style="width: 55px;">بارم</th>
-                    <th style="text-align: right;">پاسخ دانش‌آموز</th>
-                    <th style="width: 70px;">نمره</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in student_data.answers %}
-                <tr>
-                    <td class="q-num">{{ forloop.counter }})</td>
-                    <td class="q-text">
-                        <strong>{{ item.question.text|truncatewords:25 }}</strong>
-                        {% if item.question.image %}
-                            <div style="margin-top: 6px;">
-                                <img src="{{ item.question.image.url }}" style="max-width: 80px; max-height: 60px; border-radius: 4px;">
-                            </div>
-                        {% endif %}
-                    </td>
-                    <td class="q-score">{{ item.question.max_score|floatformat:1 }}</td>
-                    <td class="answer-box">
-                        <div class="answer-label">📝 پاسخ:</div>
-                        <div class="answer-content">
-                            {% if item.answer %}
-                                {% if item.answer.answer_text %}
-                                    {{ item.answer.answer_text|linebreaks|default:"-" }}
-                                {% elif item.answer.answer_image %}
-                                    <img src="{{ item.answer.answer_image.url }}" class="answer-image" alt="پاسخ تصویری">
+        <div style="overflow-x: auto; border-radius: 16px;">
+            <table class="questions-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th style="text-align: right;">📌 متن سوال</th>
+                        <th style="width: 65px;">⭐ بارم</th>
+                        <th style="text-align: right;">✍️ پاسخ دانش‌آموز</th>
+                        <th style="width: 80px;">🏆 نمره</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in student_data.answers %}
+                    <tr>
+                        <td class="q-num">{{ forloop.counter }})</td>
+                        <td class="q-text">
+                            <strong>{{ item.question.text|safe|truncatewords:40 }}</strong>
+                            {% if item.question.image %}
+                                <div>
+                                    <img src="{{ item.question.image.url }}" class="question-image" alt="تصویر سوال">
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td class="q-score">{{ item.question.max_score|floatformat:1 }}</td>
+                        <td class="answer-box">
+                            <div class="answer-label">📝 پاسخ تشریحی:</div>
+                            <div class="answer-content">
+                                {% if item.answer %}
+                                    {% if item.answer.answer_text %}
+                                        {{ item.answer.answer_text|linebreaksbr|default:"-" }}
+                                    {% elif item.answer.answer_image %}
+                                        <img src="{{ item.answer.answer_image.url }}" class="answer-image" alt="پاسخ تصویری">
+                                    {% else %}
+                                        <span class="no-answer">✗ پاسخی ثبت نشده</span>
+                                    {% endif %}
                                 {% else %}
                                     <span class="no-answer">✗ پاسخی ثبت نشده</span>
                                 {% endif %}
-                            {% else %}
-                                <span class="no-answer">✗ پاسخی ثبت نشده</span>
-                            {% endif %}
-                        </div>
-                    </td>
-                    <td class="score-cell">
-                        <div class="score-empty"></div>
-                        <span style="font-size: 10px; color: #94a3b8;">از {{ item.question.max_score|floatformat:1 }}</span>
-                    </td>
-                </tr>
-                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="score-cell">
+                            <div class="score-empty"></div>
+                            <span style="font-size: 0.65rem; color:#7c8ba0;">از {{ item.question.max_score|floatformat:1 }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
 
-                <tr class="score-row">
-                    <td colspan="3" class="score-label" style="text-align: left;">جمع کل</td>
-                    <td class="score-label">نمره کسب شده</td>
-                    <td class="score-value">__________</td>
-                </tr>
-                <tr class="score-row">
-                    <td colspan="3"></td>
-                    <td class="score-label">از مجموع</td>
-                    <td class="score-value">{{ total_possible|floatformat:1 }}</td>
-                </tr>
-            </tbody>
-        </table>
+                    <tr class="score-row">
+                        <td colspan="3" class="score-label" style="text-align: left;">📊 جمع کل</td>
+                        <td class="score-label">✅ نمره کسب شده</td>
+                        <td class="score-value">__________</td>
+                    </tr>
+                    <tr class="score-row">
+                        <td colspan="3"></td>
+                        <td class="score-label">🔢 از مجموع</td>
+                        <td class="score-value">{{ total_possible|floatformat:1 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <div class="exam-footer">
             <div class="signatures">
-                <div class="signature-item">امضای دانش‌آموز: ____________________</div>
-                <div class="signature-item">امضای معلم: ____________________</div>
-                <div class="signature-item">تاریخ: ____________________</div>
+                <div class="signature-item">✍️ امضای دانش‌آموز: ____________________</div>
+                <div class="signature-item">👩‍🏫 امضای معلم: ____________________</div>
+                <div class="signature-item">📆 تاریخ: ____________________</div>
             </div>
-            <div style="margin-top: 20px;">
-                موفق باشید 🌹
+            <div style="margin-top: 1rem; font-size: 0.7rem; opacity: 0.8;">
+                🌹 موفق و پیروز باشید
             </div>
         </div>
     </div>

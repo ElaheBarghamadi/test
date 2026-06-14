@@ -1,0 +1,886 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}آپلود انبوه سوالات - {{ exam.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(145deg, #f5f0e6 0%, #e8e0d0 100%);
+        font-family: 'Vazirmatn', 'Segoe UI', system-ui, sans-serif;
+        min-height: 100vh;
+    }
+
+    .upload-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* کارت اصلی شیشه‌ای */
+    .glass-card {
+        background: rgba(255, 252, 245, 0.88);
+        backdrop-filter: blur(18px);
+        border-radius: 40px;
+        border: 1px solid rgba(200, 170, 130, 0.35);
+        box-shadow: 0 20px 45px rgba(100, 60, 30, 0.1);
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 25px 55px rgba(100, 60, 30, 0.15);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #c49a2b, #a07830);
+        padding: 28px 32px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,200,0.1), transparent);
+        animation: shimmer 8s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.3; }
+        50% { transform: translate(10%, 10%) rotate(5deg); opacity: 0.6; }
+        100% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.3; }
+    }
+
+    .card-header h4 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-header p {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .card-body {
+        padding: 32px;
+    }
+
+    /* راهنما */
+    .help-glass {
+        background: rgba(200, 170, 130, 0.1);
+        border-radius: 28px;
+        padding: 24px;
+        margin-bottom: 32px;
+        border-right: 4px solid #c49a2b;
+    }
+
+    .help-title {
+        font-weight: 800;
+        color: #5a3e2b;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.1rem;
+    }
+
+    .help-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .help-card {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 20px;
+        padding: 16px;
+        border: 1px solid rgba(200, 170, 130, 0.25);
+        transition: all 0.3s;
+    }
+
+    .help-card:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.7);
+        border-color: #c49a2b;
+    }
+
+    .help-card h4 {
+        color: #c49a2b;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .help-card p {
+        font-size: 0.75rem;
+        color: #6b4c3a;
+        line-height: 1.5;
+    }
+
+    .help-example {
+        background: #f5f0e6;
+        border-radius: 12px;
+        padding: 10px;
+        margin-top: 10px;
+        font-family: monospace;
+        font-size: 0.7rem;
+        direction: ltr;
+        text-align: left;
+        overflow-x: auto;
+    }
+
+    .btn-help {
+        background: linear-gradient(135deg, #c49a2b, #a07830);
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .btn-help:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(196, 154, 43, 0.3);
+    }
+
+    /* دراپ زون */
+    .dropzone {
+        border: 3px dashed #d4b88c;
+        border-radius: 32px;
+        padding: 55px 30px;
+        text-align: center;
+        background: rgba(255, 250, 240, 0.5);
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .dropzone:hover {
+        border-color: #c49a2b;
+        background: rgba(255, 250, 240, 0.85);
+        transform: scale(1.01);
+    }
+
+    .dropzone.dragover {
+        border-color: #c49a2b;
+        background: rgba(196, 154, 43, 0.15);
+        transform: scale(1.02);
+    }
+
+    .dropzone-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        display: inline-block;
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .file-info {
+        margin-top: 20px;
+        padding: 14px 20px;
+        background: rgba(200, 170, 130, 0.2);
+        border-radius: 60px;
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn-cancel {
+        background: #fee2e2;
+        color: #b45353;
+        border: none;
+        padding: 6px 18px;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+        background: #fecaca;
+        transform: scale(0.98);
+    }
+
+    /* دکمه‌های اصلی */
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 28px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c49a2b, #a07830);
+        border: none;
+        padding: 14px 36px;
+        border-radius: 60px;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-primary::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255,255,255,0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 28px rgba(196, 154, 43, 0.4);
+    }
+
+    .btn-primary:active:not(:disabled)::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-secondary {
+        background: rgba(200, 170, 130, 0.25);
+        border: 1px solid rgba(200, 170, 130, 0.4);
+        padding: 14px 36px;
+        border-radius: 60px;
+        color: #5a3e2b;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(200, 170, 130, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* پروگرس بار انیمیشن دار */
+    .progress-wrapper {
+        margin-top: 24px;
+        display: none;
+    }
+
+    .progress-bar-custom {
+        height: 8px;
+        background: #e0d4c0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-fill-custom {
+        height: 100%;
+        background: linear-gradient(90deg, #c49a2b, #e8bc6e, #c49a2b);
+        background-size: 200% auto;
+        width: 0%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+        animation: shimmer-progress 1.5s infinite;
+    }
+
+    @keyframes shimmer-progress {
+        0% { background-position: 0% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    .progress-text {
+        text-align: center;
+        font-size: 0.7rem;
+        color: #a08060;
+        margin-top: 8px;
+    }
+
+    /* نتیجه */
+    .result-box {
+        margin-top: 28px;
+        display: none;
+        animation: fadeInUp 0.4s ease;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+        border-right: 4px solid #10b981;
+        padding: 16px 20px;
+        border-radius: 24px;
+    }
+
+    .alert-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border-right: 4px solid #ef4444;
+        padding: 16px 20px;
+        border-radius: 24px;
+    }
+
+    /* مودال راهنما */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background: rgba(255, 252, 245, 0.98);
+        backdrop-filter: blur(20px);
+        border-radius: 40px;
+        max-width: 850px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        border: 1px solid rgba(200, 170, 130, 0.5);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+        animation: modalPop 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    @keyframes modalPop {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid rgba(200, 170, 130, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #c49a2b, #a07830);
+        color: white;
+        border-radius: 40px 40px 0 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    .modal-body {
+        padding: 28px;
+    }
+
+    .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+    }
+
+    .spec-table th, .spec-table td {
+        padding: 10px 12px;
+        text-align: right;
+        border-bottom: 1px solid rgba(200, 170, 130, 0.2);
+    }
+
+    .spec-table th {
+        background: rgba(196, 154, 43, 0.1);
+        color: #5a3e2b;
+        font-weight: 700;
+    }
+
+    /* مودال پیش‌نمایش */
+    .preview-question-item {
+        background: rgba(200, 170, 130, 0.08);
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 14px;
+        border-right: 4px solid #c49a2b;
+        transition: all 0.2s;
+    }
+
+    .preview-question-item:hover {
+        background: rgba(200, 170, 130, 0.15);
+        transform: translateX(-4px);
+    }
+
+    .preview-question-text {
+        font-weight: 700;
+        color: #5a3e2b;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .preview-question-meta {
+        font-size: 0.7rem;
+        color: #a08060;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .btn-preview {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 60px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 20px;
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-preview:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    @media (max-width: 680px) {
+        .card-body {
+            padding: 20px;
+        }
+        .help-grid {
+            grid-template-columns: 1fr;
+        }
+        .dropzone {
+            padding: 35px 20px;
+        }
+        .modal-body {
+            padding: 18px;
+        }
+        .spec-table th, .spec-table td {
+            padding: 6px 8px;
+            font-size: 0.65rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="glass-card">
+        <div class="card-header">
+            <h4>
+                <span>📤</span>
+                آپلود انبوه سوالات
+            </h4>
+            <p>آزمون: {{ exam.title }}</p>
+        </div>
+
+        <div class="card-body">
+            <!-- راهنمای کامل -->
+            <div class="help-glass">
+                <div class="help-title">
+                    <span>📖</span> راهنمای کامل آپلود سوالات
+                </div>
+                <div class="help-grid">
+                    <div class="help-card">
+                        <h4>🔘 سوال تستی</h4>
+                        <p>ستون‌های option_1 تا option_4 و correct_answer (1-4) اجباری</p>
+                        <div class="help-example">text: "پایتون چیست؟" | question_type: "تستی" | max_score: 1.5 | option_1: "زبان برنامه‌نویسی" | option_2: "مار" | correct_answer: "1"</div>
+                    </div>
+                    <div class="help-card">
+                        <h4>✅ صحیح/غلط</h4>
+                        <p>correct_answer = true یا false</p>
+                        <div class="help-example">text: "پایتون یک زبان تفسیری است" | question_type: "صحیح/غلط" | max_score: 1 | correct_answer: "true"</div>
+                    </div>
+                    <div class="help-card">
+                        <h4>✏️ پاسخ کوتاه/تشریحی</h4>
+                        <p>فقط متن سوال و نمره کافیست</p>
+                        <div class="help-example">text: "تفاوت list و tuple را بنویسید" | question_type: "پاسخ کوتاه" | max_score: 2.5</div>
+                    </div>
+                    <div class="help-card">
+                        <h4>🔗 وصل کردنی</h4>
+                        <p>فرمت: left1,right1;left2,right2</p>
+                        <div class="help-example">matching_pairs: "HTTP,پروتکل انتقال;HTTPS,نسخه امن;API,رابط برنامه‌نویسی"</div>
+                    </div>
+                    <div class="help-card">
+                        <h4>🖼️ تصویری</h4>
+                        <p>allow_image_answer = True</p>
+                        <div class="help-example">text: "نمودار کلاس را رسم کنید" | question_type: "تصویری" | allow_image_answer: "True"</div>
+                    </div>
+                    <div class="help-card">
+                        <h4>📊 ستون‌های عمومی</h4>
+                        <p>text (اجباری)، question_type (اجباری)، max_score (اجباری)</p>
+                        <div class="help-example">text: "سوال نمونه" | question_type: "تستی" | max_score: "1"</div>
+                    </div>
+                </div>
+                <button class="btn-help" id="showHelpModalBtn">
+                    📋 مشاهده جدول کامل مشخصات ستون‌ها
+                </button>
+            </div>
+
+            <!-- دراپ زون -->
+            <form id="uploadForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="dropzone" id="dropzone">
+                    <div class="dropzone-icon">📂</div>
+                    <p class="mt-2 mb-1" style="font-weight: 600;">فایل اکسل خود را اینجا بکشید یا کلیک کنید</p>
+                    <small style="color: #a08060;">فرمت‌های مجاز: .xlsx, .xls (حداکثر 5MB)</small>
+                    <input type="file" name="excel_file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                </div>
+
+                <div class="file-info" id="fileInfo">
+                    <span>📎 <strong id="fileName"></strong></span>
+                    <button type="button" class="btn-cancel" id="cancelFile">✕ حذف</button>
+                </div>
+
+                <div class="progress-wrapper" id="progressWrapper">
+                    <div class="progress-bar-custom">
+                        <div class="progress-fill-custom" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">در حال آپلود و پردازش...</div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn-primary" id="submitBtn" disabled>
+                        📤 آپلود و پردازش
+                    </button>
+                    <a href="{% url 'edit_exam' exam.id %}" class="btn-secondary">
+                        ← بازگشت
+                    </a>
+                </div>
+            </form>
+
+            <!-- نتیجه -->
+            <div class="result-box" id="resultBox">
+                <div id="resultMessage"></div>
+                <div id="errorList"></div>
+                <div id="warningList"></div>
+                <div id="previewBtnContainer" style="text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال راهنمای کامل -->
+<div id="helpModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin:0;">📋 جدول مشخصات ستون‌های فایل اکسل</h3>
+            <button class="modal-close" onclick="closeHelpModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <table class="spec-table">
+                <thead>
+                    <tr>
+                        <th>نام ستون</th>
+                        <th>نوع سوال</th>
+                        <th>اجباری</th>
+                        <th>توضیحات</th>
+                        <th>مثال</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>text</td><td>همه</td><td>✅</td><td>متن سوال</td><td>پایتون چیست؟</td></tr>
+                    <tr><td>question_type</td><td>همه</td><td>✅</td><td>تستی / صحیح/غلط / پاسخ کوتاه / تشریحی / وصل کردنی / تصویری</td><td>تستی</td></tr>
+                    <tr><td>max_score</td><td>همه</td><td>✅</td><td>نمره سوال (عدد اعشاری)</td><td>1.5</td></tr>
+                    <tr><td>option_1 تا option_4</td><td>تستی</td><td>❌</td><td>گزینه‌های پاسخ</td><td>گزینه اول</td></tr>
+                    <tr><td>correct_answer</td><td>تستی، صحیح/غلط</td><td>❌</td><td>پاسخ صحیح (تستی:1-4، صحیح/غلط:true/false)</td><td>1 یا true</td></tr>
+                    <tr><td>allow_image_answer</td><td>تصویری</td><td>❌</td><td>اجازه آپلود عکس (True/False)</td><td>True</td></tr>
+                    <tr><td>matching_pairs</td><td>وصل کردنی</td><td>❌</td><td>جفت‌های left,right با ; جدا می‌شوند</td><td>HTTP,پروتکل;HTTPS,نسخه امن</td></tr>
+                    <tr><td>image_url</td><td>همه</td><td>❌</td><td>آدرس تصویر سوال</td><td>/media/question.jpg</td></tr>
+                </tbody>
+            </table>
+            <div style="margin-top: 20px; background: #f5f0e6; padding: 16px; border-radius: 20px;">
+                <strong>💡 نکات مهم:</strong>
+                <ul style="margin-top: 10px; padding-right: 20px;">
+                    <li>ستون‌های اضافی در فایل مشکلی ایجاد نمی‌کنند</li>
+                    <li>برای سوالات تشریحی و کوتاه، فقط text و question_type و max_score کافی است</li>
+                    <li>نمره می‌تواند اعشاری باشد (مثلاً 1.25)</li>
+                    <li>مقادیر True/False حتماً با حرف بزرگ نوشته شوند</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال پیش‌نمایش سوالات -->
+<div id="previewModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 style="margin:0;">📋 سوالات آپلود شده</h3>
+            <button class="modal-close" onclick="closePreviewModal()">✕</button>
+        </div>
+        <div class="modal-body" id="previewModalBody">
+            <p style="color: #a08060;">در حال بارگذاری...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM elements
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const cancelFile = document.getElementById('cancelFile');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressWrapper = document.getElementById('progressWrapper');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const resultBox = document.getElementById('resultBox');
+    const resultMessage = document.getElementById('resultMessage');
+    const errorList = document.getElementById('errorList');
+    const warningList = document.getElementById('warningList');
+    const previewBtnContainer = document.getElementById('previewBtnContainer');
+
+    let selectedFile = null;
+    let lastUploadedQuestions = [];
+
+    // Help Modal
+    const helpModal = document.getElementById('helpModal');
+    document.getElementById('showHelpModalBtn').onclick = () => helpModal.classList.add('active');
+
+    function closeHelpModal() {
+        helpModal.classList.remove('active');
+    }
+
+    function closePreviewModal() {
+        document.getElementById('previewModal').classList.remove('active');
+    }
+
+    // Dropzone events
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    function handleFile(file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!['xlsx', 'xls'].includes(ext)) {
+            alert('فرمت فایل باید Excel (.xlsx یا .xls) باشد');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            alert('حجم فایل نباید بیشتر از 5 مگابایت باشد');
+            return;
+        }
+        selectedFile = file;
+        fileName.textContent = file.name;
+        fileInfo.style.display = 'flex';
+        submitBtn.disabled = false;
+        resultBox.style.display = 'none';
+        progressWrapper.style.display = 'none';
+    }
+
+    cancelFile.addEventListener('click', () => {
+        selectedFile = null;
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        submitBtn.disabled = true;
+        resultBox.style.display = 'none';
+        progressWrapper.style.display = 'none';
+    });
+
+    // Form submission with animation
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!selectedFile) return;
+
+        const formData = new FormData();
+        formData.append('excel_file', selectedFile);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        submitBtn.disabled = true;
+        progressWrapper.style.display = 'block';
+        resultBox.style.display = 'none';
+
+        // انیمیشن پراگرس
+        let progress = 0;
+        progressFill.style.width = '0%';
+        progressText.innerText = '📤 در حال آپلود فایل...';
+
+        const interval = setInterval(() => {
+            if (progress < 90) {
+                progress += 10;
+                progressFill.style.width = progress + '%';
+                if (progress === 30) progressText.innerText = '🔄 در حال بررسی ساختار فایل...';
+                if (progress === 60) progressText.innerText = '⚙️ در حال پردازش سوالات...';
+                if (progress === 80) progressText.innerText = '💾 در حال ذخیره در دیتابیس...';
+            }
+        }, 300);
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            clearInterval(interval);
+            progressFill.style.width = '100%';
+            progressText.innerText = '✅ پردازش کامل شد!';
+
+            const data = await response.json();
+
+            setTimeout(() => {
+                progressWrapper.style.display = 'none';
+                resultBox.style.display = 'block';
+                progressFill.style.width = '0%';
+
+                if (data.success) {
+                    resultMessage.innerHTML = `<div class="alert-success"><strong>✅ موفق!</strong> ${data.message}</div>`;
+
+                    if (data.skip_count > 0) {
+                        resultMessage.innerHTML += `<div style="margin-top:10px; background:#fef3c7; padding:12px; border-radius:18px;"><small>⚠️ ${data.skip_count} سوال به دلیل خطا اضافه نشدند</small></div>`;
+                    }
+
+                    if (data.warnings && data.warnings.length) {
+                        warningList.innerHTML = '<div style="margin-top:14px; background:#fffbeb; padding:14px; border-radius:18px;"><strong>⚠️ هشدارها:</strong><ul style="margin-top:8px; padding-right:20px;">' +
+                            data.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('') + '</ul></div>';
+                    }
+
+                    if (data.errors && data.errors.length) {
+                        errorList.innerHTML = '<div style="margin-top:14px; background:#fef2f2; padding:14px; border-radius:18px;"><strong>❌ خطاها:</strong><ul style="margin-top:8px; padding-right:20px;">' +
+                            data.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('') + '</ul></div>';
+                    }
+
+                    if (data.preview_questions && data.preview_questions.length) {
+                        lastUploadedQuestions = data.preview_questions;
+                        previewBtnContainer.innerHTML = '<button class="btn-preview" id="showPreviewBtn">📋 مشاهده جزئیات سوالات آپلود شده</button>';
+                        document.getElementById('showPreviewBtn').onclick = showPreviewModal;
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = "{% url 'edit_exam' exam.id %}";
+                    }, 4000);
+                } else {
+                    resultMessage.innerHTML = `<div class="alert-danger"><strong>❌ خطا!</strong> ${data.error}</div>`;
+                    submitBtn.disabled = false;
+                }
+            }, 500);
+
+        } catch(e) {
+            clearInterval(interval);
+            progressWrapper.style.display = 'none';
+            resultBox.style.display = 'block';
+            resultMessage.innerHTML = '<div class="alert-danger"><strong>❌ خطا!</strong> مشکل در ارتباط با سرور</div>';
+            submitBtn.disabled = false;
+        }
+    });
+
+    function showPreviewModal() {
+        const modal = document.getElementById('previewModal');
+        const body = document.getElementById('previewModalBody');
+        if (lastUploadedQuestions.length) {
+            body.innerHTML = '<div style="max-height: 500px; overflow-y: auto;">' +
+                lastUploadedQuestions.map((q, idx) => `
+                    <div class="preview-question-item">
+                        <div class="preview-question-text">${idx+1}. ${escapeHtml(q.text)}</div>
+                        <div class="preview-question-meta">
+                            <span>📌 ${escapeHtml(q.type_display)}</span>
+                            <span>⭐ ${q.max_score} نمره</span>
+                        </div>
+                    </div>
+                `).join('') + '</div>';
+        } else {
+            body.innerHTML = '<p style="color:#8b6b4a; text-align:center;">هیچ سوالی برای نمایش وجود ندارد</p>';
+        }
+        modal.classList.add('active');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
+    }
+
+    window.onclick = function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('active');
+        }
+    };
+</script>
+{% endblock %}

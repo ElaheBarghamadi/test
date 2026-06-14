@@ -2,80 +2,428 @@
 <html dir="rtl" lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>ممنون از امتحانت</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ممنون از امتحانت - {{ exam.title }}</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Tahoma, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: 'Vazirmatn', 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            background: linear-gradient(145deg, #1a1612 0%, #2a2418 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 50px;
+        /* افکت لیکویید پس‌زمینه */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 40% 50%, rgba(196, 154, 43, 0.12) 0%, transparent 60%);
+            animation: liquidFlow 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes liquidFlow {
+            0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+            33% { transform: translate(4%, 2%) rotate(1deg); opacity: 0.6; }
+            66% { transform: translate(-2%, 4%) rotate(-1deg); opacity: 0.4; }
+            100% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+        }
+
+        /* ذرات طلایی شناور */
+        .floating-stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 215, 120, 0.8), rgba(255, 200, 80, 0));
+            border-radius: 50%;
+            animation: floatStar 10s infinite ease-in-out;
+        }
+
+        @keyframes floatStar {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0; }
+            50% { opacity: 0.8; transform: translateY(-20px) translateX(10px); }
+        }
+
+        /* کارت اصلی شیشه‌ای */
+        .glass-card {
+            background: rgba(30, 25, 20, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 56px;
+            border: 1px solid rgba(196, 154, 43, 0.25);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            padding: 50px 45px;
             text-align: center;
-            max-width: 550px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 580px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            animation: fadeInScale 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.2);
         }
 
-        .icon {
-            font-size: 80px;
-            margin-bottom: 20px;
+        .glass-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            border-color: rgba(196, 154, 43, 0.4);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.45);
         }
 
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(20px);
+                filter: blur(8px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        /* آیکون دایره‌ای */
+        .icon-ring {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, rgba(196, 154, 43, 0.15), rgba(139, 105, 20, 0.05));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(196, 154, 43, 0.5);
+            box-shadow: 0 0 30px rgba(196, 154, 43, 0.2);
+            animation: ringPulse 2.5s infinite;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(196, 154, 43, 0.2);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 0 45px rgba(196, 154, 43, 0.4);
+            }
+        }
+
+        .icon-ring span {
+            font-size: 70px;
+            animation: bounce 0.8s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* عنوان */
         h1 {
-            color: #764ba2;
-            margin-bottom: 15px;
-            font-size: 28px;
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffd580, #e8b550, #d4a030);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
-        p {
-            color: #666;
-            line-height: 1.8;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .btn {
+        /* نام آزمون */
+        .exam-title-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 12px 35px;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: bold;
-            margin-top: 20px;
+            background: rgba(196, 154, 43, 0.12);
+            backdrop-filter: blur(8px);
+            padding: 6px 22px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #e8c890;
+            margin-bottom: 25px;
+            border: 1px solid rgba(196, 154, 43, 0.25);
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .message {
-            background: #f0f2f5;
-            padding: 20px;
-            border-radius: 15px;
+        /* باکس پیام تشویقی */
+        .motivation-box {
+            background: linear-gradient(135deg, rgba(196, 154, 43, 0.12), rgba(139, 105, 20, 0.06));
+            border-radius: 32px;
+            padding: 25px;
             margin: 20px 0;
+            border: 1px solid rgba(196, 154, 43, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .motivation-box::before {
+            content: '✨';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            opacity: 0.3;
+        }
+
+        .motivation-box::after {
+            content: '✨';
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            font-size: 20px;
+            opacity: 0.3;
+        }
+
+        .motivation-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffd580;
+            margin-bottom: 12px;
+        }
+
+        .motivation-sub {
+            font-size: 0.85rem;
+            color: #c8b07a;
+            line-height: 1.6;
+        }
+
+        /* متن اصلی */
+        .main-message {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #d4c4a8;
+            margin: 20px 0;
+        }
+
+        /* اطلاعات آزمون */
+        .info-grid {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+
+        .info-chip {
+            background: rgba(20, 16, 12, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 10px 20px;
+            border-radius: 60px;
+            text-align: center;
+            border: 1px solid rgba(196, 154, 43, 0.15);
+        }
+
+        .info-chip .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #e8c890;
+        }
+
+        .info-chip .label {
+            font-size: 0.65rem;
+            color: #b89a60;
+            margin-top: 3px;
+        }
+
+        /* پیام پایانی */
+        .result-note {
+            background: rgba(196, 154, 43, 0.05);
+            border-radius: 24px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            font-size: 0.8rem;
+            color: #c8b07a;
+            border-right: 3px solid #c49a2b;
+        }
+
+        /* دکمه بازگشت */
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #8b6914, #c49a2b);
+            color: white;
+            padding: 14px 40px;
+            text-decoration: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(196, 154, 43, 0.3);
+            margin-top: 15px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(196, 154, 43, 0.45);
+            filter: brightness(1.05);
+        }
+
+        /* آیکون‌های پایین */
+        .footer-icons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 35px;
+            opacity: 0.5;
+        }
+
+        .footer-icons span {
+            font-size: 1.2rem;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        .footer-icons span:nth-child(2) { animation-delay: 0.5s; }
+        .footer-icons span:nth-child(3) { animation-delay: 1s; }
+        .footer-icons span:nth-child(4) { animation-delay: 1.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* ریسپانسیو */
+        @media (max-width: 550px) {
+            .glass-card {
+                padding: 35px 25px;
+                border-radius: 40px;
+            }
+
+            .icon-ring {
+                width: 100px;
+                height: 100px;
+            }
+
+            .icon-ring span {
+                font-size: 52px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .motivation-text {
+                font-size: 0.95rem;
+            }
+
+            .info-grid {
+                gap: 12px;
+            }
+
+            .info-chip {
+                padding: 6px 14px;
+            }
+
+            .btn-home {
+                padding: 12px 30px;
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="icon">📚</div>
-    <h1>ممنون از امتحانت!</h1>
-    <div class="message">
-        <p>✨ آفرین، عالی بودی ✨</p>
-        <p>تلاش تو ارزشمند است. به خودت افتخار کن.</p>
+
+<!-- ستاره‌های شناور -->
+<div class="floating-stars" id="stars"></div>
+
+<div class="glass-card">
+    <div class="icon-ring">
+        <span>🌟</span>
     </div>
-    <p>پاسخ‌های شما با موفقیت ثبت شد و برای معلم ارسال گردید.</p>
-    <p>نتیجه نهایی پس از تصحیح اعلام خواهد شد.</p>
-    <a href="{% url 'student_dashboard' %}" class="btn">بازگشت به صفحه اصلی</a>
+
+    <h1>ممنون از امتحانت!</h1>
+
+    <div class="exam-title-badge">
+        📚 {{ exam.title }}
+    </div>
+
+    <div class="motivation-box">
+        <div class="motivation-text">✨ آفرین، عالی بودی ✨</div>
+        <div class="motivation-sub">تلاش تو ارزشمند است. به خودت افتخار کن. هر قدمی که برای یادبرداری، تو را به موفقیت نزدیک‌تر می‌کند.</div>
+    </div>
+
+    <div class="main-message">
+        پاسخ‌های شما با موفقیت در سیستم ثبت شد و برای استاد ارسال گردید.
+    </div>
+
+    <!-- اطلاعات سریع -->
+    <div class="info-grid">
+        <div class="info-chip">
+            <div class="value">{{ exam.duration_minutes }}</div>
+            <div class="label">دقیقه زمان</div>
+        </div>
+        <div class="info-chip">
+            <div class="value">{{ exam.questions.count }}</div>
+            <div class="label">تعداد سوالات</div>
+        </div>
+        <div class="info-chip">
+            <div class="value">{{ now|date:"H:i" }}</div>
+            <div class="label">زمان ثبت</div>
+        </div>
+    </div>
+
+    <div class="result-note">
+        📢 نتیجه نهایی پس از تصحیح توسط استاد، در بخش «نتایج آزمون‌ها» قابل مشاهده خواهد بود.
+    </div>
+
+    <a href="{% url 'student_dashboard' %}" class="btn-home">
+        ← بازگشت به صفحه اصلی
+    </a>
+
+    <div class="footer-icons">
+        <span>📖</span>
+        <span>✏️</span>
+        <span>⭐</span>
+        <span>🎯</span>
+        <span>💪</span>
+    </div>
 </div>
+
+<script>
+    // ایجاد ستاره‌های شناور
+    function createStars() {
+        const container = document.getElementById('stars');
+        const starCount = 40;
+
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 6 + 2;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 10 + 's';
+            star.style.animationDuration = (Math.random() * 8 + 6) + 's';
+            container.appendChild(star);
+        }
+    }
+
+    createStars();
+</script>
 </body>
 </html>

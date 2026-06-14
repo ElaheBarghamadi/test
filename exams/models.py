@@ -80,7 +80,7 @@ class Question(models.Model):
     text = models.TextField(blank=True)
     image = models.ImageField(upload_to='question_images/', null=True, blank=True)
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES)
-    max_score = models.FloatField()
+    max_score = models.DecimalField(max_digits=10, decimal_places=2, default=1.0)
     order = models.IntegerField(default=0)
     options = models.JSONField(default=list, blank=True)
     options_type = models.CharField(max_length=10,

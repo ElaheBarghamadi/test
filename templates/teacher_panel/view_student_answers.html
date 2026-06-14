@@ -1,49 +1,317 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}پاسخ دانش‌آموزان - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
-    .container { max-width: 1000px; margin: 0 auto; }
-    .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
-    .student-card { border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 20px; overflow: hidden; }
-    .student-header { background: #f8fafc; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; cursor: pointer; }
-    .student-name { font-weight: 700; font-size: 16px; }
-    .student-score { background: #4CAF50; color: white; padding: 4px 12px; border-radius: 30px; font-size: 13px; }
-    .answers-list { display: none; padding: 20px; border-top: 1px solid #e2e8f0; }
-    .answers-list.show { display: block; }
-    .answer-item { border-bottom: 1px solid #e2e8f0; padding: 15px; margin-bottom: 10px; }
-    .question-title { font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; }
-    .student-answer { background: #f1f5f9; padding: 12px; border-radius: 12px; margin: 10px 0; }
-    .teacher-answer { background: #fef3c7; padding: 12px; border-radius: 12px; margin-top: 10px; }
-    .score-input { width: 80px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 8px; text-align: center; }
-    .save-score-btn { background: #4CAF50; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-right: 10px; }
-    .score-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; }
-    .score-correct { background: #d1fae5; color: #065f46; }
-    .score-wrong { background: #fee2e2; color: #991b1b; }
-    .btn-back { background: #64748b; color: white; padding: 8px 20px; border-radius: 12px; text-decoration: none; }
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 28px;
+        padding: 28px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        border-bottom: 2px solid rgba(200, 180, 140, 0.35);
+        padding-bottom: 18px;
+        margin-bottom: 24px;
+    }
+
+    .card-header h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #5a3e2b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Student Cards */
+    .student-glass {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(200, 180, 140, 0.3);
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .student-glass:hover {
+        border-color: rgba(200, 180, 140, 0.5);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .student-header {
+        background: rgba(200, 180, 140, 0.12);
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .student-header:hover {
+        background: rgba(200, 180, 140, 0.2);
+    }
+
+    .student-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #4a3220;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .student-score {
+        background: linear-gradient(135deg, #a07830, #8b6914);
+        color: white;
+        padding: 5px 16px;
+        border-radius: 40px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .answers-list {
+        display: none;
+        padding: 20px;
+        border-top: 1px solid rgba(200, 180, 140, 0.25);
+    }
+
+    .answers-list.show {
+        display: block;
+        animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .answer-item {
+        border-bottom: 1px solid rgba(200, 180, 140, 0.2);
+        padding: 16px;
+        margin-bottom: 12px;
+    }
+
+    .answer-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .question-title {
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        color: #5a3e2b;
+        font-size: 0.85rem;
+    }
+
+    .student-answer {
+        background: rgba(200, 180, 140, 0.1);
+        padding: 12px 16px;
+        border-radius: 16px;
+        margin: 10px 0;
+        border-right: 3px solid #c49a2b;
+    }
+
+    .student-answer p {
+        color: #4a3727;
+        font-size: 0.8rem;
+        line-height: 1.6;
+        margin-top: 6px;
+    }
+
+    .student-answer img {
+        max-width: 120px;
+        border-radius: 12px;
+        margin-top: 8px;
+        cursor: pointer;
+    }
+
+    .teacher-answer {
+        background: rgba(196, 154, 43, 0.1);
+        padding: 12px 16px;
+        border-radius: 16px;
+        margin-top: 10px;
+        border-right: 3px solid #d4a017;
+    }
+
+    .teacher-answer p {
+        color: #8b6914;
+        font-size: 0.8rem;
+        margin-top: 6px;
+    }
+
+    .teacher-answer img {
+        max-width: 120px;
+        border-radius: 12px;
+        margin-top: 8px;
+    }
+
+    .score-control {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .score-input {
+        width: 80px;
+        padding: 8px 12px;
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 40px;
+        text-align: center;
+        font-size: 0.85rem;
+        background: white;
+    }
+
+    .score-input:focus {
+        outline: none;
+        border-color: #c49a2b;
+    }
+
+    .save-score-btn {
+        background: linear-gradient(135deg, #a07830, #8b6914);
+        color: white;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .save-score-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(139, 105, 20, 0.3);
+    }
+
+    .max-score-hint {
+        font-size: 0.65rem;
+        color: #b89a6a;
+    }
+
+    .score-badge {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .score-correct {
+        background: rgba(122, 156, 62, 0.15);
+        color: #7a9c3e;
+    }
+
+    .score-wrong {
+        background: rgba(220, 134, 134, 0.15);
+        color: #c97a5a;
+    }
+
+    .btn-back {
+        background: rgba(200, 180, 140, 0.25);
+        color: #5a3e2b;
+        padding: 8px 20px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        border: 1px solid rgba(200, 180, 140, 0.4);
+    }
+
+    .btn-back:hover {
+        background: rgba(200, 180, 140, 0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #b89a6a;
+        font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .container {
+            padding: 12px;
+        }
+
+        .glass-card {
+            padding: 18px;
+        }
+
+        .student-header {
+            flex-direction: column;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .score-control {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .save-score-btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="card">
+    <div class="glass-card">
         <div class="card-header">
-            <h3>📝 پاسخ‌های دانش‌آموزان - {{ exam.title }}</h3>
+            <h3>
+                <span>📝</span>
+                پاسخ‌های دانش‌آموزان - {{ exam.title }}
+            </h3>
             <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت</a>
         </div>
 
         {% for data in students_data %}
-        <div class="student-card">
+        <div class="student-glass">
             <div class="student-header" onclick="toggleAnswers(this)">
-                <span class="student-name">👤 {{ data.student.get_full_name }}</span>
-                <span class="student-score">⭐ نمره: {{ data.total_score|floatformat:1 }} از {{ data.total_possible|floatformat:1 }} ({{ data.percentage }}%)</span>
+                <span class="student-name">
+                    <span>👤</span> {{ data.student.get_full_name|default:data.student.username }}
+                </span>
+                <span class="student-score">
+                    ⭐ {{ data.total_score|floatformat:1 }} / {{ data.total_possible|floatformat:1 }} ({{ data.percentage }}%)
+                </span>
             </div>
             <div class="answers-list">
                 {% for answer in data.answers %}
-                <div class="answer-item" data-question-id="{{ answer.question.id }}" data-student-id="{{ data.student.id }}">
+                <div class="answer-item">
                     <div class="question-title">
-                        <span>سوال {{ forloop.counter }}: {{ answer.question.text|truncatewords:20 }}</span>
+                        <span>📌 سوال {{ forloop.counter }}: {{ answer.question.text|truncatewords:20 }}</span>
                         <span class="score-badge {% if answer.is_correct %}score-correct{% else %}score-wrong{% endif %}">
                             {% if answer.is_correct %}✓ صحیح{% else %}✗ نادرست{% endif %}
                         </span>
@@ -52,47 +320,96 @@
                     <div class="student-answer">
                         <strong>📝 پاسخ دانش‌آموز:</strong>
                         {% if answer.answer and answer.answer.answer_text %}
-                        <p>{{ answer.answer.answer_text }}</p>
+                            <p>{{ answer.answer.answer_text|linebreaksbr }}</p>
                         {% elif answer.answer and answer.answer.answer_image %}
-                        <img src="{{ answer.answer.answer_image.url }}" style="max-width: 150px; border-radius: 8px;">
+                            <img src="{{ answer.answer.answer_image.url }}" alt="پاسخ تصویری" onclick="openImageModal('{{ answer.answer.answer_image.url }}')">
                         {% else %}
-                        <p style="color: #94a3b8;">پاسخی ثبت نشده</p>
+                            <p style="color: #b89a6a;">پاسخی ثبت نشده</p>
                         {% endif %}
                     </div>
 
                     {% if answer.teacher_answer and answer.teacher_answer.answer_text %}
                     <div class="teacher-answer">
                         <strong>👨‍🏫 پاسخ صحیح (معلم):</strong>
-                        <p>{{ answer.teacher_answer.answer_text }}</p>
+                        <p>{{ answer.teacher_answer.answer_text|linebreaksbr|truncatewords:50 }}</p>
                         {% if answer.teacher_answer.answer_image %}
-                        <img src="{{ answer.teacher_answer.answer_image.url }}" style="max-width: 150px; border-radius: 8px;">
+                            <img src="{{ answer.teacher_answer.answer_image.url }}" alt="تصویر پاسخ معلم" onclick="openImageModal('{{ answer.teacher_answer.answer_image.url }}')">
                         {% endif %}
                     </div>
                     {% endif %}
 
-                    <div style="margin-top: 10px;">
-                        <label>نمره:</label>
+                    <div class="score-control">
+                        <label>🎯 نمره:</label>
                         <input type="number" class="score-input" value="{{ answer.score|default:0 }}" step="0.25" min="0" max="{{ answer.max_score }}">
-                        <button class="save-score-btn" onclick="saveScore(this, {{ exam.id }}, {{ data.student.id }}, {{ answer.question.id }}, {{ answer.max_score }})">💾 ذخیره نمره</button>
-                        <span class="max-score-hint">از {{ answer.max_score|floatformat:1 }}</span>
+                        <button class="save-score-btn" onclick="saveScore(this, {{ exam.id }}, {{ data.student.id }}, {{ answer.question.id }}, {{ answer.max_score }})">
+                            💾 ذخیره نمره
+                        </button>
+                        <span class="max-score-hint">حداکثر: {{ answer.max_score|floatformat:1 }}</span>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
         {% empty %}
-        <div style="text-align: center; padding: 60px; color: #94a3b8;">📭 هنوز دانش‌آموزی آزمون را تکمیل نکرده است.</div>
+        <div class="empty-state">
+            📭 هنوز دانش‌آموزی آزمون را تکمیل نکرده است.
+        </div>
         {% endfor %}
     </div>
 </div>
 
+<!-- مودال بزرگنمایی تصویر -->
+<div id="imageModal" class="image-modal" onclick="closeImageModal()">
+    <img id="modalImage" src="">
+</div>
+
+<style>
+    .image-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .image-modal.active {
+        display: flex;
+    }
+
+    .image-modal img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 16px;
+        object-fit: contain;
+    }
+</style>
+
 <script>
     function toggleAnswers(header) {
-        header.nextElementSibling.classList.toggle('show');
+        const answersList = header.nextElementSibling;
+        answersList.classList.toggle('show');
     }
 
     function getCSRFToken() {
         return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || '';
+    }
+
+    function openImageModal(src) {
+        const modal = document.getElementById('imageModal');
+        const img = document.getElementById('modalImage');
+        img.src = src;
+        modal.classList.add('active');
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.remove('active');
     }
 
     async function saveScore(btn, examId, studentId, questionId, maxScore) {
@@ -104,43 +421,53 @@
         if (score < 0) score = 0;
 
         scoreInput.value = score;
+        const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.textContent = '⏳ در حال ذخیره...';
+        btn.innerHTML = '⏳ ...';
 
         try {
-            const response = await fetch(`/teacher/save-score/${examId}/${studentId}/${questionId}/`, {
+            const response = await fetch(`/teacher/save-student-score/${examId}/${studentId}/${questionId}/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
                 body: JSON.stringify({ score: score })
             });
             const result = await response.json();
 
             if (result.success) {
-                btn.textContent = '✅ ذخیره شد';
-                btn.style.background = '#10b981';
+                btn.innerHTML = '✓ ذخیره شد';
+                btn.style.background = '#7a9c3e';
                 setTimeout(() => {
-                    btn.textContent = '💾 ذخیره نمره';
-                    btn.style.background = '#4CAF50';
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
                     btn.disabled = false;
                 }, 1500);
             } else {
-                btn.textContent = '❌ خطا';
-                btn.style.background = '#ef4444';
+                btn.innerHTML = '❌ خطا';
+                btn.style.background = '#dc8686';
                 setTimeout(() => {
-                    btn.textContent = '💾 ذخیره نمره';
-                    btn.style.background = '#4CAF50';
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
                     btn.disabled = false;
                 }, 2000);
             }
         } catch (error) {
-            btn.textContent = '❌ خطا';
-            btn.style.background = '#ef4444';
+            btn.innerHTML = '❌ خطا';
+            btn.style.background = '#dc8686';
             setTimeout(() => {
-                btn.textContent = '💾 ذخیره نمره';
-                btn.style.background = '#4CAF50';
+                btn.innerHTML = originalText;
+                btn.style.background = '';
                 btn.disabled = false;
             }, 2000);
         }
     }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
 </script>
 {% endblock %}

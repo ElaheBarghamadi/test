@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}درخواست نادرست - 400{% endblock %}
+{% load static %}
+
+{% block title %}درخواست نادرست - ۴۰۰{% endblock %}
 
 {% block extra_css %}
 <style>
     .error-container {
-        min-height: 60vh;
+        min-height: 70vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -12,46 +14,224 @@
         padding: 40px 20px;
     }
 
+    /* Glassmorphism Card */
     .error-card {
-        background: white;
-        border-radius: 30px;
-        padding: 50px 40px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 48px;
+        padding: 55px 45px;
         max-width: 550px;
         margin: 0 auto;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+        animation: fadeInDown 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        transition: all 0.3s;
     }
 
+    .error-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 35px 60px rgba(0, 0, 0, 0.12);
+        border-color: rgba(200, 180, 140, 0.5);
+    }
+
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Animated Icon */
     .error-icon {
-        font-size: 80px;
+        font-size: 85px;
         margin-bottom: 20px;
+        display: inline-block;
+        animation: wobble 0.6s ease-in-out;
     }
 
+    @keyframes wobble {
+        0%, 100% {
+            transform: rotate(0deg);
+        }
+        25% {
+            transform: rotate(-10deg);
+        }
+        75% {
+            transform: rotate(10deg);
+        }
+    }
+
+    /* Animated Code */
     .error-code {
         font-size: 100px;
         font-weight: 800;
-        color: #cbd5e1;
+        background: linear-gradient(135deg, #8b6b4a, #a07830, #b89a6a);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
         line-height: 1;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        letter-spacing: 5px;
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% {
+            text-shadow: 0 0 5px rgba(139, 107, 74, 0.2);
+        }
+        50% {
+            text-shadow: 0 0 20px rgba(139, 107, 74, 0.4);
+        }
     }
 
     h1 {
-        color: #475569;
+        color: #8b6b4a;
         margin-bottom: 15px;
+        font-size: 1.6rem;
+        font-weight: 700;
     }
 
-    p {
-        color: #64748b;
+    .error-message {
+        color: #8b6b4a;
+        margin-bottom: 20px;
+        line-height: 1.7;
+        font-size: 0.9rem;
+    }
+
+    .error-hint {
+        font-size: 0.7rem;
+        color: #b89a6a;
         margin-bottom: 30px;
+        padding: 12px 16px;
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 28px;
+        display: inline-block;
     }
 
+    /* Glass Button */
     .btn-home {
-        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        background: linear-gradient(135deg, #a07830, #8b6914);
         color: white;
-        padding: 12px 30px;
+        padding: 12px 32px;
         border: none;
-        border-radius: 40px;
+        border-radius: 60px;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+        box-shadow: 0 4px 15px rgba(139, 105, 20, 0.25);
+    }
+
+    .btn-home:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(139, 105, 20, 0.35);
+    }
+
+    .btn-home:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    /* Common Issues Box */
+    .issues-box {
+        margin-top: 25px;
+        padding: 15px 20px;
+        background: rgba(200, 180, 140, 0.08);
+        border-radius: 28px;
+        backdrop-filter: blur(4px);
+    }
+
+    .issues-title {
+        font-size: 0.7rem;
+        color: #b89a6a;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .issues-list {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .issue-item {
+        background: rgba(255, 255, 255, 0.6);
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        color: #8b6b4a;
+        border: 1px solid rgba(200, 180, 140, 0.3);
+    }
+
+    /* Floating Question Mark */
+    .floating-question {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: rgba(200, 180, 140, 0.15);
+        backdrop-filter: blur(8px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        animation: float 3s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 550px) {
+        .error-card {
+            padding: 35px 25px;
+            border-radius: 32px;
+        }
+
+        .error-code {
+            font-size: 65px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+        }
+
+        .error-icon {
+            font-size: 60px;
+        }
+
+        .btn-home {
+            padding: 10px 24px;
+            font-size: 0.8rem;
+        }
+
+        .floating-question {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            bottom: 20px;
+            right: 20px;
+        }
     }
 </style>
 {% endblock %}
@@ -62,8 +242,29 @@
         <div class="error-icon">❓</div>
         <div class="error-code">۴۰۰</div>
         <h1>درخواست نادرست!</h1>
-        <p>درخواست شما توسط سرور قابل پردازش نیست. لطفاً دوباره تلاش کنید.</p>
-        <a href="/" class="btn-home">🏠 صفحه اصلی</a>
+        <p class="error-message">
+            درخواست شما توسط سرور قابل پردازش نیست.
+        </p>
+        <div class="error-hint">
+            💡 لطفاً دوباره تلاش کنید یا به صفحه اصلی بازگردید
+        </div>
+        <a href="/" class="btn-home">
+            🏠 صفحه اصلی
+        </a>
+        <div class="issues-box">
+            <div class="issues-title">
+                <span>🔧</span> علت‌های احتمالی <span>🔧</span>
+            </div>
+            <div class="issues-list">
+                <span class="issue-item">لینک ناقص</span>
+                <span class="issue-item">داده نامعتبر</span>
+                <span class="issue-item">فرمت اشتباه</span>
+            </div>
+        </div>
     </div>
+</div>
+
+<div class="floating-question">
+    ❓
 </div>
 {% endblock %}

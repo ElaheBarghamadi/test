@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}خطای سرور - 500{% endblock %}
+{% load static %}
+
+{% block title %}خطای سرور - ۵۰۰{% endblock %}
 
 {% block extra_css %}
 <style>
     .error-container {
-        min-height: 60vh;
+        min-height: 70vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -12,74 +14,227 @@
         padding: 40px 20px;
     }
 
+    /* Glassmorphism Card */
     .error-card {
-        background: white;
-        border-radius: 30px;
-        padding: 50px 40px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 48px;
+        padding: 55px 45px;
         max-width: 550px;
         margin: 0 auto;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+        animation: fadeInScale 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        transition: all 0.3s;
     }
 
+    .error-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 35px 60px rgba(0, 0, 0, 0.15);
+        border-color: rgba(200, 180, 140, 0.5);
+    }
+
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Animated Icon */
     .error-icon {
-        font-size: 80px;
+        font-size: 85px;
         margin-bottom: 20px;
+        display: inline-block;
+        animation: bounceIcon 1s ease infinite;
     }
 
+    @keyframes bounceIcon {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    /* Animated Code */
     .error-code {
-        font-size: 100px;
+        font-size: 95px;
         font-weight: 800;
-        color: #fee2e2;
+        background: linear-gradient(135deg, #dc8686, #c97a5a);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
         line-height: 1;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        letter-spacing: 5px;
+        animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% {
+            text-shadow: 0 0 5px rgba(220, 134, 134, 0.3);
+        }
+        50% {
+            text-shadow: 0 0 20px rgba(220, 134, 134, 0.5);
+        }
     }
 
     h1 {
-        color: #991b1b;
+        color: #b85a3a;
         margin-bottom: 15px;
+        font-size: 1.6rem;
+        font-weight: 700;
     }
 
-    p {
-        color: #64748b;
+    .error-message {
+        color: #8b6b4a;
         margin-bottom: 30px;
-        line-height: 1.6;
+        line-height: 1.7;
+        font-size: 0.9rem;
     }
 
+    /* Glass Button */
     .btn-home {
-        background: linear-gradient(135deg, #2a5298, #1e3c72);
+        background: linear-gradient(135deg, #a07830, #8b6914);
         color: white;
-        padding: 12px 30px;
+        padding: 12px 32px;
         border: none;
-        border-radius: 40px;
+        border-radius: 60px;
         text-decoration: none;
-        display: inline-block;
-        font-weight: 500;
-        transition: transform 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+        box-shadow: 0 4px 15px rgba(139, 105, 20, 0.25);
     }
 
     .btn-home:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 25px rgba(139, 105, 20, 0.35);
+    }
+
+    .btn-home:active {
+        transform: translateY(0) scale(0.98);
     }
 
     .contact-link {
-        margin-top: 20px;
-        font-size: 13px;
-        color: #94a3b8;
+        margin-top: 25px;
+        font-size: 0.7rem;
+        color: #b89a6a;
+        padding: 10px 20px;
+        background: rgba(200, 180, 140, 0.12);
+        border-radius: 40px;
+        display: inline-block;
+        backdrop-filter: blur(4px);
+    }
+
+    /* Floating Particles */
+    .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(200, 180, 140, 0.2);
+        border-radius: 50%;
+        animation: floatParticle 12s infinite ease-in-out;
+    }
+
+    @keyframes floatParticle {
+        0%, 100% {
+            transform: translateY(0) translateX(0);
+            opacity: 0;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 550px) {
+        .error-card {
+            padding: 35px 25px;
+            border-radius: 32px;
+        }
+
+        .error-code {
+            font-size: 65px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+        }
+
+        .error-icon {
+            font-size: 60px;
+        }
+
+        .btn-home {
+            padding: 10px 24px;
+            font-size: 0.8rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Floating Particles Background -->
+<div class="particles" id="particles"></div>
+
 <div class="error-container">
     <div class="error-card">
         <div class="error-icon">⚠️</div>
         <div class="error-code">۵۰۰</div>
         <h1>خطای داخلی سرور!</h1>
-        <p>متأسفیم، مشکلی در سرور رخ داده است. لطفاً چند دقیقه دیگر تلاش کنید.</p>
-        <a href="/" class="btn-home">🏠 بازگشت به صفحه اصلی</a>
+        <p class="error-message">
+            متأسفیم، مشکلی در سرور رخ داده است.<br>
+            لطفاً چند دقیقه دیگر تلاش کنید.
+        </p>
+        <a href="/" class="btn-home">
+            🏠 بازگشت به صفحه اصلی
+        </a>
         <div class="contact-link">
-            در صورت تکرار مشکل، با پشتیبانی تماس بگیرید.
+            📧 در صورت تکرار مشکل، با پشتیبانی تماس بگیرید
         </div>
     </div>
 </div>
+
+<script>
+    // ایجاد ذرات شناور در پس‌زمینه
+    function createParticles() {
+        const container = document.getElementById('particles');
+        const particleCount = 25;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 60 + 20;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 12 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 8) + 's';
+            particle.style.background = `radial-gradient(circle, rgba(200, 180, 140, 0.15), rgba(200, 180, 140, 0.05))`;
+            container.appendChild(particle);
+        }
+    }
+
+    createParticles();
+</script>
 {% endblock %}

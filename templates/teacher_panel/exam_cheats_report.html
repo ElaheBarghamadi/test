@@ -1,24 +1,25 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}گزارش تخلفات آزمون - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
     :root {
-        --primary: #4f46e5;
-        --primary-dark: #4338ca;
-        --success: #10b981;
-        --danger: #ef4444;
-        --warning: #f59e0b;
-        --info: #3b82f6;
-        --gray-50: #f9fafb;
-        --gray-100: #f3f4f6;
-        --gray-200: #e5e7eb;
-        --gray-300: #d1d5db;
-        --gray-400: #9ca3af;
-        --gray-500: #6b7280;
-        --gray-600: #4b5563;
-        --gray-700: #374151;
+        --danger: #dc8686;
+        --danger-dark: #b85a3a;
+        --warning: #f5a623;
+        --info: #8b6b4a;
+        --success: #7a9c3e;
+        --gray-50: #faf8f3;
+        --gray-100: #f5f0e6;
+        --gray-200: #e8e0d0;
+        --gray-300: #d4c4a8;
+        --gray-400: #b89a6a;
+        --gray-500: #a08060;
+        --gray-600: #8b6b4a;
+        --gray-700: #6b4c3a;
+        --gray-800: #5a3e2b;
     }
 
     .container {
@@ -27,50 +28,58 @@
         padding: 20px;
     }
 
-    /* هدر */
+    /* Glassmorphism Header */
     .page-header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        border-radius: 24px;
-        padding: 24px 32px;
-        margin-bottom: 24px;
+        background: linear-gradient(135deg, rgba(30, 60, 50, 0.95), rgba(45, 90, 60, 0.95));
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
         color: white;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
+        border: 1px solid rgba(200, 180, 140, 0.3);
     }
 
     .page-header h1 {
         margin: 0;
-        font-size: 24px;
+        font-size: 1.4rem;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
     .page-header .exam-meta {
-        margin-top: 8px;
-        font-size: 13px;
-        opacity: 0.9;
+        margin-top: 10px;
+        font-size: 0.75rem;
+        opacity: 0.85;
         display: flex;
         gap: 20px;
         flex-wrap: wrap;
     }
 
     .btn-back {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.15);
         color: white;
-        padding: 10px 24px;
-        border-radius: 30px;
+        padding: 10px 28px;
+        border-radius: 40px;
         text-decoration: none;
-        font-weight: 500;
+        font-weight: 600;
+        font-size: 0.8rem;
         transition: all 0.2s;
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .btn-back:hover {
-        background: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
     }
 
-    /* کارت‌های آمار */
+    /* Stats Grid - Glassmorphism */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -79,57 +88,60 @@
     }
 
     .stat-card {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-radius: 28px;
+        padding: 22px;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        transition: transform 0.2s;
-        border-bottom: 3px solid var(--danger);
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
 
     .stat-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-4px);
+        border-color: rgba(200, 180, 140, 0.6);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
     }
 
     .stat-number {
-        font-size: 36px;
+        font-size: 2.2rem;
         font-weight: 800;
-        color: var(--danger);
+        color: #dc8686;
+        line-height: 1.2;
     }
 
     .stat-label {
-        font-size: 13px;
-        color: var(--gray-500);
-        margin-top: 6px;
+        font-size: 0.7rem;
+        color: #8b6b4a;
+        margin-top: 8px;
+        font-weight: 500;
     }
 
-    /* کارت‌ها */
+    /* Cards */
     .card {
-        background: white;
-        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(12px);
+        border-radius: 28px;
         padding: 24px;
         margin-bottom: 24px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
 
     .card-title {
-        font-size: 18px;
+        font-size: 1rem;
         font-weight: 700;
-        color: var(--gray-800);
+        color: #5a3e2b;
         margin-bottom: 20px;
         padding-bottom: 12px;
-        border-bottom: 2px solid var(--gray-200);
+        border-bottom: 2px solid rgba(200, 180, 140, 0.35);
         display: flex;
         align-items: center;
         gap: 10px;
     }
 
-    .card-title i {
-        font-size: 22px;
-    }
-
-    /* جدول دانش‌آموزان */
+    /* Table */
     .students-table {
         width: 100%;
         border-collapse: collapse;
@@ -138,17 +150,19 @@
     .students-table th {
         text-align: right;
         padding: 14px 12px;
-        background: var(--gray-50);
-        font-weight: 600;
-        color: var(--gray-700);
-        border-bottom: 2px solid var(--gray-200);
-        font-size: 13px;
+        background: rgba(200, 180, 140, 0.1);
+        font-weight: 700;
+        color: #5a3e2b;
+        border-bottom: 2px solid rgba(200, 180, 140, 0.3);
+        font-size: 0.75rem;
     }
 
     .students-table td {
         padding: 14px 12px;
-        border-bottom: 1px solid var(--gray-200);
+        border-bottom: 1px solid rgba(200, 180, 140, 0.2);
         vertical-align: top;
+        font-size: 0.8rem;
+        color: #6b4c3a;
     }
 
     .student-row {
@@ -156,50 +170,50 @@
     }
 
     .student-row:hover {
-        background: var(--gray-50);
+        background: rgba(200, 180, 140, 0.08);
     }
 
     .student-name {
-        font-weight: 600;
-        color: var(--gray-800);
+        font-weight: 700;
+        color: #5a3e2b;
     }
 
     .badge-cheat {
         display: inline-block;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 0.6rem;
         font-weight: 600;
         margin: 2px 4px 2px 0;
     }
 
-    .badge-tab-switch {
-        background: #fee2e2;
-        color: #991b1b;
+    .badge-tab_switch {
+        background: rgba(220, 134, 134, 0.15);
+        color: #b85a3a;
     }
 
-    .badge-copy-paste {
-        background: #fed7aa;
-        color: #9a3412;
+    .badge-copy_paste {
+        background: rgba(245, 166, 35, 0.15);
+        color: #c97a2b;
     }
 
-    .badge-multiple-tabs {
-        background: #fef3c7;
-        color: #92400e;
+    .badge-multiple_tabs {
+        background: rgba(139, 107, 74, 0.12);
+        color: #8b6b4a;
     }
 
     .badge-other {
-        background: #e2e8f0;
-        color: #475569;
+        background: rgba(200, 180, 140, 0.2);
+        color: #6b4c3a;
     }
 
     .cheat-count {
         font-weight: 700;
-        font-size: 16px;
-        color: var(--danger);
+        font-size: 1rem;
+        color: #dc8686;
     }
 
-    /* لیست تخلفات اخیر */
+    /* Recent Cheats List */
     .recent-cheats-list {
         display: flex;
         flex-direction: column;
@@ -207,15 +221,15 @@
     }
 
     .cheat-item {
-        background: var(--gray-50);
-        border-radius: 14px;
+        background: rgba(200, 180, 140, 0.08);
+        border-radius: 20px;
         padding: 14px 18px;
-        border-right: 4px solid var(--danger);
+        border-right: 3px solid #dc8686;
         transition: all 0.2s;
     }
 
     .cheat-item:hover {
-        background: #fef2f2;
+        background: rgba(200, 180, 140, 0.15);
     }
 
     .cheat-header {
@@ -229,43 +243,57 @@
 
     .cheat-student {
         font-weight: 700;
-        color: var(--gray-800);
+        color: #5a3e2b;
+        font-size: 0.85rem;
     }
 
     .cheat-type {
-        font-size: 12px;
-        padding: 3px 10px;
-        border-radius: 20px;
+        font-size: 0.65rem;
+        padding: 3px 12px;
+        border-radius: 30px;
         font-weight: 600;
     }
 
     .cheat-date {
-        font-size: 11px;
-        color: var(--gray-400);
+        font-size: 0.6rem;
+        color: #b89a6a;
     }
 
     .cheat-detail {
-        font-size: 13px;
-        color: var(--gray-600);
-        margin-top: 6px;
+        font-size: 0.7rem;
+        color: #8b6b4a;
+        margin-top: 8px;
         padding-right: 12px;
-        border-right: 2px solid var(--gray-300);
+        border-right: 2px solid rgba(200, 180, 140, 0.4);
     }
 
-    /* خالی بودن */
     .empty-state {
         text-align: center;
-        padding: 60px 20px;
-        color: var(--gray-400);
+        padding: 50px 20px;
+        color: #b89a6a;
+        font-size: 0.8rem;
     }
 
-    .empty-state i {
-        font-size: 48px;
-        margin-bottom: 16px;
-        display: block;
+    /* Info Card */
+    .info-card {
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 24px;
+        padding: 20px;
+        margin-top: 8px;
     }
 
-    /* ریسپانسیو */
+    .info-card ul {
+        margin-right: 20px;
+        font-size: 0.7rem;
+        color: #8b6b4a;
+        line-height: 1.8;
+    }
+
+    .info-card li {
+        margin-bottom: 6px;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
         .container {
             padding: 12px;
@@ -277,7 +305,7 @@
         }
 
         .stat-number {
-            font-size: 28px;
+            font-size: 1.5rem;
         }
 
         .page-header {
@@ -293,7 +321,7 @@
 
         .students-table th, .students-table td {
             padding: 10px 8px;
-            font-size: 12px;
+            font-size: 0.7rem;
         }
 
         .cheat-header {
@@ -306,10 +334,13 @@
 
 {% block content %}
 <div class="container">
-    <!-- هدر صفحه -->
+    <!-- Header -->
     <div class="page-header">
         <div>
-            <h1>⚠️ گزارش تخلفات آزمون</h1>
+            <h1>
+                <span>⚠️</span>
+                گزارش تخلفات آزمون
+            </h1>
             <div class="exam-meta">
                 <span>📚 {{ exam.title }}</span>
                 <span>🎓 {{ exam.grade.get_name_display }}</span>
@@ -320,7 +351,7 @@
         <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت به آزمون</a>
     </div>
 
-    <!-- آمار کلی تخلفات -->
+    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-number">{{ total_cheats|default:0 }}</div>
@@ -340,23 +371,23 @@
         </div>
     </div>
 
-    <!-- جدول دانش‌آموزان متخلف -->
+    <!-- Students Table -->
     <div class="card">
         <div class="card-title">
-            <i>📋</i> لیست دانش‌آموزان
+            <span>📋</span> لیست دانش‌آموزان
         </div>
 
         {% if sessions_data %}
         <table class="students-table">
             <thead>
-            <tr>
-                <th>#</th>
-                <th>نام دانش‌آموز</th>
-                <th>تعداد تخلفات</th>
-                <th>نوع تخلفات</th>
-                <th>IP آدرس</th>
-                <th>وضعیت جلسه</th>
-            </tr>
+                <tr>
+                    <th>#</th>
+                    <th>نام دانش‌آموز</th>
+                    <th>تعداد تخلفات</th>
+                    <th>نوع تخلفات</th>
+                    <th>IP آدرس</th>
+                    <th>وضعیت جلسه</th>
+                </tr>
             </thead>
             <tbody>
             {% for data in sessions_data %}
@@ -364,7 +395,7 @@
                 <td>{{ forloop.counter }}</td>
                 <td>
                     <div class="student-name">{{ data.student_name }}</div>
-                    <div style="font-size: 11px; color: var(--gray-400);">کد: {{ data.student_code }}</div>
+                    <div style="font-size: 0.6rem; color: #b89a6a;">کد: {{ data.student_code }}</div>
                 </td>
                 <td class="cheat-count">{{ data.cheat_count }}</td>
                 <td>
@@ -373,15 +404,15 @@
                         {{ cheat.get_cheat_type_display }}
                     </span>
                     {% empty %}
-                    <span style="color: var(--gray-400);">-</span>
+                    <span style="color: #b89a6a;">-</span>
                     {% endfor %}
                 </td>
-                <td><code style="font-size: 12px;">{{ data.ip_address }}</code></td>
+                <td><code style="font-size: 0.65rem; background: rgba(200,180,140,0.15); padding: 3px 6px; border-radius: 8px;">{{ data.ip_address }}</code></td>
                 <td>
                     {% if data.is_active %}
-                    <span style="color: var(--success);">🟢 فعال</span>
+                    <span style="color: #7a9c3e;">🟢 فعال</span>
                     {% else %}
-                    <span style="color: var(--gray-400);">⚪ غیرفعال</span>
+                    <span style="color: #b89a6a;">⚪ غیرفعال</span>
                     {% endif %}
                 </td>
             </tr>
@@ -390,16 +421,16 @@
         </table>
         {% else %}
         <div class="empty-state">
-            <i>✅</i>
+            <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
             هیچ جلسه فعالی برای این آزمون ثبت نشده است.
         </div>
         {% endif %}
     </div>
 
-    <!-- آخرین تخلفات ثبت شده -->
+    <!-- Recent Cheats -->
     <div class="card">
         <div class="card-title">
-            <i>🕐</i> آخرین تخلفات ثبت شده
+            <span>🕐</span> آخرین تخلفات ثبت شده
         </div>
 
         {% if recent_cheats %}
@@ -425,32 +456,29 @@
         </div>
         {% else %}
         <div class="empty-state">
-            <i>📭</i>
+            <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
             هنوز تخلفی ثبت نشده است.
         </div>
         {% endif %}
     </div>
 
-    <!-- راهنمای تنظیمات -->
-    <div class="card" style="background: var(--gray-50);">
-        <div class="card-title" style="border-bottom-color: var(--gray-300);">
-            <i>💡</i> نکات مهم
+    <!-- Info Card -->
+    <div class="card info-card">
+        <div class="card-title" style="border-bottom-color: rgba(200, 180, 140, 0.3);">
+            <span>💡</span> نکات مهم
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 24px;">
             <div style="flex: 1;">
-                <div style="font-weight: 600; margin-bottom: 8px;">🔍 انواع تخلفات:</div>
-                <ul style="margin-right: 20px; color: var(--gray-600); font-size: 13px;">
-                    <li><span style="color: var(--danger);">●</span> تغییر تب (Tab Switch) - دانش‌آموز از صفحه آزمون
-                        خارج شده
-                    </li>
-                    <li><span style="color: var(--warning);">●</span> کپی/پیست (Copy/Paste) - تلاش برای کپی کردن متن
-                    </li>
-                    <li><span style="color: var(--info);">●</span> چند تب همزمان - باز کردن آزمون در چند تب</li>
+                <div style="font-weight: 700; margin-bottom: 10px; color: #5a3e2b;">🔍 انواع تخلفات:</div>
+                <ul>
+                    <li><span style="color: #dc8686;">●</span> تغییر تب (Tab Switch) - خروج از صفحه آزمون</li>
+                    <li><span style="color: #f5a623;">●</span> کپی/پیست (Copy/Paste) - تلاش برای کپی متن</li>
+                    <li><span style="color: #8b6b4a;">●</span> چند تب همزمان - باز کردن آزمون در چند تب</li>
                 </ul>
             </div>
             <div style="flex: 1;">
-                <div style="font-weight: 600; margin-bottom: 8px;">⚙️ چگونه تخلفات را کاهش دهیم؟</div>
-                <ul style="margin-right: 20px; color: var(--gray-600); font-size: 13px;">
+                <div style="font-weight: 700; margin-bottom: 10px; color: #5a3e2b;">⚙️ چگونه تخلفات را کاهش دهیم؟</div>
+                <ul>
                     <li>فعال کردن گزینه "جلوگیری از تغییر تب" در تنظیمات آزمون</li>
                     <li>فعال کردن گزینه "جلوگیری از کپی/پیست"</li>
                     <li>فعال کردن "ردیابی IP" برای شناسایی ورود همزمان</li>

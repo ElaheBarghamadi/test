@@ -1,164 +1,308 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}پاسخ تشریحی معلم - {{ exam.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary: #a07830;
+        --primary-light: #c49a2b;
+        --primary-dark: #8b6914;
+        --success: #7a9c3e;
+        --danger: #dc8686;
+        --gray-50: #faf8f3;
+        --gray-100: #f5f0e6;
+        --gray-200: #e8e0d0;
+        --gray-300: #d4c4a8;
+        --gray-400: #b89a6a;
+        --gray-500: #a08060;
+        --gray-600: #8b6b4a;
+        --gray-700: #6b4c3a;
+        --gray-800: #5a3e2b;
+    }
+
     .container {
-        max-width: 800px;
+        max-width: 850px;
         margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(16px);
+        border-radius: 32px;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
     }
 
     .card {
-        background: white;
-        border-radius: 20px;
         padding: 28px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     }
 
     .card-header {
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid rgba(200, 180, 140, 0.35);
     }
 
     .card-header h3 {
         margin: 0;
-        color: #1e293b;
+        color: var(--gray-800);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
+    .card-header p {
+        color: var(--gray-500);
+        margin-top: 6px;
+        font-size: 0.75rem;
+    }
+
+    /* Question Box */
     .question-box {
-        background: #f8fafc;
-        padding: 20px;
-        border-radius: 16px;
-        margin-bottom: 25px;
+        background: rgba(200, 180, 140, 0.1);
+        padding: 22px;
+        border-radius: 24px;
+        margin-bottom: 28px;
+        border: 1px solid rgba(200, 180, 140, 0.25);
+    }
+
+    .question-label {
+        font-weight: 700;
+        color: var(--gray-700);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
     }
 
     .question-text {
-        font-size: 16px;
-        line-height: 1.6;
-        color: #334155;
-        margin-top: 10px;
-        padding-right: 10px;
-        border-right: 3px solid #4CAF50;
+        font-size: 0.9rem;
+        line-height: 1.65;
+        color: var(--gray-700);
+        margin-top: 8px;
+        padding-right: 12px;
+        border-right: 3px solid var(--primary);
     }
 
+    .question-image {
+        max-width: 160px;
+        border-radius: 16px;
+        margin-top: 12px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
+    }
+
+    /* Form */
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     label {
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: #334155;
+        color: var(--gray-700);
+        font-size: 0.8rem;
     }
 
     textarea {
         width: 100%;
-        padding: 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-        font-size: 14px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 20px;
+        font-size: 0.85rem;
         font-family: inherit;
         resize: vertical;
+        transition: all 0.2s;
+        color: var(--gray-700);
     }
 
     textarea:focus {
         outline: none;
-        border-color: #4CAF50;
-        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1);
     }
 
+    input[type="file"] {
+        width: 100%;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+
+    input[type="file"]:focus {
+        outline: none;
+        border-color: var(--primary-light);
+    }
+
+    /* Current Image */
     .current-image {
-        margin-top: 10px;
-        padding: 10px;
-        background: #f1f5f9;
-        border-radius: 12px;
+        margin-top: 14px;
+        padding: 14px 18px;
+        background: rgba(200, 180, 140, 0.1);
+        border-radius: 20px;
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 16px;
         flex-wrap: wrap;
     }
 
     .current-image img {
-        max-width: 150px;
-        border-radius: 8px;
+        max-width: 130px;
+        border-radius: 14px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
     }
 
-    .btn-save {
-        background: #4CAF50;
-        color: white;
-        padding: 12px 28px;
-        border: none;
-        border-radius: 12px;
+    .current-image label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
         cursor: pointer;
-        font-size: 16px;
-        font-weight: 600;
     }
 
-    .btn-back {
-        background: #64748b;
-        color: white;
-        padding: 12px 28px;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
+    .current-image input {
+        width: auto;
+        margin: 0;
     }
 
+    /* Buttons */
     .form-actions {
         display: flex;
         gap: 15px;
-        margin-top: 25px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, var(--success), #6b8a32);
+        color: white;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.25s;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(122, 156, 62, 0.3);
+    }
+
+    .btn-back {
+        background: rgba(200, 180, 140, 0.25);
+        color: var(--gray-700);
+        padding: 12px 32px;
+        border: 1px solid rgba(200, 180, 140, 0.4);
+        border-radius: 40px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.25s;
+    }
+
+    .btn-back:hover {
+        background: rgba(200, 180, 140, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .container {
+            padding: 12px;
+        }
+        .card {
+            padding: 20px;
+        }
+        .question-box {
+            padding: 16px;
+        }
+        .form-actions {
+            flex-direction: column;
+        }
+        .btn-save, .btn-back {
+            text-align: center;
+            justify-content: center;
+        }
+        .current-image {
+            flex-direction: column;
+            align-items: flex-start;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="card">
-        <div class="card-header">
-            <h3>📝 پاسخ تشریحی معلم</h3>
-            <p style="color: #64748b; margin-top: 5px;">آزمون: {{ exam.title }}</p>
-        </div>
-
-        <div class="question-box">
-            <strong>📌 متن سوال:</strong>
-            <div class="question-text">
-                {{ question.text|default:"متن سوال وارد نشده" }}
-            </div>
-            {% if question.image %}
-            <img src="{{ question.image.url }}" style="max-width: 150px; margin-top: 10px; border-radius: 8px;">
-            {% endif %}
-        </div>
-
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <div class="form-group">
-                <label>پاسخ تشریحی (متن)</label>
-                <textarea name="answer_text" rows="8" placeholder="پاسخ تشریحی سوال را وارد کنید...">{{ teacher_answer.answer_text|default:'' }}</textarea>
+    <div class="glass-card">
+        <div class="card">
+            <div class="card-header">
+                <h3>
+                    <span>📝</span>
+                    پاسخ تشریحی معلم
+                </h3>
+                <p>آزمون: {{ exam.title }}</p>
             </div>
 
-            <div class="form-group">
-                <label>تصویر پاسخ (اختیاری)</label>
-                <input type="file" name="answer_image" accept="image/*">
-                {% if teacher_answer and teacher_answer.answer_image %}
-                <div class="current-image">
-                    <img src="{{ teacher_answer.answer_image.url }}" alt="تصویر پاسخ فعلی">
-                    <label>
-                        <input type="checkbox" name="remove_image"> حذف تصویر فعلی
-                    </label>
+            <!-- Question Box -->
+            <div class="question-box">
+                <div class="question-label">
+                    <span>📌</span> متن سوال
                 </div>
+                <div class="question-text">
+                    {{ question.text|default:"متن سوال وارد نشده"|linebreaksbr }}
+                </div>
+                {% if question.image %}
+                    <img src="{{ question.image.url }}" class="question-image" alt="تصویر سوال">
                 {% endif %}
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn-save">💾 ذخیره پاسخ</button>
-                <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت</a>
-            </div>
-        </form>
+            <!-- Form -->
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label>پاسخ تشریحی (متن)</label>
+                    <textarea name="answer_text" rows="8" placeholder="پاسخ تشریحی سوال را وارد کنید...">{{ teacher_answer.answer_text|default:'' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>تصویر پاسخ (اختیاری)</label>
+                    <input type="file" name="answer_image" accept="image/*">
+                    {% if teacher_answer and teacher_answer.answer_image %}
+                        <div class="current-image">
+                            <img src="{{ teacher_answer.answer_image.url }}" alt="تصویر پاسخ فعلی">
+                            <label>
+                                <input type="checkbox" name="remove_image"> 🗑️ حذف تصویر فعلی
+                            </label>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">
+                        💾 ذخیره پاسخ
+                    </button>
+                    <a href="{% url 'edit_exam' exam.id %}" class="btn-back">
+                        ← بازگشت
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -2,66 +2,363 @@
 <html dir="rtl" lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>آزمون ثبت شد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>آزمون با موفقیت ثبت شد - {{ exam.title }}</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Tahoma, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
+            font-family: 'Vazirmatn', 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            background: linear-gradient(145deg, #1a1a1a 0%, #2a2418 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
+        /* افکت لیکویید پس‌زمینه */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 40% 50%, rgba(196, 154, 43, 0.12) 0%, transparent 60%);
+            animation: liquidFlow 22s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes liquidFlow {
+            0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+            33% { transform: translate(4%, 2%) rotate(1deg); opacity: 0.6; }
+            66% { transform: translate(-2%, 4%) rotate(-1deg); opacity: 0.4; }
+            100% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+        }
+
+        /* ذرات درخشان شناور */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 215, 120, 0.3);
+            border-radius: 50%;
+            animation: float 8s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0; }
+            50% { opacity: 0.6; }
+        }
+
+        /* کارت اصلی شیشه‌ای */
+        .glass-card {
+            background: rgba(30, 25, 20, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 48px;
+            border: 1px solid rgba(196, 154, 43, 0.25);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            padding: 50px 40px;
             text-align: center;
-            max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 550px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            transition: all 0.4s ease;
+            animation: fadeInUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
 
-        .icon {
-            font-size: 80px;
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(196, 154, 43, 0.4);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.45);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+                filter: blur(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        /* آیکون دایره‌ای */
+        .icon-wrapper {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, rgba(196, 154, 43, 0.2), rgba(139, 105, 20, 0.1));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(196, 154, 43, 0.5);
+            box-shadow: 0 0 40px rgba(196, 154, 43, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(196, 154, 43, 0.2);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 40px rgba(196, 154, 43, 0.4);
+            }
+        }
+
+        .icon-wrapper span {
+            font-size: 65px;
+        }
+
+        /* عنوان */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd580, #e8b550);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 12px;
+        }
+
+        /* نام آزمون */
+        .exam-name {
+            display: inline-block;
+            background: rgba(196, 154, 43, 0.15);
+            padding: 8px 24px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e8c890;
+            margin-bottom: 25px;
+            border: 1px solid rgba(196, 154, 43, 0.3);
+        }
+
+        /* متن اصلی */
+        .main-message {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #d4c4a8;
             margin-bottom: 20px;
         }
 
-        h1 {
-            color: #4CAF50;
-            margin-bottom: 15px;
+        /* باکس اطلاعات */
+        .info-box {
+            background: rgba(20, 16, 12, 0.6);
+            border-radius: 24px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid rgba(196, 154, 43, 0.15);
         }
 
-        p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 25px;
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(196, 154, 43, 0.1);
         }
 
-        .btn {
-            display: inline-block;
-            background: #4CAF50;
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #b89a60;
+        }
+
+        .info-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e8c890;
+        }
+
+        /* پیام تشکر */
+        .thanks-message {
+            background: linear-gradient(135deg, rgba(196, 154, 43, 0.1), rgba(139, 105, 20, 0.05));
+            border-radius: 20px;
+            padding: 16px;
+            margin: 20px 0;
+            font-size: 0.85rem;
+            color: #c8b07a;
+            border-right: 3px solid #c49a2b;
+        }
+
+        /* دکمه */
+        .btn-dashboard {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #8b6914, #c49a2b);
             color: white;
-            padding: 12px 30px;
+            padding: 14px 40px;
             text-decoration: none;
-            border-radius: 30px;
-            font-weight: bold;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(196, 154, 43, 0.3);
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
         }
 
-        .btn:hover {
-            background: #45a049;
+        .btn-dashboard:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(196, 154, 43, 0.45);
+            filter: brightness(1.05);
+        }
+
+        /* آیکون‌های کوچک */
+        .mini-icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            opacity: 0.6;
+        }
+
+        .mini-icons span {
+            font-size: 1.2rem;
+        }
+
+        /* ریسپانسیو */
+        @media (max-width: 550px) {
+            .glass-card {
+                padding: 35px 25px;
+            }
+
+            .icon-wrapper {
+                width: 90px;
+                height: 90px;
+            }
+
+            .icon-wrapper span {
+                font-size: 48px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .main-message {
+                font-size: 0.85rem;
+            }
+
+            .btn-dashboard {
+                padding: 12px 30px;
+                font-size: 0.85rem;
+                width: 100%;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="icon">🎉</div>
-    <h1>آزمون با موفقیت ثبت شد</h1>
-    <p>پاسخ‌های شما برای آزمون {{ exam.title }} با موفقیت ذخیره شد.</p>
-    <p>از شما متشکریم. نتیجه پس از تصحیح توسط معلم اعلام خواهد شد.</p>
-    <a href="{% url 'student_dashboard' %}" class="btn">بازگشت به داشبورد</a>
+
+<!-- ذرات درخشان -->
+<div class="particles" id="particles"></div>
+
+<div class="glass-card">
+    <div class="icon-wrapper">
+        <span>🎉</span>
+    </div>
+
+    <h1>آزمون با موفقیت ثبت شد!</h1>
+
+    <div class="exam-name">
+        📚 {{ exam.title }}
+    </div>
+
+    <div class="main-message">
+        پاسخ‌های شما با موفقیت در سیستم ذخیره شد.
+    </div>
+
+    <!-- باکس اطلاعات آزمون -->
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">📅 تاریخ ثبت</span>
+            <span class="info-value">{{ now|date:"Y/m/d H:i" }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">⏱️ مدت زمان آزمون</span>
+            <span class="info-value">{{ exam.duration_minutes }} دقیقه</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">📊 تعداد سوالات</span>
+            <span class="info-value">{{ exam.questions.count }} سوال</span>
+        </div>
+    </div>
+
+    <div class="thanks-message">
+        ✨ از شما متشکریم که در این آزمون شرکت کردید. نتیجه آزمون پس از تصحیح توسط استاد محترم در بخش "نتایج آزمون‌ها" قابل مشاهده خواهد بود.
+    </div>
+
+    <a href="{% url 'student_dashboard' %}" class="btn-dashboard">
+        ← بازگشت به داشبورد
+    </a>
+
+    <div class="mini-icons">
+        <span>📖</span>
+        <span>✏️</span>
+        <span>⭐</span>
+        <span>🎯</span>
+    </div>
 </div>
+
+<script>
+    // ایجاد ذرات درخشان
+    function createParticles() {
+        const container = document.getElementById('particles');
+        const particleCount = 30;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 8 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 8 + 's';
+            particle.style.animationDuration = (Math.random() * 6 + 5) + 's';
+            particle.style.background = `rgba(255, 215, 120, ${Math.random() * 0.4 + 0.1})`;
+            container.appendChild(particle);
+        }
+    }
+
+    createParticles();
+</script>
 </body>
 </html>

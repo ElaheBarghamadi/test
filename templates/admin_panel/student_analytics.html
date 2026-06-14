@@ -1,70 +1,355 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}تحلیل عملکرد دانش‌آموزان{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root { --primary: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --gray: #64748b; }
-    .page-header { margin-bottom: 24px; }
-    .filter-bar { background: white; border-radius: 20px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #e2e8f0; }
-    .filter-group { flex: 1; min-width: 180px; }
-    .filter-group label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
-    .filter-group select, .filter-group input { width: 100%; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 14px; }
-    .filter-group button { background: var(--primary); color: white; padding: 10px 24px; border: none; border-radius: 14px; cursor: pointer; width: 100%; font-weight: 500; }
-    .students-table { background: white; border-radius: 24px; overflow-x: auto; border: 1px solid #e2e8f0; }
-    table { width: 100%; border-collapse: collapse; min-width: 700px; }
-    th, td { padding: 14px 12px; text-align: center; border-bottom: 1px solid #e2e8f0; }
-    th { background: #f8fafc; font-weight: 600; color: var(--dark); }
-    .progress-bar { height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; width: 100px; margin: 0 auto; }
-    .progress-fill { height: 100%; border-radius: 10px; }
-    .badge-excellent { background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 30px; font-size: 11px; }
-    .badge-good { background: #fed7aa; color: #9a3412; padding: 4px 12px; border-radius: 30px; font-size: 11px; }
-    .badge-poor { background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 30px; font-size: 11px; }
-    .stats-summary { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-box { background: white; border-radius: 20px; padding: 16px 24px; flex: 1; text-align: center; border: 1px solid #e2e8f0; }
-    .stat-number { font-size: 28px; font-weight: 800; color: var(--primary); }
+    :root {
+        --primary: #a07830;
+        --primary-light: #c49a2b;
+        --primary-dark: #8b6914;
+        --success: #7a9c3e;
+        --warning: #f5a623;
+        --danger: #dc8686;
+        --info: #8b6b4a;
+        --gray-50: #faf8f3;
+        --gray-100: #f5f0e6;
+        --gray-200: #e8e0d0;
+        --gray-300: #d4c4a8;
+        --gray-400: #b89a6a;
+        --gray-500: #a08060;
+        --gray-600: #8b6b4a;
+        --gray-700: #6b4c3a;
+        --gray-800: #5a3e2b;
+    }
+
+    .container-custom {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* Glassmorphism Header */
+    .glass-header {
+        background: linear-gradient(135deg, rgba(30, 60, 50, 0.95), rgba(45, 90, 60, 0.95));
+        backdrop-filter: blur(16px);
+        border-radius: 28px;
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(200, 180, 140, 0.3);
+    }
+
+    .glass-header h1 {
+        color: white;
+        font-size: 1.3rem;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .glass-header p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.75rem;
+        margin-top: 8px;
+    }
+
+    /* Stats Summary */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-box {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        padding: 18px;
+        text-align: center;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+        transition: all 0.25s;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-3px);
+        border-color: rgba(200, 180, 140, 0.6);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--primary);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        margin-top: 6px;
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        padding: 20px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 160px;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--gray-600);
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .filter-group select, .filter-group input {
+        width: 100%;
+        padding: 10px 14px;
+        background: white;
+        border: 1px solid rgba(200, 180, 140, 0.5);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+    }
+
+    .filter-group select:focus, .filter-group input:focus {
+        outline: none;
+        border-color: var(--primary-light);
+    }
+
+    .filter-group button {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.2s;
+    }
+
+    .filter-group button:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Table */
+    .students-table {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(12px);
+        border-radius: 24px;
+        overflow-x: auto;
+        border: 1px solid rgba(200, 180, 140, 0.35);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+    th, td {
+        padding: 14px 12px;
+        text-align: center;
+        border-bottom: 1px solid rgba(200, 180, 140, 0.25);
+    }
+
+    th {
+        background: rgba(200, 180, 140, 0.1);
+        font-weight: 700;
+        color: var(--gray-800);
+        font-size: 0.8rem;
+    }
+
+    td {
+        font-size: 0.8rem;
+        color: var(--gray-700);
+    }
+
+    .student-name {
+        font-weight: 700;
+        color: var(--gray-800);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .progress-bar {
+        width: 100px;
+        height: 6px;
+        background: rgba(200, 180, 140, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+
+    .score-percent {
+        font-weight: 700;
+        min-width: 45px;
+    }
+
+    /* Badges */
+    .badge-excellent {
+        background: rgba(122, 156, 62, 0.15);
+        color: var(--success);
+        padding: 4px 14px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-good {
+        background: rgba(245, 166, 35, 0.15);
+        color: var(--warning);
+        padding: 4px 14px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-poor {
+        background: rgba(220, 134, 134, 0.15);
+        color: var(--danger);
+        padding: 4px 14px;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: var(--gray-500);
+        font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .container-custom { padding: 12px; }
+        .stats-summary { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .filter-bar { flex-direction: column; }
+        .filter-group { width: 100%; }
+        th, td { font-size: 0.7rem; padding: 8px; }
+        .progress-bar { width: 70px; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header"><h1>🎓 تحلیل عملکرد دانش‌آموزان</h1></div>
+<div class="container-custom">
+    <!-- Header -->
+    <div class="glass-header">
+        <h1><span>🎓</span> تحلیل عملکرد دانش‌آموزان</h1>
+        <p>مشاهده میانگین نمرات، پیشرفت تحصیلی و وضعیت کلی دانش‌آموزان</p>
+    </div>
 
-<div class="filter-bar">
-    <div class="filter-group"><label>پایه</label><select id="gradeFilter"><option value="">همه پایه‌ها</option>{% for grade in grades %}<option value="{{ grade.id }}" {% if selected_grade|stringformat:"s" == grade.id|stringformat:"s" %}selected{% endif %}>{{ grade.get_name_display }}</option>{% endfor %}</select></div>
-    <div class="filter-group"><label>جستجو</label><input type="text" id="searchInput" placeholder="نام، نام خانوادگی، کد دانش‌آموزی..." value="{{ search|default:'' }}"></div>
-    <div class="filter-group"><button id="applyFilter">🔍 اعمال فیلتر</button></div>
-</div>
+    <!-- Statistics Summary -->
+    <div class="stats-summary">
+        <div class="stat-box"><div class="stat-number">{{ stats.total_students }}</div><div class="stat-label">کل دانش‌آموزان</div></div>
+        <div class="stat-box"><div class="stat-number">{{ stats.avg_overall_percentage }}%</div><div class="stat-label">میانگین کل</div></div>
+        <div class="stat-box"><div class="stat-number">{{ stats.excellent_count }}</div><div class="stat-label">وضعیت عالی (≥۷۰%)</div></div>
+        <div class="stat-box"><div class="stat-number">{{ stats.poor_count }}</div><div class="stat-label">نیاز به تلاش (<۵۰%)</div></div>
+    </div>
 
-<div class="students-table">
-    <table>
-        <thead><tr><th>#</th><th>نام دانش‌آموز</th><th>پایه</th><th>کد دانش‌آموزی</th><th>تعداد آزمون</th><th>میانگین نمرات</th><th>وضعیت</th><th>آخرین فعالیت</th></tr></thead>
-        <tbody>
-            {% for item in students_data %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td style="text-align:right;"><strong>{{ item.student.get_full_name|default:item.student.username }}</strong></td>
-                <td>{{ item.student.grade.get_name_display|default:'-' }}</td>
-                <td>{{ item.student.student_code|default:'-' }}</td>
-                <td>{{ item.total_exams }}</td>
-                <td>
-                    <span style="color:{% if item.avg_percentage >= 70 %}#10b981{% elif item.avg_percentage >= 50 %}#f59e0b{% else %}#ef4444{% endif %}; font-weight:700;">{{ item.avg_percentage }}%</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: {{ item.avg_percentage }}%; background: {% if item.avg_percentage >= 70 %}#10b981{% elif item.avg_percentage >= 50 %}#f59e0b{% else %}#ef4444{% endif %};"></div></div>
-                </td>
-                <td>
-                    {% if item.avg_percentage >= 70 %}
-                        <span class="badge-excellent">🎉 عالی</span>
-                    {% elif item.avg_percentage >= 50 %}
-                        <span class="badge-good">📚 قابل قبول</span>
-                    {% else %}
-                        <span class="badge-poor">⚠️ نیاز به تلاش</span>
-                    {% endif %}
-                </td>
-                <td style="font-size:12px;">{{ item.last_activity|date:"Y/m/d H:i"|default:'-' }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="8" style="text-align:center; padding:40px;">📭 دانش‌آموزی یافت نشد</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Filters -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>پایه تحصیلی</label>
+            <select id="gradeFilter">
+                <option value="">همه پایه‌ها</option>
+                {% for grade in grades %}
+                    <option value="{{ grade.id }}" {% if selected_grade|stringformat:"s" == grade.id|stringformat:"s" %}selected{% endif %}>{{ grade.get_name_display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>جستجو</label>
+            <input type="text" id="searchInput" placeholder="نام، نام خانوادگی، کد دانش‌آموزی..." value="{{ search|default:'' }}">
+        </div>
+        <div class="filter-group">
+            <button id="applyFilter">🔍 اعمال فیلتر</button>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="students-table">
+        <table id="studentsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>نام دانش‌آموز</th>
+                    <th>پایه</th>
+                    <th>کد دانش‌آموزی</th>
+                    <th>تعداد آزمون</th>
+                    <th>میانگین نمرات</th>
+                    <th>وضعیت</th>
+                    <th>آخرین فعالیت</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in students_data %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td class="student-name" style="text-align:right;">{{ item.student.get_full_name|default:item.student.username }}</td>
+                    <td>{{ item.student.grade.get_name_display|default:'-' }}</td>
+                    <td>{{ item.student.student_code|default:'-' }}</td>
+                    <td>{{ item.total_exams }}</td>
+                    <td>
+                        <div class="progress-container">
+                            <span class="score-percent" style="color:{% if item.avg_percentage >= 70 %}#7a9c3e{% elif item.avg_percentage >= 50 %}#f5a623{% else %}#dc8686{% endif %};">
+                                {{ item.avg_percentage }}%
+                            </span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ item.avg_percentage }}%; background: {% if item.avg_percentage >= 70 %}#7a9c3e{% elif item.avg_percentage >= 50 %}#f5a623{% else %}#dc8686{% endif %};"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.avg_percentage >= 70 %}
+                            <span class="badge-excellent">🎉 عالی</span>
+                        {% elif item.avg_percentage >= 50 %}
+                            <span class="badge-good">📚 قابل قبول</span>
+                        {% else %}
+                            <span class="badge-poor">⚠️ نیاز به تلاش</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.7rem;">{{ item.last_activity|date:"Y/m/d H:i"|default:'-' }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="empty-state">📭 دانش‌آموزی با این فیلترها یافت نشد</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -76,6 +361,7 @@
         if (search) url += `search=${encodeURIComponent(search)}&`;
         window.location.href = url;
     }
+
     document.getElementById('applyFilter').addEventListener('click', applyFilters);
     document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') applyFilters(); });
     document.getElementById('gradeFilter').addEventListener('change', applyFilters);

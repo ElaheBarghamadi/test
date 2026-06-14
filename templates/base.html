@@ -12,8 +12,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, 'Vazirmatn', system-ui, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
+            background: linear-gradient(145deg, #f8f6f2 0%, #f0ece4 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -24,10 +24,11 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: rgba(30, 60, 114, 0.92);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(200, 180, 140, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
         .nav-container {
@@ -36,7 +37,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
+            padding: 10px 24px;
             gap: 15px;
         }
 
@@ -45,9 +46,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 5px 15px;
-            border-radius: 40px;
+            background: rgba(200, 180, 140, 0.2);
+            padding: 5px 18px;
+            border-radius: 50px;
+            border: 1px solid rgba(200, 180, 140, 0.3);
+            transition: all 0.3s;
+        }
+
+        .logo:hover {
+            background: rgba(200, 180, 140, 0.3);
         }
 
         .logo-icon {
@@ -57,154 +64,257 @@
         .logo-text {
             font-size: 17px;
             font-weight: 700;
+            color: #5a3e2b;
         }
 
         .logo-sub {
             font-size: 9px;
-            opacity: 0.75;
+            color: #8b6b4a;
         }
 
         /* Desktop Menu */
         .nav-links {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
 
         .nav-link {
-            color: white;
+            color: #5a3e2b;
             text-decoration: none;
-            padding: 7px 16px;
-            border-radius: 35px;
-            transition: all 0.2s;
-            font-size: 13px;
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 18px;
+            border-radius: 40px;
+            transition: all 0.25s;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(200, 180, 140, 0.12);
+            border: 1px solid rgba(200, 180, 140, 0.2);
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(200, 180, 140, 0.25);
+            transform: translateY(-2px);
+            border-color: rgba(180, 150, 100, 0.4);
         }
 
-        /* Dropdown - با کلیک باز می‌شود */
+        /* Dropdown */
         .dropdown {
             position: relative;
         }
 
         .dropdown-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 7px 16px;
-            border-radius: 35px;
+            background: rgba(200, 180, 140, 0.15);
+            border: 1px solid rgba(200, 180, 140, 0.25);
+            color: #5a3e2b;
+            padding: 8px 18px;
+            border-radius: 40px;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 0.8rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            transition: all 0.25s;
         }
 
         .dropdown-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(200, 180, 140, 0.3);
+            transform: translateY(-2px);
         }
 
         .dropdown-content {
             display: none;
             position: absolute;
             left: 0;
-            top: 42px;
-            background: white;
-            min-width: 200px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            border-radius: 16px;
+            top: 48px;
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
             z-index: 1001;
             overflow: hidden;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(200, 180, 140, 0.35);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
 
         .dropdown-content a {
-            color: #1e293b;
-            padding: 12px 18px;
+            color: #5a3e2b;
+            padding: 12px 20px;
             text-decoration: none;
-            display: block;
-            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.75rem;
             font-weight: 500;
             transition: all 0.2s;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid rgba(200, 180, 140, 0.15);
         }
 
         .dropdown-content a:hover {
-            background: #f1f5f9;
+            background: rgba(200, 180, 140, 0.1);
+            padding-right: 28px;
         }
 
-        .dropdown-content a:last-child {
-            border-bottom: none;
-        }
-
-        /* کلاس برای نمایش منو */
         .dropdown-content.show {
+            display: block;
+            animation: fadeInDrop 0.2s ease;
+        }
+
+        @keyframes fadeInDrop {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== Sidebar Menu (از راست باز می‌شود) ========== */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+        }
+
+        .sidebar-overlay.active {
             display: block;
         }
 
-        /* ========== Hamburger Menu (Mobile) ========== */
+        .sidebar-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 2001;
+            transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(200, 180, 140, 0.4);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-menu.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(200, 180, 140, 0.25);
+            background: linear-gradient(135deg, rgba(200, 180, 140, 0.15), rgba(180, 150, 100, 0.05));
+        }
+
+        .sidebar-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #c4a87a, #b08a5a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #4a3220;
+        }
+
+        .sidebar-user-role {
+            font-size: 0.65rem;
+            color: #8b6b4a;
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #5a3e2b;
+            text-decoration: none;
+            border-radius: 16px;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(200, 180, 140, 0.15);
+            padding-right: 24px;
+        }
+
+        .sidebar-link.logout {
+            color: #c97a5a;
+            margin-top: 20px;
+            border-top: 1px solid rgba(200, 180, 140, 0.25);
+            border-radius: 0;
+            padding-top: 20px;
+        }
+
+        .sidebar-close {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(200, 180, 140, 0.2);
+            border: none;
+            color: #5a3e2b;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .sidebar-close:hover {
+            background: rgba(200, 180, 140, 0.4);
+            transform: rotate(90deg);
+        }
+
+        /* Hamburger Button */
         .hamburger {
             display: none;
             flex-direction: column;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.12);
-            padding: 8px 10px;
-            border-radius: 12px;
+            background: rgba(200, 180, 140, 0.2);
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(200, 180, 140, 0.3);
+            transition: all 0.2s;
+        }
+
+        .hamburger:hover {
+            background: rgba(200, 180, 140, 0.35);
         }
 
         .hamburger span {
-            width: 24px;
+            width: 22px;
             height: 2px;
-            background: white;
+            background: #5a3e2b;
             margin: 3px 0;
             border-radius: 4px;
             transition: 0.2s;
-        }
-
-        .mobile-menu {
-            display: none;
-            position: fixed;
-            top: 65px;
-            right: 0;
-            left: 0;
-            background: #1e3c72;
-            padding: 16px 20px;
-            border-radius: 0 0 20px 20px;
-            z-index: 999;
-            flex-direction: column;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .mobile-menu a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 16px;
-            border-radius: 40px;
-            font-size: 14px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .mobile-menu a:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .mobile-menu .divider {
-            height: 1px;
-            background: rgba(255, 255, 255, 0.15);
-            margin: 5px 0;
-        }
-
-        .logout-item {
-            color: #fca5a5;
         }
 
         /* Main Content */
@@ -216,16 +326,25 @@
             width: 100%;
         }
 
-        /* Footer */
+        /* Footer Glassmorphism */
         .footer {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(200, 180, 140, 0.35);
+            padding: 20px;
             text-align: center;
-            padding: 16px;
-            color: #64748b;
-            font-size: 11px;
-            border-top: 1px solid #e2e8f0;
+            color: #8b6b4a;
+            font-size: 0.7rem;
             margin-top: 40px;
-            background: white;
-            border-radius: 25px 25px 0 0;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
         }
 
         /* ========== Responsive ========== */
@@ -243,7 +362,7 @@
             }
 
             .logo-text {
-                font-size: 15px;
+                font-size: 14px;
             }
 
             .logo-sub {
@@ -251,7 +370,7 @@
             }
 
             .logo {
-                padding: 4px 12px;
+                padding: 5px 14px;
             }
 
             .main-content {
@@ -266,12 +385,16 @@
             }
 
             .logo-text {
-                font-size: 13px;
+                font-size: 12px;
+            }
+
+            .sidebar-menu {
+                width: 280px;
             }
         }
 
         @media print {
-            .navbar, .footer, .hamburger, .mobile-menu {
+            .navbar, .footer, .hamburger, .sidebar-overlay, .sidebar-menu {
                 display: none;
             }
         }
@@ -280,7 +403,7 @@
 </head>
 <body>
 
-<!-- Navbar -->
+<!-- Navbar Glassmorphism -->
 <div class="navbar">
     <div class="nav-container">
         <div class="logo">
@@ -294,49 +417,49 @@
         <!-- Desktop Menu -->
         <div class="nav-links">
             {% if user.is_authenticated %}
-            {% if user.role == 'admin' %}
-            <a href="{% url 'admin_dashboard' %}" class="nav-link">🏠 داشبورد</a>
-            <a href="{% url 'manage_users' %}" class="nav-link">👥 مدیریت کاربران</a>
-            <a href="{% url 'manage_exams' %}" class="nav-link">📋 مدیریت آزمون‌ها</a>
-            <a href="{% url 'system_logs' %}" class="nav-link">📜 لاگ سیستم</a>
-            {% elif user.role == 'teacher' %}
-            <a href="{% url 'teacher_dashboard' %}" class="nav-link">🏠 داشبورد</a>
-            <a href="{% url 'create_exam' %}" class="nav-link">➕ آزمون جدید</a>
-            {% elif user.role == 'student' %}
-            <a href="{% url 'student_dashboard' %}" class="nav-link">🏠 داشبورد</a>
-            {% endif %}
+                {% if user.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+                    <a href="{% url 'manage_users' %}" class="nav-link">👥 مدیریت کاربران</a>
+                    <a href="{% url 'manage_exams' %}" class="nav-link">📋 مدیریت آزمون‌ها</a>
+                    <a href="{% url 'system_logs' %}" class="nav-link">📜 لاگ سیستم</a>
+                {% elif user.role == 'teacher' %}
+                    <a href="{% url 'teacher_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+                    <a href="{% url 'create_exam' %}" class="nav-link">➕ آزمون جدید</a>
+                {% elif user.role == 'student' %}
+                    <a href="{% url 'student_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+                {% endif %}
 
-            <div class="dropdown" id="userDropdown">
-                <button class="dropdown-btn" id="dropdownBtn"
-                        style="font-family: inherit; font-size: 13px; font-weight: 500;">
-                    {% if user.role == 'admin' %}🛡️{% elif user.role == 'teacher' %}👨‍🏫{% else %}👤{% endif %}
-                    {{ user.get_full_name|default:user.username }}
-                    <span style="font-size: 11px; opacity: 0.7; font-family: inherit;">
-        ({% if user.role == 'admin' %}ادمین{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %})
-    </span>
-                    ▼
-                </button>
-                <div class="dropdown-content" id="dropdownContent">
-                    <a href="#">👤 پروفایل</a>
-                    {% if user.role == 'admin' %}
-                    <a href="{% url 'admin_dashboard' %}">🏠 داشبورد</a>
-                    <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
-                    <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
-                    <a href="{% url 'system_logs' %}">📜 لاگ سیستم</a>
-                    {% elif user.role == 'teacher' %}
-                    <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
-                    {% elif user.role == 'student' %}
-                    <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
-                    {% endif %}
-                    <a href="{% url 'logout_view' %}" style="color: #dc2626;">🚪 خروج</a>
+                <div class="dropdown" id="userDropdown">
+                    <button class="dropdown-btn" id="dropdownBtn">
+                        {% if user.role == 'admin' %}🛡️
+                        {% elif user.role == 'teacher' %}👨‍🏫
+                        {% else %}👤{% endif %}
+                        {{ user.get_full_name|default:user.username }}
+                        <span style="font-size: 10px; opacity: 0.7;">
+                            ({% if user.role == 'admin' %}ادمین{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %})
+                        </span>
+                        ▼
+                    </button>
+                    <div class="dropdown-content" id="dropdownContent">
+                        <a href="#">👤 پروفایل</a>
+                        {% if user.role == 'admin' %}
+                            <a href="{% url 'admin_dashboard' %}">🏠 داشبورد ادمین</a>
+                            <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
+                            <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
+                        {% elif user.role == 'teacher' %}
+                            <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
+                        {% elif user.role == 'student' %}
+                            <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
+                        {% endif %}
+                        <a href="{% url 'logout_view' %}" style="color: #c97a5a;">🚪 خروج</a>
+                    </div>
                 </div>
-            </div>
             {% else %}
-            <a href="{% url 'login' %}" class="nav-link">🔐 ورود</a>
+                <a href="{% url 'login' %}" class="nav-link">🔐 ورود</a>
             {% endif %}
         </div>
 
-        <!-- Hamburger Icon (Mobile) -->
+        <!-- Hamburger Button -->
         <div class="hamburger" id="hamburger">
             <span></span>
             <span></span>
@@ -345,34 +468,47 @@
     </div>
 </div>
 
-<!-- Mobile Menu -->
-<div class="mobile-menu" id="mobileMenu">
-    {% if user.is_authenticated %}
-    {% if user.role == 'admin' %}
-    <a href="{% url 'admin_dashboard' %}">🏠 داشبورد</a>
-    <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
-    <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
-    <a href="{% url 'system_logs' %}">📜 لاگ سیستم</a>
-    {% elif user.role == 'teacher' %}
-    <a href="{% url 'teacher_dashboard' %}">🏠 داشبورد</a>
-    <a href="{% url 'create_exam' %}">➕ آزمون جدید</a>
-    {% elif user.role == 'student' %}
-    <a href="{% url 'student_dashboard' %}">🏠 داشبورد</a>
-    {% endif %}
-    <div class="divider"></div>
-    <a href="#">👤 پروفایل</a>
-    {% if user.role == 'admin' %}
-    <a href="{% url 'admin_dashboard' %}">🏠 داشبورد</a>
-    <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
-    {% elif user.role == 'teacher' %}
-    <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
-    {% elif user.role == 'student' %}
-    <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
-    {% endif %}
-    <a href="{% url 'logout_view' %}" class="logout-item">🚪 خروج</a>
-    {% else %}
-    <a href="{% url 'login' %}">🔐 ورود به سامانه</a>
-    {% endif %}
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar Menu (از راست باز می‌شود) -->
+<div class="sidebar-menu" id="sidebarMenu">
+    <button class="sidebar-close" id="sidebarClose">✕</button>
+
+    <div class="sidebar-header">
+        <div class="sidebar-avatar">
+            {% if user.role == 'admin' %}🛡️
+            {% elif user.role == 'teacher' %}👨‍🏫
+            {% else %}👤{% endif %}
+        </div>
+        <div class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="sidebar-user-role">
+            {% if user.role == 'admin' %}مدیر سیستم
+            {% elif user.role == 'teacher' %}معلم
+            {% else %}دانش‌آموز{% endif %}
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+                <a href="{% url 'admin_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
+                <a href="{% url 'manage_users' %}" class="sidebar-link">👥 مدیریت کاربران</a>
+                <a href="{% url 'manage_exams' %}" class="sidebar-link">📋 مدیریت آزمون‌ها</a>
+                <a href="{% url 'system_logs' %}" class="sidebar-link">📜 لاگ سیستم</a>
+            {% elif user.role == 'teacher' %}
+                <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
+                <a href="{% url 'create_exam' %}" class="sidebar-link">➕ آزمون جدید</a>
+            {% elif user.role == 'student' %}
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
+                <a href="{% url 'student_dashboard' %}#results" class="sidebar-link">📊 نتایج من</a>
+            {% endif %}
+            <a href="#" class="sidebar-link">👤 پروفایل</a>
+            <a href="{% url 'logout_view' %}" class="sidebar-link logout">🚪 خروج از حساب</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="sidebar-link">🔐 ورود به سامانه</a>
+        {% endif %}
+    </div>
 </div>
 
 <div class="main-content">
@@ -380,42 +516,64 @@
 </div>
 
 <div class="footer">
-    سامانه آزمون غیرحضوری | طراحی شده برای فرزانگان 1 سبزوار | © ۱۴۰۵
+    <div class="footer-content">
+        <span>📚 سامانه آزمون غیرحضوری فرزانگان 1 سبزوار</span>
+        <span>© ۱۴۰۵ - تمامی حقوق محفوظ است</span>
+        <span>📧 پشتیبانی: support@farzangan1.ir</span>
+    </div>
 </div>
 
 <script>
-    // Hamburger Menu Toggle
+    // ========== Sidebar Menu (از راست باز می‌شود) ==========
     const hamburger = document.getElementById('hamburger');
-    const mobileMenu = document.getElementById('mobileMenu');
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const sidebarClose = document.getElementById('sidebarClose');
     let menuOpen = false;
 
-    if (hamburger && mobileMenu) {
-        hamburger.addEventListener('click', function (e) {
-            e.stopPropagation();
-            if (!menuOpen) {
-                mobileMenu.style.display = 'flex';
-                menuOpen = true;
-            } else {
-                mobileMenu.style.display = 'none';
-                menuOpen = false;
-            }
-        });
+    function openSidebar() {
+        sidebarMenu.classList.add('open');
+        sidebarOverlay.classList.add('active');
+        menuOpen = true;
+        document.body.style.overflow = 'hidden';
+    }
 
-        document.addEventListener('click', function (event) {
-            if (!hamburger.contains(event.target) && !mobileMenu.contains(event.target)) {
-                mobileMenu.style.display = 'none';
-                menuOpen = false;
-            }
+    function closeSidebar() {
+        sidebarMenu.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+        menuOpen = false;
+        document.body.style.overflow = '';
+    }
+
+    if (hamburger) {
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openSidebar();
         });
     }
 
-    // ========== Dropdown با کلیک (hover نیست) ==========
+    if (sidebarClose) {
+        sidebarClose.addEventListener('click', closeSidebar);
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    // بستن با کلید ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && menuOpen) {
+            closeSidebar();
+        }
+    });
+
+    // ========== Dropdown ==========
     const dropdownBtn = document.getElementById('dropdownBtn');
     const dropdownContent = document.getElementById('dropdownContent');
     let dropdownOpen = false;
 
     if (dropdownBtn && dropdownContent) {
-        dropdownBtn.addEventListener('click', function (e) {
+        dropdownBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             if (!dropdownOpen) {
                 dropdownContent.classList.add('show');
@@ -426,17 +584,11 @@
             }
         });
 
-        // بستن منو با کلیک بیرون
-        document.addEventListener('click', function (e) {
+        document.addEventListener('click', function(e) {
             if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
                 dropdownContent.classList.remove('show');
                 dropdownOpen = false;
             }
-        });
-
-        // جلوگیری از بسته شدن منو هنگام کلیک روی لینک‌های داخل
-        dropdownContent.addEventListener('click', function (e) {
-            e.stopPropagation();
         });
     }
 </script>
