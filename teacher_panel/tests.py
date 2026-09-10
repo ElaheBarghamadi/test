@@ -1,3 +1,327 @@
-from django.test import TestCase
+# -*- coding: utf-8 -*-
+"""تست‌های پنل معلم: ساخت آزمون، سوالات، نمره‌دهی و API"""
+import io
+import json
+from datetime import timedelta
+from decimal import Decimal
 
-# Create your tests here.
+import pandas as pd
+from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
+
+from accounts.models import Grade, User
+from exams.models import Exam, Question, StudentAnswer
+from teacher_panel.views import to_jalali, parse_form_datetime, validate_exam_times
+
+
+class TeacherPanelTestCase(TestCase):
+    def setUp(self):
+        self.grade = Grade.objects.create(name='9')
+        self.teacher = User.objects.create_user(username='teacher_t', password='test12345', role='teacher')
+        self.other_teacher = User.objects.create_user(username='teacher_o', password='test12345', role='teacher')
+        self.student = User.objects.create_user(username='student_t', password='test12345',
+                                                role='student', grade=self.grade)
+        self.now = timezone.localtime(timezone.now())
+        self.client.force_login(self.teacher)
+
+    def create_exam_payload(self, **over):
+        payload = {
+            'title': 'آزمون تست',
+            'grade': str(self.grade.id),
+            'duration': '45',
+            'start_time': (self.now - timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M'),
+            'end_time': (self.now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
+            'timer_type': 'floating',
+            'show_questions_mode': 'one_by_one',
+            'show_score': 'on',
+            'show_answers_after_exam': 'on',
+            'enable_anti_cheat': 'on',
+            'prevent_tab_switch': 'on',
+            'prevent_copy_paste': 'on',
+            'track_ip': 'on',
+            'show_back_button': 'on',
+            'allow_teacher_answer': 'on',
+            'students': [str(self.student.id)],
+        }
+        payload.update(over)
+        return payload
+
+    def make_exam(self, **kw):
+        exam = Exam.objects.create(
+            title=kw.pop('title', 'آزمون'), teacher=self.teacher, grade=self.grade,
+            duration_minutes=kw.pop('duration_minutes', 30),
+            start_time=kw.pop('start_time', self.now - timedelta(minutes=5)),
+            end_time=kw.pop('end_time', self.now + timedelta(hours=2)),
+            **kw)
+        exam.students.set([self.student])
+        return exam
+
+
+class CreateExamTests(TeacherPanelTestCase):
+    def test_create_exam_saves_every_flag(self):
+        response = self.client.post(reverse('create_exam'), self.create_exam_payload())
+        self.assertEqual(response.status_code, 302)
+        exam = Exam.objects.get(title='آزمون تست')
+        self.assertEqual(exam.duration_minutes, 45)
+        self.assertEqual(exam.students.count(), 1)
+        self.assertTrue(exam.show_score_to_student)
+        # این گزینه در فرم بود ولی قبلاً ذخیره نمی‌شد
+        self.assertTrue(exam.show_answers_after_exam)
+        self.assertTrue(exam.enable_anti_cheat and exam.prevent_tab_switch and exam.track_ip)
+        self.assertTrue(timezone.is_aware(exam.start_time))
+
+    def test_invalid_payloads_do_not_crash(self):
+        bad_payloads = {
+            'empty duration': self.create_exam_payload(duration=''),
+            'junk duration': self.create_exam_payload(duration='abc'),
+            'junk dates': self.create_exam_payload(start_time='not-a-date', end_time='nope'),
+            'end before start': self.create_exam_payload(
+                start_time=(self.now + timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M'),
+                end_time=(self.now + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M')),
+            'missing title': self.create_exam_payload(title='   '),
+            'bad grade': self.create_exam_payload(grade='99999'),
+            'empty form': {},
+        }
+        before = Exam.objects.count()
+        for label, payload in bad_payloads.items():
+            with self.subTest(case=label):
+                response = self.client.post(reverse('create_exam'), payload)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'امکان ذخیره آزمون وجود ندارد')
+        self.assertEqual(Exam.objects.count(), before, 'آزمون نامعتبری ساخته شد')
+
+    def test_form_times_are_local_and_stable(self):
+        """مقادیر فرم باید به وقت تهران باشند و با ذخیره مجدد جابه‌جا نشوند"""
+        self.client.post(reverse('create_exam'), self.create_exam_payload())
+        exam = Exam.objects.get(title='آزمون تست')
+        expected_start = (self.now - timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M')
+
+        html = self.client.get(reverse('edit_exam_info', kwargs={'exam_id': exam.id})).content.decode()
+        self.assertIn(f'value="{expected_start}"', html, 'مقدار فیلد زمان شروع به وقت محلی نیست')
+        self.assertIn(to_jalali(exam.start_time), html, 'معادل شمسی با ساعت محلی نمی‌خواند')
+
+        # ذخیره مجدد همان مقادیر نباید ساعت را تغییر دهد
+        start_before, end_before = exam.start_time, exam.end_time
+        self.client.post(reverse('edit_exam_info', kwargs={'exam_id': exam.id}), {
+            'save_info': '1', 'title': exam.title, 'grade': str(self.grade.id),
+            'duration': str(exam.duration_minutes),
+            'start_time': expected_start,
+            'end_time': (self.now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
+            'show_score': 'on', 'is_active': 'on',
+        })
+        exam.refresh_from_db()
+        self.assertLess(abs((exam.start_time - start_before).total_seconds()), 60)
+        self.assertLess(abs((exam.end_time - end_before).total_seconds()), 60)
+
+    def test_edit_info_invalid_json_students(self):
+        exam = self.make_exam()
+        response = self.client.post(reverse('edit_exam_info', kwargs={'exam_id': exam.id}),
+                                    {'save_students': '1', 'student_ids': 'not-json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'error-msg')
+        self.assertEqual(exam.students.count(), 1)
+
+
+class QuestionTests(TeacherPanelTestCase):
+    def setUp(self):
+        super().setUp()
+        self.exam = self.make_exam()
+
+    def add(self, **payload):
+        return self.client.post(reverse('add_question', kwargs={'exam_id': self.exam.id}), payload)
+
+    def test_all_question_types_can_be_created(self):
+        cases = {
+            'multiple_choice': {'option_1': 'یک', 'option_2': 'دو', 'option_3': 'سه', 'option_4': 'چهار',
+                                'options_type': 'text', 'correct_answer': '2'},
+            'true_false': {'correct_answer': 'true'},
+            'fill_blank': {'blanks': 'تهران, اصفهان', 'correct_answer': 'تهران'},
+            'short_answer': {'correct_answer': 'کوتاه'},
+            'long_answer': {'correct_answer': 'بلند'},
+            'image_answer': {'allow_image_answer': 'on'},
+            'matching': {'left_0': 'ایران', 'right_0': 'تهران', 'left_1': 'فرانسه', 'right_1': 'پاریس'},
+        }
+        for qtype, extra in cases.items():
+            with self.subTest(qtype=qtype):
+                payload = {'text': f'سوال {qtype}', 'question_type': qtype, 'max_score': '3.5'}
+                payload.update(extra)
+                self.assertEqual(self.add(**payload).status_code, 302)
+        self.assertEqual(Question.objects.filter(exam=self.exam).count(), len(cases))
+        self.assertEqual(Question.objects.get(exam=self.exam, question_type='fill_blank').blanks,
+                         ['تهران', 'اصفهان'])
+        self.assertEqual(len(Question.objects.get(exam=self.exam, question_type='matching').matching_pairs), 2)
+
+    def test_invalid_question_type_is_rejected(self):
+        response = self.add(text='بدون نوع', question_type='not_a_type', max_score='1')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Question.objects.filter(exam=self.exam).count(), 0)
+
+    def test_zero_or_junk_score_is_rejected(self):
+        self.add(text='q', question_type='short_answer', max_score='0')
+        self.add(text='q', question_type='short_answer', max_score='abc')
+        self.assertEqual(Question.objects.filter(exam=self.exam).count(), 0)
+
+    def test_other_teacher_cannot_touch_exam(self):
+        self.client.force_login(self.other_teacher)
+        for url in [reverse('edit_exam', kwargs={'exam_id': self.exam.id}),
+                    reverse('add_question', kwargs={'exam_id': self.exam.id})]:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 404)
+
+
+class GradingTests(TeacherPanelTestCase):
+    def setUp(self):
+        super().setUp()
+        self.exam = self.make_exam()
+        self.question = Question.objects.create(exam=self.exam, text='q', question_type='short_answer',
+                                                max_score=Decimal('4'), order=1)
+        self.answer = StudentAnswer.objects.create(student=self.student, question=self.question,
+                                                   answer_text='پاسخ')
+
+    def save(self, score):
+        return self.client.post(reverse('save_score'), {'answer_id': str(self.answer.id), 'score': score})
+
+    def test_score_is_saved(self):
+        response = self.save('3.25')
+        self.assertEqual(response.status_code, 200)
+        self.answer.refresh_from_db()
+        self.assertEqual(float(self.answer.score_obtained), 3.25)
+        self.assertIsNotNone(self.answer.graded_by_id)
+        self.assertIsNotNone(self.answer.graded_at)
+
+    def test_score_is_clamped_to_max(self):
+        """قبلاً نمره بیشتر از بارم سوال (مثلاً 999) ذخیره می‌شد"""
+        self.save('999')
+        self.answer.refresh_from_db()
+        self.assertEqual(float(self.answer.score_obtained), 4.0)
+
+    def test_negative_and_junk_scores_become_zero(self):
+        for value in ['-5', 'abc', '']:
+            with self.subTest(value=value):
+                self.save(value)
+                self.answer.refresh_from_db()
+                self.assertEqual(float(self.answer.score_obtained), 0.0)
+
+    def test_unknown_answer_returns_404(self):
+        response = self.client.post(reverse('save_score'), {'answer_id': '999999', 'score': '1'})
+        self.assertEqual(response.status_code, 404)
+
+    def test_other_teacher_cannot_grade(self):
+        self.client.force_login(self.other_teacher)
+        response = self.save('2')
+        self.assertEqual(response.status_code, 403)
+
+
+class StudentsApiTests(TeacherPanelTestCase):
+    def test_anonymous_is_blocked(self):
+        self.client.logout()
+        response = self.client.get(reverse('get_students_api'))
+        self.assertIn(response.status_code, (302, 403))
+
+    def test_student_is_blocked(self):
+        self.client.force_login(self.student)
+        self.assertEqual(self.client.get(reverse('get_students_api')).status_code, 403)
+
+    def test_teacher_gets_json(self):
+        response = self.client.get(reverse('get_students_api'))
+        self.assertEqual(response.status_code, 200)
+        names = [s['full_name'] for s in response.json()['students']]
+        self.assertIn('student_t', names)
+
+
+class ExcelTests(TeacherPanelTestCase):
+    def setUp(self):
+        super().setUp()
+        self.exam = self.make_exam()
+
+    def test_template_download_is_xlsx(self):
+        response = self.client.get(reverse('download_question_template'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content[:2], b'PK')
+
+    def test_bulk_upload(self):
+        buf = io.BytesIO()
+        pd.DataFrame([
+            {'text': 'سوال ۱', 'question_type': 'تستی', 'max_score': 2,
+             'option_1': 'الف', 'option_2': 'ب', 'option_3': 'ج', 'option_4': 'د', 'correct_answer': '1'},
+            {'text': 'سوال ۲', 'question_type': 'صحیح/غلط', 'max_score': 1, 'correct_answer': 'true'},
+            {'text': '', 'question_type': 'تستی', 'max_score': 1},
+        ]).to_excel(buf, index=False)
+        buf.seek(0)
+        buf.name = 'questions.xlsx'
+
+        response = self.client.post(reverse('bulk_upload_questions', kwargs={'exam_id': self.exam.id}),
+                                    {'excel_file': buf})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['success_count'], 2)
+        self.assertEqual(data['skip_count'], 1, 'ردیف بدون متن باید نادیده گرفته شود')
+        self.assertEqual(Question.objects.filter(exam=self.exam).count(), 2)
+        # سلول خالی اکسل قبلاً به رشته «nan» تبدیل و به‌عنوان متن سوال ذخیره می‌شد
+        self.assertFalse(Question.objects.filter(text__icontains='nan').exists())
+        # شماره ترتیب باید پشت سر هم باشد (قبلاً ۱،۳،۵,... می‌شد)
+        self.assertEqual(sorted(Question.objects.filter(exam=self.exam)
+                                .values_list('order', flat=True)), [1, 2])
+        self.assertEqual(Question.objects.get(exam=self.exam, order=2).question_type, 'true_false')
+
+    def test_new_question_after_import_goes_to_the_end(self):
+        """قبلاً با count()+1 سوال جدید وسط سوالات ایمپورت‌شده قرار می‌گرفت"""
+        buf = io.BytesIO()
+        pd.DataFrame([
+            {'text': 'سوال ۱', 'question_type': 'تستی', 'max_score': 1, 'correct_answer': '1'},
+            {'text': 'سوال ۲', 'question_type': 'تستی', 'max_score': 1, 'correct_answer': '2'},
+            {'text': 'سوال ۳', 'question_type': 'تستی', 'max_score': 1, 'correct_answer': '3'},
+        ]).to_excel(buf, index=False)
+        buf.seek(0)
+        buf.name = 'q.xlsx'
+        self.client.post(reverse('bulk_upload_questions', kwargs={'exam_id': self.exam.id}),
+                         {'excel_file': buf})
+
+        self.client.post(reverse('add_question', kwargs={'exam_id': self.exam.id}),
+                         {'text': 'سوال دستی', 'question_type': 'short_answer', 'max_score': '1'})
+        orders = list(Question.objects.filter(exam=self.exam).order_by('order')
+                      .values_list('text', flat=True))
+        self.assertEqual(orders[-1], 'سوال دستی', orders)
+        self.assertEqual(len(set(Question.objects.filter(exam=self.exam)
+                                 .values_list('order', flat=True))), 4, 'order تکراری ساخته شد')
+
+    def test_bulk_upload_rejects_bad_file(self):
+        buf = io.BytesIO(b'not an excel')
+        buf.name = 'fake.xlsx'
+        response = self.client.post(reverse('bulk_upload_questions', kwargs={'exam_id': self.exam.id}),
+                                    {'excel_file': buf})
+        self.assertEqual(response.status_code, 400)
+
+    def test_bulk_upload_requires_file(self):
+        response = self.client.post(reverse('bulk_upload_questions', kwargs={'exam_id': self.exam.id}), {})
+        self.assertEqual(response.status_code, 400)
+
+
+class HelperTests(TeacherPanelTestCase):
+    def test_to_jalali_uses_local_timezone(self):
+        """ساعت نمایشی باید وقت تهران باشد نه UTC"""
+        aware = timezone.now()
+        rendered = to_jalali(aware)
+        local = timezone.localtime(aware)
+        self.assertTrue(rendered.endswith(local.strftime('%H:%M')), f'{rendered} != {local:%H:%M}')
+
+    def test_to_jalali_handles_bad_input(self):
+        self.assertEqual(to_jalali(None), '')
+        self.assertEqual(to_jalali('not-a-date'), '')
+
+    def test_parse_form_datetime(self):
+        parsed = parse_form_datetime('2026-09-20T10:30')
+        self.assertTrue(timezone.is_aware(parsed))
+        self.assertEqual(timezone.localtime(parsed).strftime('%Y-%m-%dT%H:%M'), '2026-09-20T10:30')
+        self.assertIsNone(parse_form_datetime('junk'))
+        self.assertIsNone(parse_form_datetime(''))
+
+    def test_validate_exam_times(self):
+        data, errors = validate_exam_times(self.create_exam_payload())
+        self.assertEqual(errors, [])
+        self.assertTrue(data['show_score_to_student'] and data['show_answers_after_exam'])
+
+        data, errors = validate_exam_times({'title': 'x'})
+        self.assertTrue(errors)

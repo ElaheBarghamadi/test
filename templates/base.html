@@ -326,6 +326,36 @@
             width: 100%;
         }
 
+        /* ========== پیام‌های سیستم (Django messages) ========== */
+        .site-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .site-message {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(200, 180, 140, 0.4);
+            border-right: 4px solid #c49a2b;
+            border-radius: 18px;
+            padding: 13px 18px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #5a3e2b;
+            box-shadow: 0 4px 15px rgba(100, 60, 30, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeInDrop 0.25s ease;
+        }
+
+        .site-message.success { border-right-color: #7a9c3e; }
+        .site-message.error, .site-message.danger { border-right-color: #dc8686; background: rgba(255, 245, 245, 0.94); color: #a94442; }
+        .site-message.warning { border-right-color: #f5a623; background: rgba(255, 250, 235, 0.94); color: #92400e; }
+        .site-message.info { border-right-color: #8b6b4a; }
+
         /* Footer Glassmorphism */
         .footer {
             background: rgba(255, 255, 255, 0.7);
@@ -481,9 +511,12 @@
             {% elif user.role == 'teacher' %}👨‍🏫
             {% else %}👤{% endif %}
         </div>
-        <div class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="sidebar-user-name">
+            {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}کاربر مهمان{% endif %}
+        </div>
         <div class="sidebar-user-role">
-            {% if user.role == 'admin' %}مدیر سیستم
+            {% if not user.is_authenticated %}برای دسترسی به سامانه وارد شوید
+            {% elif user.role == 'admin' %}مدیر سیستم
             {% elif user.role == 'teacher' %}معلم
             {% else %}دانش‌آموز{% endif %}
         </div>
@@ -512,6 +545,16 @@
 </div>
 
 <div class="main-content">
+    {% if messages %}
+    <div class="site-messages">
+        {% for message in messages %}
+        <div class="site-message {{ message.tags }}">
+            <span>{% if message.tags == 'error' or message.tags == 'danger' %}⚠️{% elif message.tags == 'warning' %}🔶{% elif message.tags == 'info' %}ℹ️{% else %}✅{% endif %}</span>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% block content %}{% endblock %}
 </div>
 

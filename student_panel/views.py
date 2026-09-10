@@ -88,12 +88,15 @@ def exam_access_required(view_func):
 
 # ========== توابع کمکی ==========
 def to_jalali(date_val):
-    """تبدیل تاریخ میلادی به شمسی"""
+    """تبدیل تاریخ میلادی به شمسی (بر اساس منطقه زمانی تهران)"""
     if not date_val:
         return ''
     try:
         if timezone.is_naive(date_val):
             date_val = timezone.make_aware(date_val)
+        else:
+            # ⚠️ بدون این تبدیل، ساعت UTC نمایش داده می‌شد (۳:۳۰ اختلاف با تهران)
+            date_val = timezone.localtime(date_val)
         jd = jdatetime.datetime.fromgregorian(datetime=date_val)
         return jd.strftime('%Y/%m/%d %H:%M')
     except Exception:
@@ -105,20 +108,20 @@ def get_exam_semester(exam):
     if not exam.start_time:
         return 'general'
     month = exam.start_time.month
-    if 7 <= month <= 11:
+    if 7 <= month <= 11:          # مهر تا آبان/آذر
         return 'first'
-    elif 12 <= month <= 3:
+    elif month == 12 or month <= 3:   # اسفند تا فروردین/خرداد
         return 'second'
     return 'final'
 
 
 def get_current_semester():
     """دریافت نیمسال جاری"""
-    now = timezone.now()
+    now = timezone.localtime(timezone.now())
     month = now.month
     if 7 <= month <= 11:
         return 'اول'
-    elif 12 <= month <= 3:
+    elif month == 12 or month <= 3:
         return 'دوم'
     return 'تابستان'
 
@@ -248,7 +251,7 @@ def student_dashboard(request):
             'score': total_score_float,
             'total_possible': total_possible_float,
             'percentage': round(percentage, 1),
-            'date_jalali': to_jalali(attempt.submitted_at or attempt.updated_at),
+            'date_jalali': to_jalali(attempt.submitted_at or attempt.started_at or attempt.exam.end_time),
             'show_score': show_score,
         })
 
@@ -296,20 +299,48 @@ def student_dashboard(request):
 @exam_access_required
 def take_exam(request, exam):
     """صفحه شرکت در آزمون - با هش امنیتی"""
+    now = timezone.now()
+
+    # ⚠️ اول تلاشِ موجود را می‌خوانیم؛ چون get_or_create با started_at=now
+    # ساخته می‌شد و عملاً همیشه «آزمون شروع شده» به حساب می‌آمد.
+    attempt = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
+
+    if attempt and attempt.status == 'submitted':
+        return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
+
+    if not exam.is_active:
+        return render(request, 'student_panel/exam_inactive.html', {
+            'exam': exam,
+            'reason': 'inactive',
+            'start_time_jalali': to_jalali(exam.start_time),
+            'end_time_jalali': to_jalali(exam.end_time),
+        })
+
+    # ⚠️ قبل از زمان شروع، امکان ورود به آزمون وجود ندارد
+    if exam.start_time and now < exam.start_time:
+        return render(request, 'student_panel/exam_inactive.html', {
+            'exam': exam,
+            'reason': 'not_started',
+            'start_time_jalali': to_jalali(exam.start_time),
+            'end_time_jalali': to_jalali(exam.end_time),
+        })
+
+    # ⚠️ بعد از پایان آزمون، فقط کسی که قبلاً شروع کرده می‌تواند ادامه دهد
+    if exam.end_time and now > exam.end_time and not (attempt and attempt.started_at):
+        return render(request, 'student_panel/exam_inactive.html', {
+            'exam': exam,
+            'reason': 'ended',
+            'start_time_jalali': to_jalali(exam.start_time),
+            'end_time_jalali': to_jalali(exam.end_time),
+        })
+
     # گرفتن یا ایجاد تلاش
     attempt, created = ExamAttempt.objects.get_or_create(
         student=request.user,
         exam=exam,
-        defaults={'status': 'in_progress', 'started_at': timezone.now()}
+        defaults={'status': 'in_progress', 'started_at': now}
     )
 
-    if attempt.status == 'submitted':
-        return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
-
-    if not exam.is_active:
-        return render(request, 'student_panel/exam_inactive.html', {'exam': exam})
-
-    now = timezone.now()
     remaining = 0
 
     # محاسبه زمان باقی‌مانده
@@ -345,6 +376,12 @@ def take_exam(request, exam):
         if q.question_type == 'multiple_choice' and not q.options:
             q.options = ['گزینه 1', 'گزینه 2', 'گزینه 3', 'گزینه 4']
 
+        # ⚠️ خروجی list پایتون (repr) جاوااسکریپت معتبر نیست؛ اگر متن گزینه
+        # شامل ' یا </script> باشد صفحه می‌شکند. برای همین JSON سریال می‌کنیم.
+        q.options_json = json.dumps(q.options or [], ensure_ascii=False)
+        q.matching_pairs_json = json.dumps(q.matching_pairs or [], ensure_ascii=False)
+        q.blanks_json = json.dumps(q.blanks or [], ensure_ascii=False)
+
     # گرفتن پاسخ‌های قبلی
     saved_answers = {}
     for answer in StudentAnswer.objects.filter(student=request.user, question__exam=exam):
@@ -379,7 +416,11 @@ def save_answer(request):
         if len(answer_text) > 10000:
             return JsonResponse({'error': 'پاسخ بیش از حد طولانی است'}, status=400)
 
-        question = get_object_or_404(Question, id=question_id)
+        # ⚠️ به‌جای get_object_or_404؛ چون Http404 داخل except Exception
+        # به پاسخ 500 تبدیل می‌شد و خطای نامعتبر به‌صورت خطای سرور نمایش داده می‌شد
+        question = Question.objects.filter(id=question_id).first() if question_id else None
+        if not question:
+            return JsonResponse({'error': 'سوال یافت نشد'}, status=404)
 
         if request.user not in question.exam.students.all():
             return JsonResponse({'error': 'شما مجاز به پاسخ دادن نیستید'}, status=403)
@@ -414,7 +455,9 @@ def save_answer_image(request):
         if not is_valid:
             return JsonResponse({'error': error_msg}, status=400)
 
-        question = get_object_or_404(Question, id=question_id)
+        question = Question.objects.filter(id=question_id).first() if question_id else None
+        if not question:
+            return JsonResponse({'error': 'سوال یافت نشد'}, status=404)
 
         if not question.allow_image_answer and question.question_type != 'image_answer':
             return JsonResponse({'error': 'این سوال اجازه آپلود عکس ندارد'}, status=403)
@@ -578,13 +621,16 @@ def log_cheat(request):
         data = json.loads(request.body)
         exam_id = data.get('exam_id')
         cheat_type = data.get('cheat_type')
-        detail = data.get('detail', '')[:500]
+        detail = str(data.get('detail') or '')[:500]
 
-        valid_cheat_types = ['tab_switch', 'copy_paste', 'right_click', 'multiple_tabs', 'inactivity']
+        # همه انواع تخلف تعریف‌شده در مدل (قبلاً screenshot/print_screen رد می‌شدند)
+        valid_cheat_types = [c[0] for c in CheatAttempt.CHEAT_TYPES]
         if cheat_type not in valid_cheat_types:
             return JsonResponse({'success': False, 'error': 'نوع تخلف نامعتبر'})
 
-        exam = get_object_or_404(Exam, id=exam_id)
+        exam = Exam.objects.filter(id=exam_id).first() if exam_id else None
+        if not exam:
+            return JsonResponse({'success': False, 'error': 'آزمون یافت نشد'}, status=404)
 
         if request.user not in exam.students.all():
             return JsonResponse({'success': False, 'error': 'شما به این آزمون دسترسی ندارید'})

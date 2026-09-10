@@ -16,11 +16,43 @@ from accounts.models import User, Grade
 from exams.models import Exam, Question, StudentAnswer, ExamAttempt, CheatAttempt, ExamLog
 from .models import SystemSetting
 from datetime import datetime, timedelta
+from decimal import Decimal, InvalidOperation
 import json
 import pandas as pd
 import openpyxl
 from io import BytesIO, StringIO
 import csv
+
+
+def to_decimal(value, default=Decimal('0')):
+    """تبدیل امن هر مقدار (float/str/Decimal/None) به Decimal"""
+    if value is None or value == '':
+        return default
+    if isinstance(value, Decimal):
+        return value
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return default
+
+
+def clean_numeric_text(value):
+    """
+    پاکسازی مقادیر خوانده‌شده از اکسل.
+    pandas اعداد را به float تبدیل می‌کند، برای همین کد دانش‌آموزی یا رمز عبور
+    عددی به شکل «140312001.0» خوانده می‌شد. این تابع آن را به «140312001» تبدیل می‌کند.
+    """
+    if value is None:
+        return ''
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    text = str(value).strip()
+    if text.lower() in ('nan', 'none', 'nat'):
+        return ''
+    # عددی که به شکل رشته با .0 ذخیره شده
+    if text.endswith('.0') and text[:-2].isdigit():
+        text = text[:-2]
+    return text
 
 
 @login_required
@@ -52,16 +84,18 @@ def admin_dashboard(request):
         exams = Exam.objects.filter(grade=grade).count()
         attempts = ExamAttempt.objects.filter(exam__grade=grade, status='submitted').count()
 
-        total_score = 0
-        total_possible = 0
+        # ⚠️ همه مقادیر باید Decimal باشند: max_score از نوع Decimal و
+        # score_obtained از نوع Float است و جمع/تقسیم این دو با هم TypeError می‌دهد.
+        total_score = Decimal('0')
+        total_possible = Decimal('0')
         for attempt in ExamAttempt.objects.filter(exam__grade=grade, status='submitted'):
             for question in attempt.exam.questions.all():
                 answer = StudentAnswer.objects.filter(student=attempt.student, question=question).first()
-                total_possible += question.max_score
+                total_possible += to_decimal(question.max_score)
                 if answer and answer.score_obtained:
-                    total_score += answer.score_obtained
+                    total_score += to_decimal(answer.score_obtained)
 
-        avg_score = (total_score / total_possible * 100) if total_possible > 0 else 0
+        avg_score = float(total_score / total_possible * 100) if total_possible > 0 else 0
 
         grade_stats.append({
             'grade': grade,
@@ -181,11 +215,22 @@ def import_users_from_file(request):
 
         if file_extension in ['xlsx', 'xls']:
             # خواندن فایل اکسل
-            df = pd.read_excel(file)
+            # index_col=False → ستون اول هرگز به عنوان ایندکس در نظر گرفته نمی‌شود
+            df = pd.read_excel(file, index_col=False)
         elif file_extension == 'csv':
-            # خواندن فایل CSV
-            file_content = file.read().decode('utf-8')
-            df = pd.read_csv(StringIO(file_content))
+            # خواندن فایل CSV با تشخیص خودکار انکودینگ
+            # (فایل‌های ساخته‌شده در اکسل فارسی معمولاً cp1256 یا utf-8-sig هستند)
+            raw = file.read()
+            file_content = None
+            for encoding in ('utf-8-sig', 'utf-8', 'cp1256', 'latin-1'):
+                try:
+                    file_content = raw.decode(encoding)
+                    break
+                except (UnicodeDecodeError, LookupError):
+                    continue
+            if file_content is None:
+                return JsonResponse({'error': 'انکودینگ فایل قابل تشخیص نیست'}, status=400)
+            df = pd.read_csv(StringIO(file_content), index_col=False)
         else:
             return JsonResponse({'error': 'فرمت فایل پشتیبانی نمی‌شود. فقط اکسل (xlsx, xls) و CSV'}, status=400)
 
@@ -203,39 +248,46 @@ def import_users_from_file(request):
         created_users = []
 
         for index, row in df.iterrows():
+            # شماره ردیف برای نمایش در پیام‌های خطا
+            # (اگر فایل ستون اضافه داشته باشد، index می‌تواند رشته باشد)
             try:
-                username = str(row['username']).strip()
-                password = str(row['password']).strip()
-                first_name = str(row.get('first_name', '')).strip() if pd.notna(row.get('first_name')) else ''
-                last_name = str(row.get('last_name', '')).strip() if pd.notna(row.get('last_name')) else ''
-                role = str(row.get('role', 'student')).strip().lower() if pd.notna(row.get('role')) else 'student'
-                student_code = str(row.get('student_code', '')).strip() if pd.notna(row.get('student_code')) else ''
-                grade_id = row.get('grade_id') if pd.notna(row.get('grade_id')) else None
+                row_no = int(index) + 2
+            except (TypeError, ValueError):
+                row_no = str(index)
+
+            try:
+                username = clean_numeric_text(row.get('username'))
+                password = clean_numeric_text(row.get('password'))
+                first_name = clean_numeric_text(row.get('first_name'))
+                last_name = clean_numeric_text(row.get('last_name'))
+                role = clean_numeric_text(row.get('role')).lower() or 'student'
+                student_code = clean_numeric_text(row.get('student_code'))
+                grade_id = clean_numeric_text(row.get('grade_id')) or None
 
                 # اعتبارسنجی
                 if not username:
-                    errors.append(f'ردیف {index + 2}: نام کاربری خالی است')
+                    errors.append(f'ردیف {row_no}: نام کاربری خالی است')
                     failed_count += 1
                     continue
 
                 if not password:
-                    errors.append(f'ردیف {index + 2}: رمز عبور خالی است')
+                    errors.append(f'ردیف {row_no}: رمز عبور خالی است')
                     failed_count += 1
                     continue
 
                 if User.objects.filter(username=username).exists():
-                    errors.append(f'ردیف {index + 2}: نام کاربری {username} تکراری است')
+                    errors.append(f'ردیف {row_no}: نام کاربری {username} تکراری است')
                     failed_count += 1
                     continue
 
                 if role not in ['student', 'teacher', 'admin']:
-                    errors.append(f'ردیف {index + 2}: نقش {role} نامعتبر است (فقط student, teacher, admin)')
+                    errors.append(f'ردیف {row_no}: نقش {role} نامعتبر است (فقط student, teacher, admin)')
                     failed_count += 1
                     continue
 
                 if role == 'student' and student_code:
                     if User.objects.filter(student_code=student_code).exists():
-                        errors.append(f'ردیف {index + 2}: کد دانش‌آموزی {student_code} تکراری است')
+                        errors.append(f'ردیف {row_no}: کد دانش‌آموزی {student_code} تکراری است')
                         failed_count += 1
                         continue
 
@@ -270,7 +322,7 @@ def import_users_from_file(request):
                 })
 
             except Exception as e:
-                errors.append(f'ردیف {index + 2}: {str(e)}')
+                errors.append(f'ردیف {row_no}: {str(e)}')
                 failed_count += 1
 
         return JsonResponse({
@@ -628,16 +680,16 @@ def student_analytics(request):
     for student in students:
         total_exams = ExamAttempt.objects.filter(student=student, status='submitted').count()
 
-        total_score = 0
-        total_possible = 0
+        total_score = Decimal('0')
+        total_possible = Decimal('0')
         for attempt in ExamAttempt.objects.filter(student=student, status='submitted'):
             for question in attempt.exam.questions.all():
                 answer = StudentAnswer.objects.filter(student=student, question=question).first()
-                total_possible += question.max_score
+                total_possible += to_decimal(question.max_score)
                 if answer and answer.score_obtained:
-                    total_score += answer.score_obtained
+                    total_score += to_decimal(answer.score_obtained)
 
-        avg_percentage = (total_score / total_possible * 100) if total_possible > 0 else 0
+        avg_percentage = float(total_score / total_possible * 100) if total_possible > 0 else 0
 
         last_attempt = ExamAttempt.objects.filter(student=student).order_by('-submitted_at').first()
 
@@ -785,6 +837,9 @@ def system_logs(request):
             import jdatetime
             if timezone.is_naive(date_val):
                 date_val = timezone.make_aware(date_val)
+            else:
+                # ⚠️ تبدیل به منطقه زمانی تهران؛ قبلاً ساعت UTC نمایش داده می‌شد
+                date_val = timezone.localtime(date_val)
             jd = jdatetime.datetime.fromgregorian(datetime=date_val)
             return jd.strftime('%Y/%m/%d %H:%M')
         except:
@@ -832,25 +887,36 @@ def backup_data(request):
         return JsonResponse({'error': 'دسترسی ندارید'}, status=403)
 
     import subprocess
+    import sys
     from django.conf import settings
     import os
 
     try:
         # ایجاد فایل بکاپ
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = timezone.localtime(timezone.now()).strftime('%Y%m%d_%H%M%S')
         backup_file = f'backup_{timestamp}.json'
         backup_path = os.path.join(settings.BASE_DIR, 'backups', backup_file)
 
         # اطمینان از وجود پوشه backups
         os.makedirs(os.path.dirname(backup_path), exist_ok=True)
 
-        # اجرای comman
-        with open(backup_path, 'w') as f:
-            subprocess.run(
-                ['python', 'manage.py', 'dumpdata', '--indent=2'],
+        # اجرای دستور dumpdata با همان پایتونِ در حال اجرا و مسیر درست پروژه
+        with open(backup_path, 'w', encoding='utf-8') as f:
+            result = subprocess.run(
+                [sys.executable, 'manage.py', 'dumpdata', '--indent=2',
+                 '--exclude', 'contenttypes', '--exclude', 'auth.permission'],
                 stdout=f,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
+                cwd=str(settings.BASE_DIR),
             )
+
+        # اگر خطایی رخ داد، فایل ناقص را پاک کن و خطا را برگردان
+        if result.returncode != 0:
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+            return JsonResponse({
+                'error': 'خطا در گرفتن بکاپ: ' + result.stderr.decode('utf-8', 'replace')[-500:]
+            }, status=500)
 
         return JsonResponse({
             'success': True,
@@ -884,7 +950,7 @@ def exam_cheats_api(request, exam_id):
             'cheat_type_display': cheat.get_cheat_type_display(),
             'detail': cheat.detail,
             'student_name': cheat.session.student.get_full_name() or cheat.session.student.username,
-            'created_at': cheat.created_at.strftime('%Y/%m/%d %H:%M:%S'),
+            'created_at': timezone.localtime(cheat.created_at).strftime('%Y/%m/%d %H:%M:%S'),
         })
 
     return JsonResponse({'cheats': cheats_data, 'total': len(cheats_data)})

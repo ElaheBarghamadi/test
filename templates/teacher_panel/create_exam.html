@@ -184,6 +184,22 @@
         border-right: 3px solid var(--primary);
     }
 
+    .form-errors {
+        background: rgba(220, 134, 134, 0.14);
+        padding: 14px 18px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-bottom: 24px;
+        color: #a94442;
+        border: 1px solid rgba(220, 134, 134, 0.35);
+        border-right: 3px solid #dc8686;
+    }
+
+    .form-errors ul {
+        margin: 8px 20px 0 0;
+        line-height: 2;
+    }
+
     .jalali-display {
         font-size: 0.65rem;
         color: var(--gray-600);
@@ -428,12 +444,22 @@
                 📅 توجه: تاریخ و ساعت را به صورت میلادی وارد کنید. زمان معادل شمسی در زیر هر فیلد نمایش داده می‌شود.
             </div>
 
+            {% if errors %}
+            <div class="form-errors">
+                ⚠️ <strong>امکان ذخیره آزمون وجود ندارد:</strong>
+                <ul>
+                    {% for err in errors %}<li>{{ err }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
             <form method="post" id="examForm">
                 {% csrf_token %}
 
                 <div class="form-group">
                     <label class="required">عنوان آزمون</label>
-                    <input type="text" name="title" placeholder="مثال: امتحان ریاضی دی ماه" required>
+                    <input type="text" name="title" placeholder="مثال: امتحان ریاضی دی ماه"
+                           value="{{ form.title|default:'' }}" required>
                 </div>
 
                 <div class="row">
@@ -442,13 +468,17 @@
                         <select name="grade" id="gradeSelect" required>
                             <option value="">--- انتخاب کنید ---</option>
                             {% for grade in grades %}
-                                <option value="{{ grade.id }}">{{ grade.get_name_display }}</option>
+                                <option value="{{ grade.id }}"
+                                        {% if form.grade == grade.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ grade.get_name_display }}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="required">مدت زمان (دقیقه)</label>
-                        <input type="number" name="duration" placeholder="مثال: 60" required min="1" max="180">
+                        <input type="number" name="duration" placeholder="مثال: 60" required min="1" max="180"
+                               value="{{ form.duration|default:'' }}">
                     </div>
                 </div>
 

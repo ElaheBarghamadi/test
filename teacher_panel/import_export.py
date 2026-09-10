@@ -5,6 +5,7 @@ import pandas as pd
 from decimal import Decimal
 from django.core.files.uploadedfile import UploadedFile
 from exams.models import Question
+from django.db.models import Max
 import os
 import tempfile
 
@@ -41,8 +42,10 @@ class QuestionExcelImporter:
         """پردازش فایل اکسل آپلود شده"""
         try:
             # خواندن فایل با pandas
-            df = pd.read_excel(file_obj)
-            df = df.where(pd.notnull(df), None)
+            df = pd.read_excel(file_obj, index_col=False)
+            # ⚠️ سلول‌های خالی باید None شوند؛ در غیر این صورت مقدار nan
+            # (که truthy است) به‌عنوان متن سوال وارد و رشته «nan» ذخیره می‌شد.
+            df = df.astype(object).where(pd.notnull(df), None)
 
             # بررسی وجود ستون‌های مورد نیاز
             df_columns = [str(col).strip() for col in df.columns]
@@ -68,13 +71,31 @@ class QuestionExcelImporter:
         except Exception as e:
             return {'success': False, 'error': f'خطا در خواندن فایل: {str(e)}'}
 
+    @staticmethod
+    def _cell(row, column, default=None):
+        """خواندن امن یک سلول: مقدار nan/خالی به default تبدیل می‌شود"""
+        try:
+            value = row.get(column)
+        except Exception:
+            return default
+        if value is None:
+            return default
+        try:
+            if pd.isna(value):
+                return default
+        except (TypeError, ValueError):
+            pass
+        if isinstance(value, str) and not value.strip():
+            return default
+        return value
+
     def _process_row(self, row_num, row):
         """پردازش یک ردیف از اکسل"""
         try:
             # اعتبارسنجی فیلدهای اجباری
-            text = row.get('text')
-            q_type_raw = row.get('question_type')
-            max_score_raw = row.get('max_score')
+            text = self._cell(row, 'text')
+            q_type_raw = self._cell(row, 'question_type')
+            max_score_raw = self._cell(row, 'max_score')
 
             if not text:
                 self.errors.append(f'ردیف {row_num}: متن سوال خالی است')
@@ -115,8 +136,11 @@ class QuestionExcelImporter:
                 text=str(text)[:5000],
                 question_type=q_type,
                 max_score=max_score,
-                order=self.exam.questions.count() + self.success_count + 1,
-                allow_image_answer=bool(row.get('allow_image_answer', False))
+                # بزرگ‌ترین order موجود + ۱ (قبلاً count() + success_count بود
+                # و شماره‌ها ۱،۳،۵,... می‌شدند)
+                order=(self.exam.questions.aggregate(m=Max('order'))['m'] or 0) + 1,
+                allow_image_answer=str(self._cell(row, 'allow_image_answer', '')).strip().lower()
+                in ('true', '1', 'yes', 'بله')
             )
 
             # تنظیم فیلدهای اختصاصی بر اساس نوع سوال
@@ -136,16 +160,17 @@ class QuestionExcelImporter:
         if q_type == 'multiple_choice':
             options = []
             for i in range(1, 5):
-                opt = row.get(f'option_{i}')
+                opt = self._cell(row, f'option_{i}')
                 if opt and str(opt).strip():
                     options.append(str(opt).strip())
                 else:
                     options.append(f"گزینه {i}")
             question.options = options
-            question.options_type = row.get('options_type', 'text')
+            options_type = str(self._cell(row, 'options_type', 'text')).strip()
+            question.options_type = options_type if options_type in ('text', 'image', 'mixed') else 'text'
 
             # پاسخ صحیح
-            correct = row.get('correct_answer', '1')
+            correct = self._cell(row, 'correct_answer', '1')
             if correct in ['1', '2', '3', '4']:
                 question.correct_answer = str(correct)
             else:
@@ -154,7 +179,7 @@ class QuestionExcelImporter:
 
         # صحیح/غلط
         elif q_type == 'true_false':
-            correct = str(row.get('correct_answer', '')).lower().strip()
+            correct = str(self._cell(row, 'correct_answer', '')).lower().strip()
             if correct in ['true', 'صحیح', '✅', '1']:
                 question.correct_answer = 'true'
             elif correct in ['false', 'غلط', '❌', '0']:
@@ -165,13 +190,13 @@ class QuestionExcelImporter:
 
         # پاسخ کوتاه/تشریحی
         elif q_type in ['short_answer', 'long_answer']:
-            correct = row.get('correct_answer')
+            correct = self._cell(row, 'correct_answer')
             if correct:
                 question.correct_answer = str(correct)
 
         # وصل کردنی
         elif q_type == 'matching':
-            pairs_str = row.get('matching_pairs', '')
+            pairs_str = self._cell(row, 'matching_pairs', '')
             pairs = []
             if pairs_str:
                 for pair in str(pairs_str).split(';'):
@@ -184,7 +209,7 @@ class QuestionExcelImporter:
             question.matching_pairs = pairs
 
         # تنظیم تصویر سوال
-        image_url = row.get('image_url')
+        image_url = self._cell(row, 'image_url')
         # توجه: برای آپلود واقعی تصویر نیاز به پردازش جداگانه دارد
 
 

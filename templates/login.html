@@ -3,70 +3,112 @@
 
 {% block extra_css %}
 <style>
-    /* ریست کامل برای صفحه ورود */
+    /* ========== توکن‌های رنگی مشترک با بقیه سامانه ========== */
+    :root {
+        --primary: #a07830;
+        --primary-light: #c49a2b;
+        --primary-dark: #8b6914;
+        --danger: #dc8686;
+        --gray-50: #faf8f3;
+        --gray-100: #f5f0e6;
+        --gray-200: #e8e0d0;
+        --gray-300: #d4c4a8;
+        --gray-500: #a08060;
+        --gray-600: #8b6b4a;
+        --gray-700: #6b4c3a;
+        --gray-800: #5a3e2b;
+    }
+
     body {
-        overflow: hidden;
+        background: linear-gradient(145deg, #f5efe6 0%, #e8ddce 100%);
+        position: relative;
+    }
+
+    /* افکت لیکویید ملایم - یکسان با داشبوردها */
+    body::before {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle at 40% 50%, rgba(160, 120, 80, 0.08) 0%, transparent 60%);
+        animation: liquidFloat 20s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    @keyframes liquidFloat {
+        0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+        33% { transform: translate(3%, 2%) rotate(1deg); opacity: 0.6; }
+        66% { transform: translate(-2%, 3%) rotate(-1deg); opacity: 0.4; }
+        100% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
     }
 
     .main-content {
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100% !important;
+        position: relative;
+        z-index: 2;
     }
 
+    /* ========== کارت ورود - Glassmorphism ========== */
     .login-wrapper {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 20px;
-        background: #eef2f8;
-        z-index: 100;
-        overflow: auto;
+        padding: 40px 0 60px;
+        min-height: calc(100vh - 220px);
     }
 
     .login-card {
-        background: white;
+        background: rgba(255, 250, 240, 0.9);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border-radius: 28px;
-        padding: 40px 38px;
+        padding: 38px 34px;
         width: 100%;
         max-width: 450px;
-        box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.1);
-        transition: box-shadow 0.25s ease;
-        border: 1px solid #e2e8f0;
+        border: 1px solid rgba(200, 170, 130, 0.4);
+        box-shadow: 0 12px 30px rgba(100, 60, 30, 0.08);
+        transition: all 0.3s ease;
     }
 
     .login-card:hover {
-        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+        border-color: rgba(200, 170, 130, 0.6);
+        box-shadow: 0 16px 35px rgba(100, 60, 30, 0.12);
     }
 
     .login-header {
         text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: 30px;
     }
 
     .login-icon {
-        font-size: 56px;
-        margin-bottom: 12px;
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 16px;
+        background: linear-gradient(135deg, #c4a87a, #b08a5a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        box-shadow: 0 5px 15px rgba(100, 60, 30, 0.15);
     }
 
     .login-title {
-        font-size: 24px;
+        font-size: 1.4rem;
         font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 6px;
+        color: var(--gray-800);
+        margin-bottom: 8px;
     }
 
     .login-sub {
-        color: #64748b;
-        font-size: 13px;
+        color: var(--gray-600);
+        font-size: 0.85rem;
         font-weight: 500;
     }
 
+    /* ========== فرم ========== */
     .form-group {
         margin-bottom: 20px;
     }
@@ -75,132 +117,169 @@
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: #334155;
-        font-size: 13px;
+        color: var(--gray-700);
+        font-size: 0.8rem;
+    }
+
+    .input-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-box .field-icon {
+        position: absolute;
+        right: 16px;
+        font-size: 16px;
+        opacity: 0.55;
+        pointer-events: none;
     }
 
     .form-group input {
         width: 100%;
-        padding: 12px 16px;
-        border: 1px solid #e2e8f0;
-        border-radius: 24px;
-        font-size: 14px;
+        padding: 12px 44px 12px 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(200, 170, 130, 0.5);
+        border-radius: 20px;
+        font-size: 0.9rem;
         font-family: inherit;
+        color: var(--gray-800);
         transition: all 0.2s ease;
-        background: white;
     }
 
     .form-group input:focus {
         outline: none;
-        border-color: #2a5298;
-        box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.08);
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.12);
+        background: #fff;
     }
 
     .form-group input::placeholder {
-        color: #94a3b8;
-        font-size: 13px;
+        color: var(--gray-400, #b89a6a);
+        font-size: 0.8rem;
+    }
+
+    .toggle-password {
+        position: absolute;
+        left: 10px;
+        background: rgba(200, 170, 130, 0.18);
+        border: 1px solid rgba(200, 170, 130, 0.3);
+        color: var(--gray-700);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .toggle-password:hover {
+        background: rgba(200, 170, 130, 0.35);
     }
 
     .login-btn {
         width: 100%;
-        padding: 12px;
-        background: #2a5298;
-        color: white;
+        padding: 13px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
         border: none;
-        border-radius: 30px;
-        font-size: 15px;
-        font-weight: 600;
+        border-radius: 40px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        font-family: inherit;
         cursor: pointer;
         transition: all 0.2s ease;
         margin-top: 8px;
     }
 
     .login-btn:hover {
-        background: #1e3c72;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(139, 105, 20, 0.3);
     }
 
+    .login-btn:active {
+        transform: translateY(0);
+    }
+
+    /* ========== پیام خطا ========== */
     .error-msg {
-        background: #fef2f2;
-        color: #dc2626;
+        background: rgba(220, 134, 134, 0.12);
+        color: #a94442;
         padding: 12px 16px;
-        border-radius: 24px;
-        font-size: 13px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        font-weight: 500;
         margin-bottom: 22px;
         text-align: center;
-        border-right: 3px solid #dc2626;
+        border: 1px solid rgba(220, 134, 134, 0.35);
+        border-right: 3px solid var(--danger);
     }
 
-    .demo-info {
-        margin-top: 28px;
+    /* ========== نقش‌ها ========== */
+    .roles-info {
+        margin-top: 26px;
         padding-top: 20px;
-        border-top: 1px solid #edf2f7;
-        text-align: center;
-    }
-
-    .demo-title {
-        font-size: 11px;
-        color: #94a3b8;
-        margin-bottom: 10px;
-        letter-spacing: 0.3px;
-    }
-
-    .demo-accounts {
+        border-top: 1px dashed #e0ceb0;
         display: flex;
         gap: 10px;
         justify-content: center;
         flex-wrap: wrap;
     }
 
-    .demo-item {
-        background: #f8fafc;
-        padding: 6px 14px;
-        border-radius: 40px;
-        font-size: 11px;
-        font-weight: 500;
-        color: #334155;
+    .role-chip {
+        background: rgba(200, 170, 130, 0.2);
+        border: 1px solid rgba(200, 170, 130, 0.3);
+        padding: 7px 16px;
+        border-radius: 60px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--gray-700);
         transition: all 0.2s;
-        border: 1px solid #eef2f6;
     }
 
-    .demo-item:hover {
-        background: #f1f5f9;
+    .role-chip:hover {
+        background: rgba(200, 170, 130, 0.32);
+        transform: translateY(-2px);
     }
 
-    .demo-item strong {
-        color: #2a5298;
-        font-weight: 700;
+    .login-footer-note {
+        margin-top: 18px;
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--gray-600);
     }
 
-    /* مخفی کردن نوار و فوتر */
-    .navbar, .footer {
-        display: none !important;
-    }
-
+    /* ========== ریسپانسیو ========== */
     @media (max-width: 640px) {
+        .login-wrapper {
+            padding: 20px 0 40px;
+            min-height: auto;
+        }
+
         .login-card {
             padding: 28px 22px;
             border-radius: 24px;
         }
 
         .login-title {
-            font-size: 22px;
+            font-size: 1.2rem;
         }
 
         .login-icon {
-            font-size: 48px;
+            width: 70px;
+            height: 70px;
+            font-size: 32px;
         }
 
         .form-group input {
-            padding: 10px 14px;
+            padding: 11px 40px 11px 14px;
         }
 
-        .demo-accounts {
-            flex-direction: column;
+        .roles-info {
             gap: 8px;
-        }
-
-        .demo-item {
-            text-align: center;
         }
     }
 </style>
@@ -212,7 +291,7 @@
         <div class="login-header">
             <div class="login-icon">📚</div>
             <div class="login-title">سامانه آزمون غیرحضوری</div>
-            <div class="login-sub">ورود معلمان و دانش‌آموزان</div>
+            <div class="login-sub">ورود معلمان و دانش‌آموزان | فرزانگان ۱ سبزوار</div>
         </div>
 
         {% if error %}
@@ -224,21 +303,50 @@
         <form method="post">
             {% csrf_token %}
             <div class="form-group">
-                <label>نام کاربری</label>
-                <input type="text" name="username" placeholder="teacher1 / student1" required autofocus>
+                <label for="id_username">نام کاربری</label>
+                <div class="input-box">
+                    <span class="field-icon">👤</span>
+                    <input type="text" id="id_username" name="username" placeholder="نام کاربری خود را وارد کنید"
+                           autocomplete="username" required autofocus>
+                </div>
             </div>
             <div class="form-group">
-                <label>رمز عبور</label>
-                <input type="password" name="password" placeholder="رمز عبور خود را وارد کنید" required>
+                <label for="id_password">رمز عبور</label>
+                <div class="input-box">
+                    <span class="field-icon">🔒</span>
+                    <input type="password" id="id_password" name="password" placeholder="رمز عبور خود را وارد کنید"
+                           autocomplete="current-password" required>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="نمایش رمز عبور">👁</button>
+                </div>
             </div>
             <button type="submit" class="login-btn">
                 ورود به سامانه
             </button>
         </form>
 
-        <div class="demo-info">
-            <div class="demo-title">دبیرستان فرزانگان 1 سبزوار | حقوق محفوظ است .</div>
+        <div class="roles-info">
+            <span class="role-chip">🛡️ ادمین</span>
+            <span class="role-chip">👨‍🏫 معلم</span>
+            <span class="role-chip">🎓 دانش‌آموز</span>
+        </div>
+
+        <div class="login-footer-note">
+            دبیرستان فرزانگان ۱ سبزوار | تمامی حقوق محفوظ است
         </div>
     </div>
 </div>
+
+<script>
+    // نمایش / مخفی کردن رمز عبور
+    (function () {
+        var btn = document.getElementById('togglePassword');
+        var input = document.getElementById('id_password');
+        if (!btn || !input) return;
+        btn.addEventListener('click', function () {
+            var isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            btn.textContent = isHidden ? '🙈' : '👁';
+        });
+    })();
+</script>
 {% endblock %}

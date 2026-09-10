@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max
 from django.core.files.storage import default_storage
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -26,11 +26,12 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 import jdatetime
+from django.utils.dateparse import parse_datetime as django_parse_datetime
 
 
 # ========== توابع کمکی ==========
 def to_jalali(date_val):
-    """تبدیل تاریخ میلادی به شمسی"""
+    """تبدیل تاریخ میلادی به شمسی (بر اساس منطقه زمانی تهران)"""
     if not date_val:
         return ''
     try:
@@ -38,6 +39,9 @@ def to_jalali(date_val):
             date_val = datetime.fromisoformat(date_val.replace('Z', '+00:00'))
         if timezone.is_naive(date_val):
             date_val = timezone.make_aware(date_val)
+        else:
+            # ⚠️ بدون این تبدیل، ساعت UTC نمایش داده می‌شد (۳:۳۰ اختلاف با تهران)
+            date_val = timezone.localtime(date_val)
         jd = jdatetime.datetime.fromgregorian(datetime=date_val)
         return jd.strftime('%Y/%m/%d %H:%M')
     except Exception:
@@ -65,6 +69,107 @@ def validate_decimal_score(value, max_value=None):
         return score
     except:
         return Decimal('0.00')
+
+
+def to_int(value, default=0):
+    """تبدیل امن ورودی فرم به عدد صحیح (قبلاً مقدار خالی باعث خطای 500 می‌شد)"""
+    try:
+        return int(float(str(value).strip()))
+    except (ValueError, TypeError, AttributeError):
+        return default
+
+
+def parse_form_datetime(value):
+    """
+    تبدیل رشته تاریخ فرم (datetime-local) به شیء datetime.
+    در صورت نامعتبر بودن None برمی‌گرداند تا به‌جای خطای 500، پیام خطا نمایش داده شود.
+    """
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        dt = value
+    else:
+        text = str(value).strip().replace('/', '-')
+        dt = django_parse_datetime(text)
+        if dt is None:
+            for fmt in ('%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%dT%H:%M',
+                        '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d'):
+                try:
+                    dt = datetime.strptime(text, fmt)
+                    break
+                except ValueError:
+                    continue
+        if dt is None:
+            return None
+    if timezone.is_naive(dt):
+        try:
+            dt = timezone.make_aware(dt)
+        except Exception:
+            return None
+    return dt
+
+
+def validate_exam_times(post_data):
+    """
+    اعتبارسنجی فیلدهای مشترک فرم ساخت/ویرایش آزمون.
+    خروجی: (data, errors)
+    """
+    errors = []
+
+    title = (post_data.get('title') or '').strip()
+    if not title:
+        errors.append('عنوان آزمون الزامی است.')
+
+    grade_id = post_data.get('grade')
+    if not grade_id or not str(grade_id).isdigit():
+        errors.append('پایه تحصیلی را انتخاب کنید.')
+    elif not Grade.objects.filter(id=int(grade_id)).exists():
+        errors.append('پایه تحصیلی انتخاب‌شده معتبر نیست.')
+
+    duration = to_int(post_data.get('duration'), 0)
+    if duration <= 0:
+        errors.append('مدت آزمون باید عددی بزرگ‌تر از صفر باشد.')
+    elif duration > 600:
+        errors.append('مدت آزمون نمی‌تواند بیشتر از ۶۰۰ دقیقه باشد.')
+
+    start_time = parse_form_datetime(post_data.get('start_time'))
+    end_time = parse_form_datetime(post_data.get('end_time'))
+
+    if not start_time:
+        errors.append('زمان شروع آزمون معتبر نیست.')
+    if not end_time:
+        errors.append('زمان پایان آزمون معتبر نیست.')
+    if start_time and end_time and end_time <= start_time:
+        errors.append('زمان پایان باید بعد از زمان شروع باشد.')
+
+    timer_type = post_data.get('timer_type', 'floating')
+    if timer_type not in dict(Exam.TIMER_TYPE_CHOICES):
+        timer_type = 'floating'
+
+    show_questions_mode = post_data.get('show_questions_mode', 'one_by_one')
+    if show_questions_mode not in ('all', 'one_by_one'):
+        show_questions_mode = 'one_by_one'
+
+    data = {
+        'title': title,
+        'grade_id': int(grade_id) if (grade_id and str(grade_id).isdigit()) else None,
+        'duration_minutes': duration,
+        'start_time': start_time,
+        'end_time': end_time,
+        'timer_type': timer_type,
+        'show_questions_mode': show_questions_mode,
+        'show_score_to_student': 'show_score' in post_data or 'show_score_to_student' in post_data,
+        'show_answers_after_exam': 'show_answers_after_exam' in post_data,
+        'enable_anti_cheat': 'enable_anti_cheat' in post_data,
+        'prevent_tab_switch': 'prevent_tab_switch' in post_data,
+        'prevent_copy_paste': 'prevent_copy_paste' in post_data,
+        'track_ip': 'track_ip' in post_data,
+        'show_back_button': 'show_back_button' in post_data,
+        'allow_teacher_answer': 'allow_teacher_answer' in post_data,
+        'random_questions': 'random_questions' in post_data,
+        'is_active': 'is_active' in post_data,
+    }
+    return data, errors
 
 
 # ========== ویوهای داشبورد ==========
@@ -117,27 +222,49 @@ def create_exam(request):
     check_teacher_access(request.user)
 
     if request.method == 'POST':
+        data, errors = validate_exam_times(request.POST)
+
+        if errors:
+            # به‌جای خطای 500، فرم با پیام خطا دوباره نمایش داده می‌شود
+            local_now = timezone.localtime(timezone.now())
+            return render(request, 'teacher_panel/create_exam.html', {
+                'grades': Grade.objects.all(),
+                'students': User.objects.filter(role='student'),
+                'errors': errors,
+                'form': request.POST,
+                'default_start': request.POST.get('start_time') or local_now.strftime('%Y-%m-%dT%H:%M'),
+                'default_end': request.POST.get('end_time') or (local_now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
+                'start_jalali': to_jalali(data['start_time'] or local_now),
+                'end_jalali': to_jalali(data['end_time'] or (local_now + timedelta(hours=2))),
+            }, status=200)
+
         exam = Exam.objects.create(
-            title=request.POST.get('title', '').strip(),
+            title=data['title'],
             teacher=request.user,
-            grade_id=request.POST.get('grade'),
-            duration_minutes=int(request.POST.get('duration', 0)),
-            start_time=request.POST.get('start_time'),
-            end_time=request.POST.get('end_time'),
-            show_score_to_student='show_score' in request.POST,
-            enable_anti_cheat='enable_anti_cheat' in request.POST,
-            prevent_tab_switch='prevent_tab_switch' in request.POST,
-            prevent_copy_paste='prevent_copy_paste' in request.POST,
-            track_ip='track_ip' in request.POST,
-            show_questions_mode=request.POST.get('show_questions_mode', 'one_by_one'),
-            show_back_button='show_back_button' in request.POST,
-            allow_teacher_answer='allow_teacher_answer' in request.POST,
-            timer_type=request.POST.get('timer_type', 'floating'),
+            grade_id=data['grade_id'],
+            duration_minutes=data['duration_minutes'],
+            start_time=data['start_time'],
+            end_time=data['end_time'],
+            show_score_to_student=data['show_score_to_student'],
+            # ⚠️ این دو گزینه در فرم وجود داشتند ولی ذخیره نمی‌شدند
+            show_answers_after_exam=data['show_answers_after_exam'],
+            random_questions=data['random_questions'],
+            enable_anti_cheat=data['enable_anti_cheat'],
+            prevent_tab_switch=data['prevent_tab_switch'],
+            prevent_copy_paste=data['prevent_copy_paste'],
+            track_ip=data['track_ip'],
+            show_questions_mode=data['show_questions_mode'],
+            show_back_button=data['show_back_button'],
+            allow_teacher_answer=data['allow_teacher_answer'],
+            timer_type=data['timer_type'],
         )
-        exam.students.set(request.POST.getlist('students'))
+        student_ids = [sid for sid in request.POST.getlist('students') if str(sid).isdigit()]
+        exam.students.set(student_ids)
         return redirect('edit_exam', exam_id=exam.id)
 
-    now = timezone.now()
+    # ⚠️ مقادیر پیش‌فرض فرم باید به وقت محلی (تهران) باشند تا با آنچه
+    # هنگام ذخیره تفسیر می‌شود یکی باشد (قبلاً ۳:۳۰ اختلاف داشت).
+    now = timezone.localtime(timezone.now())
     return render(request, 'teacher_panel/create_exam.html', {
         'grades': Grade.objects.all(),
         'students': User.objects.filter(role='student'),
@@ -155,30 +282,45 @@ def edit_exam_info(request, exam_id):
     check_teacher_access(request.user, exam)
 
     success_msg = None
+    error_msg = None
 
     def format_datetime(dt):
+        """
+        مقدار فیلد datetime-local فرم.
+        ⚠️ حتماً باید به وقت محلی (تهران) باشد؛ چون هنگام ذخیره، Django مقدار
+        بدون timezone را با TIME_ZONE تفسیر می‌کند. قبلاً مقدار UTC در فرم
+        نمایش داده می‌شد و با هر بار ذخیره، ساعت آزمون ۳:۳۰ جابه‌جا می‌شد.
+        """
         if not dt:
             return ''
         try:
+            if timezone.is_aware(dt):
+                dt = timezone.localtime(dt)
             return dt.strftime('%Y-%m-%dT%H:%M')
         except:
             return ''
 
     if request.method == 'POST':
         if 'save_info' in request.POST:
-            exam.title = request.POST.get('title', '').strip()
-            exam.grade_id = request.POST.get('grade')
-            exam.duration_minutes = int(request.POST.get('duration', 0))
-            exam.start_time = request.POST.get('start_time')
-            exam.end_time = request.POST.get('end_time')
-            exam.show_score_to_student = 'show_score' in request.POST
-            exam.is_active = 'is_active' in request.POST
-            exam.save()
-            success_msg = 'اطلاعات آزمون با موفقیت ذخیره شد'
+            data, errors = validate_exam_times(request.POST)
+            if errors:
+                error_msg = ' '.join(errors)
+            else:
+                exam.title = data['title']
+                exam.grade_id = data['grade_id']
+                exam.duration_minutes = data['duration_minutes']
+                exam.start_time = data['start_time']
+                exam.end_time = data['end_time']
+                exam.show_score_to_student = data['show_score_to_student']
+                exam.is_active = 'is_active' in request.POST
+                exam.save()
+                success_msg = 'اطلاعات آزمون با موفقیت ذخیره شد'
 
         elif 'save_settings' in request.POST:
             exam.random_questions = 'random_questions' in request.POST
             exam.show_questions_mode = request.POST.get('show_questions_mode', 'one_by_one')
+            if exam.show_questions_mode not in ('all', 'one_by_one'):
+                exam.show_questions_mode = 'one_by_one'
             exam.show_back_button = 'show_back_button' in request.POST
             exam.enable_anti_cheat = 'enable_anti_cheat' in request.POST
             exam.prevent_tab_switch = 'prevent_tab_switch' in request.POST
@@ -187,13 +329,25 @@ def edit_exam_info(request, exam_id):
             exam.allow_teacher_answer = 'allow_teacher_answer' in request.POST
             exam.show_answers_after_exam = 'show_answers_after_exam' in request.POST
             exam.timer_type = request.POST.get('timer_type', 'floating')
+            if exam.timer_type not in dict(Exam.TIMER_TYPE_CHOICES):
+                exam.timer_type = 'floating'
             exam.save()
             success_msg = 'تنظیمات آزمون با موفقیت ذخیره شد'
 
         elif 'save_students' in request.POST:
-            student_ids = json.loads(request.POST.get('student_ids', '[]'))
-            exam.students.set(student_ids)
-            success_msg = f'لیست دانش‌آموزان با موفقیت ذخیره شد ({len(student_ids)} نفر)'
+            try:
+                student_ids = json.loads(request.POST.get('student_ids') or '[]')
+                if not isinstance(student_ids, list):
+                    raise ValueError
+                student_ids = [int(sid) for sid in student_ids if str(sid).isdigit()]
+            except (ValueError, TypeError, json.JSONDecodeError):
+                student_ids = None
+
+            if student_ids is None:
+                error_msg = 'لیست دانش‌آموزان معتبر نیست.'
+            else:
+                exam.students.set(student_ids)
+                success_msg = f'لیست دانش‌آموزان با موفقیت ذخیره شد ({len(student_ids)} نفر)'
 
     # آمار تخلفات
     cheats = CheatAttempt.objects.filter(session__exam=exam)
@@ -211,6 +365,7 @@ def edit_exam_info(request, exam_id):
         'students': exam.students.all(),
         'selected_student_ids': json.dumps(list(exam.students.values_list('id', flat=True))),
         'success_msg': success_msg,
+        'error_msg': error_msg,
         'start_jalali': to_jalali(exam.start_time),
         'end_jalali': to_jalali(exam.end_time),
         'start_miladi': format_datetime(exam.start_time),
@@ -298,21 +453,31 @@ def add_question(request, exam_id):
     check_teacher_access(request.user, exam)
 
     if request.method == 'POST':
+        q_type = request.POST.get('question_type')
+
+        # ⚠️ نوع سوال نامعتبر قبلاً باعث خطای 500 (نقض NOT NULL) می‌شد
+        if q_type not in dict(Question.QUESTION_TYPES):
+            messages.error(request, 'نوع سوال را به‌درستی انتخاب کنید.')
+            return redirect('add_question', exam_id=exam.id)
+
         max_score = validate_decimal_score(request.POST.get('max_score', 0))
+        if max_score <= 0:
+            messages.error(request, 'بارم سوال باید عددی بزرگ‌تر از صفر باشد.')
+            return redirect('add_question', exam_id=exam.id)
 
         question = Question.objects.create(
             exam=exam,
             text=request.POST.get('text', '').strip(),
-            question_type=request.POST.get('question_type'),
+            question_type=q_type,
             max_score=max_score,
-            order=exam.questions.count() + 1,
+            # ⚠️ بزرگ‌ترین order موجود + ۱؛ با count()+1 بعد از ایمپورت اکسل
+            # سوال جدید وسط لیست قرار می‌گرفت
+            order=(exam.questions.aggregate(m=Max('order'))['m'] or 0) + 1,
             allow_image_answer='allow_image_answer' in request.POST,
         )
 
         if 'image' in request.FILES:
             question.image = request.FILES['image']
-
-        q_type = request.POST.get('question_type')
 
         if q_type == 'multiple_choice':
             options = [request.POST.get(f'option_{i}', f'گزینه {i}') for i in range(1, 5)]
@@ -358,9 +523,22 @@ def edit_question(request, exam_id, question_id):
     check_teacher_access(request.user, exam)
 
     if request.method == 'POST':
+        q_type = request.POST.get('question_type')
+        correct_val = request.POST.get('correct_answer', '')
+
+        # ⚠️ اعتبارسنجی نوع سوال و بارم (قبلاً مقدار نامعتبر باعث خطای 500 می‌شد)
+        if q_type not in dict(Question.QUESTION_TYPES):
+            messages.error(request, 'نوع سوال را به‌درستی انتخاب کنید.')
+            return redirect('edit_question', exam_id=exam.id, question_id=question.id)
+
+        new_max_score = validate_decimal_score(request.POST.get('max_score', 0))
+        if new_max_score <= 0:
+            messages.error(request, 'بارم سوال باید عددی بزرگ‌تر از صفر باشد.')
+            return redirect('edit_question', exam_id=exam.id, question_id=question.id)
+
         question.text = request.POST.get('text', '').strip()
-        question.question_type = request.POST.get('question_type')
-        question.max_score = validate_decimal_score(request.POST.get('max_score', 0))
+        question.question_type = q_type
+        question.max_score = new_max_score
         question.allow_image_answer = 'allow_image_answer' in request.POST
 
         if 'remove_image' in request.POST and question.image:
@@ -370,8 +548,6 @@ def edit_question(request, exam_id, question_id):
         if 'image' in request.FILES:
             question.image = request.FILES['image']
 
-        q_type = request.POST.get('question_type')
-        correct_val = request.POST.get('correct_answer', '')
 
         if q_type == 'multiple_choice':
             options = [request.POST.get(f'option_{i}', f'گزینه {i}') for i in range(1, 5)]
@@ -575,13 +751,17 @@ def grade_exam(request, exam_id):
 def save_score(request):
     """ذخیره نمره برای یک پاسخ (AJAX)"""
     answer_id = request.POST.get('answer_id')
-    score = validate_decimal_score(request.POST.get('score', 0))
 
-    answer = get_object_or_404(StudentAnswer, id=answer_id)
+    answer = StudentAnswer.objects.filter(id=answer_id).first()
+    if not answer:
+        return JsonResponse({'success': False, 'error': 'پاسخ یافت نشد'}, status=404)
 
     # بررسی دسترسی معلم به این پاسخ
     if answer.question.exam.teacher != request.user:
-        return JsonResponse({'success': False, 'error': 'شما به این پاسخ دسترسی ندارید'})
+        return JsonResponse({'success': False, 'error': 'شما به این پاسخ دسترسی ندارید'}, status=403)
+
+    # ⚠️ نمره باید به بارم سوال محدود شود؛ قبلاً هر عددی (مثلاً 999) ذخیره می‌شد
+    score = validate_decimal_score(request.POST.get('score', 0), max_value=answer.question.max_score)
 
     answer.score_obtained = score
     answer.graded_by = request.user
@@ -595,8 +775,10 @@ def save_score(request):
 @login_required
 def save_student_score(request, exam_id, student_id, question_id):
     """ذخیره نمره برای یک سوال خاص (AJAX)"""
-    data = json.loads(request.body)
-    score = validate_decimal_score(data.get('score', 0))
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'داده نامعتبر'}, status=400)
 
     answer = StudentAnswer.objects.filter(
         student_id=student_id,
@@ -605,11 +787,13 @@ def save_student_score(request, exam_id, student_id, question_id):
     ).first()
 
     if not answer:
-        return JsonResponse({'success': False, 'error': 'پاسخ یافت نشد'})
+        return JsonResponse({'success': False, 'error': 'پاسخ یافت نشد'}, status=404)
 
     # بررسی دسترسی معلم
     if answer.question.exam.teacher != request.user:
-        return JsonResponse({'success': False, 'error': 'شما به این پاسخ دسترسی ندارید'})
+        return JsonResponse({'success': False, 'error': 'شما به این پاسخ دسترسی ندارید'}, status=403)
+
+    score = validate_decimal_score(data.get('score', 0), max_value=answer.question.max_score)
 
     answer.score_obtained = score
     answer.graded_by = request.user
@@ -889,8 +1073,14 @@ def print_answer_sheet(request, exam_id):
 
 
 # ========== API ==========
+@login_required
 def get_students_api(request):
     """API لیست دانش‌آموزان"""
+    # ⚠️ قبلاً بدون احراز هویت بود و اطلاعات همه دانش‌آموزان
+    # (نام، کد دانش‌آموزی و پایه) به هر بازدیدکننده‌ای نشان داده می‌شد.
+    if request.user.role not in ('teacher', 'admin'):
+        raise PermissionDenied('شما به این اطلاعات دسترسی ندارید')
+
     students = User.objects.filter(role='student').select_related('grade')
     return JsonResponse({
         'students': [

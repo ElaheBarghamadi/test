@@ -405,6 +405,18 @@
         gap: 10px;
     }
 
+    .error-msg {
+        background: rgba(220, 134, 134, 0.15);
+        color: #b5533a;
+        padding: 14px 18px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+        border-right: 3px solid #dc8686;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
     .info-note {
         background: rgba(59, 130, 246, 0.1);
         padding: 12px 16px;
@@ -441,6 +453,12 @@
     {% if success_msg %}
     <div class="success-msg">
         ✅ {{ success_msg }}
+    </div>
+    {% endif %}
+
+    {% if error_msg %}
+    <div class="error-msg">
+        ⚠️ {{ error_msg }}
     </div>
     {% endif %}
 

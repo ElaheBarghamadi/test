@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}
+    {% if reason == 'not_started' %}آزمون شروع نشده{% elif reason == 'ended' %}آزمون پایان یافته{% else %}آزمون غیرفعال{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .notice-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 50px 0 70px;
+    }
+
+    .notice-card {
+        background: rgba(255, 250, 240, 0.92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-radius: 28px;
+        padding: 40px 34px;
+        width: 100%;
+        max-width: 520px;
+        text-align: center;
+        border: 1px solid rgba(200, 170, 130, 0.4);
+        box-shadow: 0 12px 30px rgba(100, 60, 30, 0.08);
+    }
+
+    .notice-icon {
+        width: 86px;
+        height: 86px;
+        margin: 0 auto 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        background: linear-gradient(135deg, #e8c890, #d4a017);
+        box-shadow: 0 5px 15px rgba(100, 60, 30, 0.15);
+    }
+
+    .notice-card.danger .notice-icon {
+        background: linear-gradient(135deg, #e6b0b0, #dc8686);
+    }
+
+    .notice-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #5a3e2b;
+        margin-bottom: 12px;
+    }
+
+    .notice-text {
+        color: #8b6b4a;
+        font-size: 0.88rem;
+        line-height: 2;
+        margin-bottom: 22px;
+    }
+
+    .notice-exam {
+        background: rgba(200, 170, 130, 0.18);
+        border: 1px solid rgba(200, 170, 130, 0.3);
+        border-radius: 18px;
+        padding: 14px 18px;
+        margin-bottom: 22px;
+        font-size: 0.82rem;
+        color: #6b4c3a;
+    }
+
+    .notice-exam strong {
+        color: #5a3e2b;
+    }
+
+    .notice-times {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .time-chip {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(200, 170, 130, 0.35);
+        border-radius: 40px;
+        padding: 6px 14px;
+        font-size: 0.72rem;
+        color: #8b6b4a;
+    }
+
+    .notice-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #a07830, #8b6914);
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 34px;
+        border-radius: 40px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+    .notice-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(139, 105, 20, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notice-wrapper">
+    <div class="notice-card {% if reason == 'inactive' %}danger{% endif %}">
+        <div class="notice-icon">
+            {% if reason == 'not_started' %}⏳{% elif reason == 'ended' %}⌛{% else %}🚫{% endif %}
+        </div>
+
+        <div class="notice-title">
+            {% if reason == 'not_started' %}
+                آزمون هنوز شروع نشده است
+            {% elif reason == 'ended' %}
+                زمان این آزمون به پایان رسیده است
+            {% else %}
+                این آزمون غیرفعال است
+            {% endif %}
+        </div>
+
+        <div class="notice-text">
+            {% if reason == 'not_started' %}
+                در زمان مقرر دوباره به سامانه مراجعه کنید. تا قبل از زمان شروع، امکان ورود به آزمون وجود ندارد.
+            {% elif reason == 'ended' %}
+                مهلت شرکت در این آزمون تمام شده و امکان پاسخ‌دادن وجود ندارد. در صورت بروز مشکل با معلم درس هماهنگ کنید.
+            {% else %}
+                معلم این آزمون را غیرفعال کرده است. برای اطلاعات بیشتر با معلم درس تماس بگیرید.
+            {% endif %}
+        </div>
+
+        <div class="notice-exam">
+            📝 <strong>{{ exam.title }}</strong>
+            <div class="notice-times">
+                {% if start_time_jalali %}<span class="time-chip">🕐 شروع: {{ start_time_jalali }}</span>{% endif %}
+                {% if end_time_jalali %}<span class="time-chip">🏁 پایان: {{ end_time_jalali }}</span>{% endif %}
+                <span class="time-chip">⏱ مدت: {{ exam.duration_minutes }} دقیقه</span>
+            </div>
+        </div>
+
+        <a href="{% url 'student_dashboard' %}" class="notice-btn">بازگشت به داشبورد</a>
+    </div>
+</div>
+{% endblock %}

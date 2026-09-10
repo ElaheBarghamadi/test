@@ -5,3 +5,7 @@ __pycache__/
 venv/
 .env.*
 .DS_Store
+# بکاپ‌های دیتابیس (شامل هش رمز عبور) نباید کامیت شوند
+backups/
+*.sqlite3-journal
+staticfiles/

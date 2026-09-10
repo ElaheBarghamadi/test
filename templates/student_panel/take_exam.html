@@ -455,8 +455,8 @@
             id: {{ q.id }},
             type: "{{ q.question_type }}",
             allowImage: {{ q.allow_image_answer|yesno:"true,false" }},
-            options: {% if q.options %}{{ q.options|safe }}{% else %}[]{% endif %},
-            matchingPairs: {% if q.matching_pairs %}{{ q.matching_pairs|safe }}{% else %}[]{% endif %}
+            options: {{ q.options_json|default:"[]"|safe }},
+            matchingPairs: {{ q.matching_pairs_json|default:"[]"|safe }}
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     ];
