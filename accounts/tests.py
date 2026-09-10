@@ -48,6 +48,46 @@ class LoginPageStyleTests(TestCase):
         self.assertIn('csrfmiddlewaretoken', self.html)
 
 
+class BrandingTests(TestCase):
+    """هیچ اثری از نام مدرسه نباید در صفحات باشد"""
+
+    FORBIDDEN = ['فرزانگان', 'سبزوار', 'farzangan', 'farzanegan', 'sabzevar']
+
+    def setUp(self):
+        self.grade = Grade.objects.create(name='9')
+        self.admin = make_user('admin_b', 'admin')
+        self.teacher = make_user('teacher_b', 'teacher')
+        self.student = make_user('student_b', 'student', grade=self.grade)
+
+    def assert_clean(self, html, url):
+        for word in self.FORBIDDEN:
+            self.assertNotIn(word.lower(), html.lower(), f'«{word}» هنوز در {url} دیده می‌شود')
+
+    def test_login_page_has_no_school_name(self):
+        response = self.client.get(reverse('login'))
+        self.assert_clean(response.content.decode(), reverse('login'))
+
+    def test_error_pages_have_no_school_name(self):
+        for url in ['/no-such-page/', '/login/']:
+            with self.subTest(url=url):
+                self.assert_clean(self.client.get(url).content.decode(), url)
+
+    def test_panels_have_no_school_name(self):
+        cases = [
+            (self.admin, [reverse('admin_dashboard'), reverse('manage_users'), reverse('manage_exams'),
+                          reverse('system_logs'), reverse('system_settings')]),
+            (self.teacher, [reverse('teacher_dashboard'), reverse('create_exam')]),
+            (self.student, [reverse('student_dashboard')]),
+        ]
+        for user, urls in cases:
+            self.client.force_login(user)
+            for url in urls:
+                with self.subTest(user=user.username, url=url):
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 200)
+                    self.assert_clean(response.content.decode(), url)
+
+
 class LoginFlowTests(TestCase):
     def setUp(self):
         self.grade = Grade.objects.create(name='9')
