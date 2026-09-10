@@ -48,6 +48,27 @@ def to_jalali(date_val):
         return ''
 
 
+def _normalize_fa_text(value):
+    """یکسان‌سازی متن فارسی برای مقایسه پاسخ جاخالی"""
+    if value is None:
+        return ''
+    text = str(value).strip().lower()
+    text = text.replace('\u200c', ' ').replace('\u064a', 'ی').replace('\u0643', 'ک').replace('\u0629', 'ه')
+    return ' '.join(text.split())
+
+
+def fill_blank_is_correct(answer_text, correct_answer):
+    """مقایسه پاسخ جاخالی («مقدار۱ | مقدار۲») با پاسخ صحیح («مقدار۱, مقدار۲»)"""
+    given = [_normalize_fa_text(p) for p in str(answer_text or '').split('|')]
+    expected = [_normalize_fa_text(p) for p in str(correct_answer or '').replace('،', ',').split(',') if p.strip()]
+    if not expected:
+        return False
+    if len(given) == 1 and len(expected) > 1:
+        # پاسخ قدیمی/تک‌متنی: مقایسه کلی
+        return given[0] == _normalize_fa_text(correct_answer)
+    return all(i < len(given) and given[i] == want for i, want in enumerate(expected))
+
+
 def check_teacher_access(user, exam=None):
     """بررسی دسترسی معلم به آزمون"""
     if user.role != 'teacher':
@@ -621,11 +642,25 @@ def grade_exam(request, exam_id):
 
             is_correct = False
             if answer.answer_text and question.correct_answer:
-                if question.question_type in ['true_false', 'multiple_choice', 'fill_blank']:
+                if question.question_type in ['true_false', 'multiple_choice']:
                     is_correct = (answer.answer_text.strip().lower() == question.correct_answer.strip().lower())
+                elif question.question_type == 'fill_blank':
+                    # ✅ پاسخ جاخالی به‌صورت «مقدار۱ | مقدار۲» ذخیره می‌شود
+                    is_correct = fill_blank_is_correct(answer.answer_text, question.correct_answer)
 
             # ========== تبدیل پاسخ matching به متن خوانا ==========
             answer_display = answer.answer_text
+
+            # ========== تبدیل پاسخ جاخالی به متن خوانا ==========
+            if question.question_type == 'fill_blank' and answer.answer_text:
+                blanks = question.blanks or []
+                parts = [p.strip() for p in str(answer.answer_text).split('|')]
+                if len(parts) > 1 or blanks:
+                    lines = []
+                    for i, val in enumerate(parts):
+                        label = str(blanks[i]).strip() if i < len(blanks) and blanks[i] else f'جای خالی {i + 1}'
+                        lines.append(f'🔹 {label}: {val or "—"}')
+                    answer_display = "\n".join(lines)
 
             if question.question_type == 'matching' and answer.answer_text:
                 try:

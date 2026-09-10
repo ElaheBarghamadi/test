@@ -325,3 +325,36 @@ class HelperTests(TeacherPanelTestCase):
 
         data, errors = validate_exam_times({'title': 'x'})
         self.assertTrue(errors)
+
+
+class FillBlankGradingTests(TeacherPanelTestCase):
+    """پاسخ جاخالی به‌صورت «مقدار۱ | مقدار۲» ذخیره می‌شود و باید خوانا نمایش داده شود"""
+
+    def make(self, blanks, correct, answer):
+        exam = Exam.objects.create(title='fb', teacher=self.teacher, grade=self.grade,
+                                   duration_minutes=20, start_time=self.now - timedelta(hours=1),
+                                   end_time=self.now + timedelta(hours=1))
+        exam.students.set([self.student])
+        q = Question.objects.create(exam=exam, text='جاهای خالی', question_type='fill_blank',
+                                    blanks=blanks, correct_answer=correct,
+                                    max_score=Decimal('2'), order=1)
+        StudentAnswer.objects.create(student=self.student, question=q, answer_text=answer)
+        return exam, q
+
+    def test_is_correct_helper(self):
+        from teacher_panel.views import fill_blank_is_correct
+        self.assertTrue(fill_blank_is_correct('تهران | مشهد', 'تهران, مشهد'))
+        self.assertTrue(fill_blank_is_correct('تهران|مشهد', 'تهران ، مشهد'))
+        self.assertFalse(fill_blank_is_correct('تهران | ', 'تهران, مشهد'))
+        self.assertFalse(fill_blank_is_correct('شیراز | مشهد', 'تهران, مشهد'))
+        self.assertTrue(fill_blank_is_correct('تهران', 'تهران'))
+        self.assertFalse(fill_blank_is_correct('', 'تهران'))
+        self.assertFalse(fill_blank_is_correct('تهران', ''))
+
+    def test_grade_page_shows_readable_blanks(self):
+        exam, _q = self.make(['پایتخت', 'بزرگترین شهر'], 'تهران, مشهد', 'تهران | مشهد')
+        res = self.client.get(reverse('grade_exam', kwargs={'exam_id': exam.id}))
+        self.assertEqual(res.status_code, 200)
+        html = res.content.decode()
+        self.assertIn('پایتخت: تهران', html)
+        self.assertIn('بزرگترین شهر: مشهد', html)

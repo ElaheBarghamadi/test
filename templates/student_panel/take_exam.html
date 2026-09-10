@@ -1,1035 +1,1897 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#8b6914">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='30'%20fill='%23c49a2b'/%3E%3Ctext%20x='32'%20y='44'%20font-size='34'%20text-anchor='middle'%3E%E2%9C%8D%3C/text%3E%3C/svg%3E">
     <title>{{ exam.title }} | آزمون آنلاین</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        /* ================== متغیرهای طراحی ================== */
+        :root{
+            --bg1:#f8f3e9; --bg2:#e9dfcb;
+            --card:#fffdfa; --card2:#fdf7ec;
+            --ink:#3d2c1c; --ink2:#6d543a; --ink3:#9c8568;
+            --line:#e9dcc4; --line2:#f3ead9;
+            --gold:#c49a2b; --gold2:#a67c1e; --gold3:#7d5d10; --goldsoft:#fdf4de;
+            --ok:#157a3b; --oksoft:#e7f6ec; --okline:#b9e2c6;
+            --warn:#b96c07; --warnsoft:#fff3e0; --warnline:#f3d3a4;
+            --err:#bd2222; --errsoft:#fdecec; --errline:#f2c4c4;
+            --r-lg:20px; --r-md:14px; --r-sm:10px;
+            --sh1:0 1px 2px rgba(80,55,30,.05), 0 6px 18px rgba(80,55,30,.06);
+            --sh2:0 14px 40px rgba(60,40,20,.18);
+            --bar-h:64px;
         }
 
-        body {
-            font-family: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
-            background: linear-gradient(145deg, #f5f0e6 0%, #e8e0d0 100%);
-            min-height: 100vh;
-            padding: 10px;
-            padding-bottom: 40px;
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+        html{-webkit-text-size-adjust:100%}
+
+        body{
+            font-family:'Vazirmatn','Segoe UI',Tahoma,system-ui,sans-serif;
+            background:linear-gradient(150deg,var(--bg1) 0%,var(--bg2) 100%);
+            background-attachment:fixed;
+            color:var(--ink);
+            font-size:clamp(14px,.55vw + 12.6px,16px);
+            line-height:1.85;
+            min-height:100vh;
+            padding:10px 10px calc(var(--bar-h) + 26px + env(safe-area-inset-bottom));
         }
 
-        .exam-header {
-            background: rgba(255, 250, 240, 0.95);
-            border-radius: 20px;
-            padding: 10px 14px;
-            margin-bottom: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            border: 1px solid #e0d4c0;
-            position: sticky;
-            top: 8px;
-            z-index: 100;
-        }
-        .exam-title {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #5a3e2b;
-        }
-        .timer-box {
-            background: linear-gradient(135deg, #8b6914, #c49a2b);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            font-family: monospace;
-        }
-        .timer-box.warning { background: linear-gradient(135deg, #e68a2e, #f59e0b); }
-        .timer-box.danger { background: linear-gradient(135deg, #dc2626, #ef4444); animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
+        img{max-width:100%}
+        button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+        :focus-visible{outline:3px solid rgba(196,154,43,.6);outline-offset:2px;border-radius:6px}
 
-        .progress-bar {
-            background: #e0d4c0;
-            border-radius: 20px;
-            height: 4px;
-            margin-bottom: 6px;
-            overflow: hidden;
+        .skip-link{position:absolute;inset-inline-start:-9999px;top:0;background:var(--gold3);color:#fff;padding:10px 16px;border-radius:0 0 12px 0;z-index:5000}
+        .skip-link:focus{inset-inline-start:0}
+
+        /* ================== چیدمان کلی ================== */
+        .shell{
+            max-width:1240px;margin:0 auto;
+            display:grid;grid-template-columns:minmax(0,1fr);
+            gap:14px;align-items:start;
         }
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #c49a2b, #8b6914);
-            border-radius: 20px;
-            transition: width 0.3s;
-        }
-        .stats {
-            text-align: center;
-            font-size: 0.65rem;
-            color: #7a5a3a;
-            margin-bottom: 14px;
+        @media (min-width:1024px){
+            .shell{grid-template-columns:minmax(0,1fr) 292px}
+            .topbar{grid-column:1 / -1}
+            .main{grid-column:1}
+            .side{grid-column:2;position:sticky;top:12px}
         }
 
-        .question-card {
-            background: white;
-            border-radius: 20px;
-            padding: 16px;
-            margin-bottom: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #eee2d0;
+        /* ================== نوار بالا ================== */
+        .topbar{
+            background:linear-gradient(135deg,#6f5210,#a67c1e 55%,#c49a2b);
+            color:#fff;border-radius:var(--r-lg);
+            box-shadow:var(--sh1);overflow:hidden;
+            position:sticky;top:8px;z-index:800;
         }
-        .question-card.page-mode { display: none; }
-        .question-card.page-mode.active { display: block; animation: fadeIn 0.25s ease; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        .tb-row{display:flex;align-items:center;gap:10px;padding:11px 14px;flex-wrap:wrap}
+        .tb-main{flex:1 1 220px;min-width:0}
+        .tb-title{font-size:clamp(14px,1.1vw + 10px,19px);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .tb-sub{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+        .tb-tag{
+            font-size:.72rem;background:rgba(255,255,255,.16);
+            border:1px solid rgba(255,255,255,.25);
+            padding:1px 9px;border-radius:999px;white-space:nowrap;
+        }
+        .tb-timer{display:flex;flex-direction:column;align-items:center;gap:2px;flex:0 0 auto}
+        .timer{
+            font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+            font-size:clamp(17px,1.6vw + 11px,26px);font-weight:800;letter-spacing:.5px;
+            background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+            padding:2px 14px;border-radius:999px;line-height:1.5;font-variant-numeric:tabular-nums;
+        }
+        .timer.warning{background:#f0a02a;border-color:#ffce85;color:#3b2405}
+        .timer.danger{background:#e03b3b;border-color:#ff9b9b;color:#fff;animation:blink 1s steps(2,end) infinite}
+        @keyframes blink{50%{opacity:.55}}
+        .timer-label{font-size:.68rem;opacity:.9;white-space:nowrap}
+
+        .tb-progress{height:6px;background:rgba(0,0,0,.18)}
+        .tb-bar{height:100%;width:0;background:linear-gradient(90deg,#ffe6a3,#fff);transition:width .35s ease}
+        .tb-stats{
+            display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+            padding:6px 14px;font-size:.76rem;background:rgba(0,0,0,.12);
+        }
+        .tb-stats b{font-weight:800}
+        .tb-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8ef0b0;margin-inline-end:5px;vertical-align:middle}
+
+        /* ================== اعلان‌ها ================== */
+        .notice{
+            display:flex;gap:10px;align-items:flex-start;
+            background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--gold);
+            border-radius:var(--r-md);padding:10px 13px;margin-bottom:12px;font-size:.85rem;color:var(--ink2);
+            box-shadow:var(--sh1);
+        }
+        .notice.warn{border-inline-start-color:var(--warn);background:var(--warnsoft)}
+        .notice.err{border-inline-start-color:var(--err);background:var(--errsoft)}
+        .notice.ok{border-inline-start-color:var(--ok);background:var(--oksoft)}
+        .notice .ico{font-size:1.05rem;line-height:1.6}
+
+        /* ================== کارت سوال ================== */
+        .q-card{
+            background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+            padding:14px;margin-bottom:13px;box-shadow:var(--sh1);
+            scroll-margin-top:96px;transition:border-color .2s,box-shadow .2s;
+        }
+        .q-card.is-answered{border-color:var(--okline);box-shadow:0 0 0 1px var(--okline) inset,var(--sh1)}
+        .q-card.has-error{border-color:var(--errline)}
+        .q-card.flash{animation:flash .9s ease}
+        @keyframes flash{0%{box-shadow:0 0 0 4px rgba(196,154,43,.45)}100%{box-shadow:var(--sh1)}}
+
+        body.mode-one_by_one .q-card{display:none}
+        body.mode-one_by_one .q-card.is-active{display:block;animation:fadeUp .28s ease}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+        .q-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-bottom:9px;margin-bottom:11px;border-bottom:1px dashed var(--line)}
+        .q-num{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-size:.76rem;font-weight:800;padding:2px 12px;border-radius:999px}
+        .q-chip{font-size:.7rem;background:var(--goldsoft);color:var(--gold3);border:1px solid #f0e0b8;padding:1px 9px;border-radius:999px}
+        .q-score{margin-inline-start:auto;font-size:.72rem;color:var(--gold3);background:var(--goldsoft);padding:1px 10px;border-radius:999px;white-space:nowrap}
+        .q-state{font-size:.7rem;padding:1px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink3);white-space:nowrap}
+        .q-state.on{background:var(--oksoft);border-color:var(--okline);color:var(--ok)}
+
+        .q-text{font-size:clamp(14.5px,.5vw + 13.4px,17px);font-weight:600;color:var(--ink);white-space:normal}
+        .q-img-wrap{margin-top:11px;background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-md);padding:8px;text-align:center}
+        .q-img{max-height:min(58vh,460px);width:auto;border-radius:10px;cursor:zoom-in;background:#fff}
+
+        .q-answer{margin-top:13px}
+        .q-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px;min-height:22px}
+
+        .save-badge{font-size:.72rem;color:var(--ink3);display:inline-flex;align-items:center;gap:5px}
+        .save-badge.saving{color:var(--warn)}
+        .save-badge.saved{color:var(--ok)}
+        .save-badge.error{color:var(--err);font-weight:700}
+        .save-badge button{background:none;border:1px solid var(--errline);color:var(--err);border-radius:999px;padding:0 9px;cursor:pointer;font-size:.7rem}
+
+        /* ================== ویجت گزینه‌ها ================== */
+        .opt-grid{display:grid;gap:9px;grid-template-columns:1fr}
+        @media (min-width:640px){
+            .opt-grid.cols-2{grid-template-columns:1fr 1fr}
+        }
+        .opt{
+            position:relative;display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+            background:var(--card2);border:1.5px solid var(--line);border-radius:var(--r-md);
+            padding:10px 12px;transition:.16s;
+        }
+        .opt:hover{border-color:#dcc489;background:#fffaf0}
+        .opt input{position:absolute;opacity:0;width:1px;height:1px}
+        .opt-mark{
+            flex:0 0 22px;width:22px;height:22px;border-radius:50%;border:2px solid #d6c39a;background:#fff;
+            display:grid;place-items:center;margin-top:2px;transition:.16s;
+        }
+        .opt-mark::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--gold3);transform:scale(0);transition:transform .16s}
+        .opt.is-on{border-color:var(--gold);background:var(--goldsoft);box-shadow:0 0 0 1px var(--gold) inset}
+        .opt.is-on .opt-mark{border-color:var(--gold3)}
+        .opt.is-on .opt-mark::after{transform:scale(1)}
+        .opt-body{flex:1;min-width:0}
+        .opt-key{font-size:.72rem;font-weight:800;color:var(--gold3);margin-inline-end:6px}
+        .opt-text{font-size:.95rem;word-break:break-word}
+        .opt-img{display:block;max-height:190px;width:auto;max-width:100%;margin:6px auto 0;border-radius:10px;background:#fff;border:1px solid var(--line2)}
+        .opt.is-img{flex-direction:column;align-items:stretch;text-align:center;gap:2px}
+        .opt.is-img .opt-head-row{display:flex;align-items:center;gap:10px;text-align:start}
+        .opt.is-img .opt-mark{margin-top:0}
+        .opt-broken{font-size:.75rem;color:var(--err);background:var(--errsoft);border:1px dashed var(--errline);border-radius:8px;padding:6px 8px;margin-top:6px;word-break:break-all}
+        .opt input:focus-visible + .opt-mark{outline:3px solid rgba(196,154,43,.6);outline-offset:2px}
+
+        /* ================== جاخالی ================== */
+        .blank-list{display:grid;gap:9px}
+        .blank-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:center}
+        @media (max-width:520px){
+            .blank-item{grid-template-columns:1fr;gap:4px}
+            .blank-label{justify-self:start;width:auto}
+        }
+        .blank-label{font-size:.78rem;font-weight:700;color:var(--ink2);background:var(--goldsoft);border:1px solid #f0e0b8;border-radius:999px;padding:2px 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+
+        input[type=text].fld,textarea.fld,select.fld{
+            width:100%;background:#fff;border:1.5px solid var(--line);border-radius:var(--r-md);
+            padding:10px 12px;font-size:.95rem;transition:.16s;line-height:1.8;
+        }
+        input.fld:hover,textarea.fld:hover,select.fld:hover{border-color:#dcc489}
+        input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--gold);background:#fffdf6;outline:none;box-shadow:0 0 0 3px rgba(196,154,43,.18)}
+        textarea.fld{resize:vertical;min-height:88px}
+        .fld-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:5px}
+        .hint{font-size:.72rem;color:var(--ink3)}
+        .counter{font-size:.72rem;color:var(--ink3);font-variant-numeric:tabular-nums}
+        .counter.over{color:var(--err);font-weight:700}
+
+        /* ================== آپلود تصویر ================== */
+        .drop{
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+            border:2px dashed #dcc489;background:var(--card2);border-radius:var(--r-md);
+            padding:16px 12px;cursor:pointer;text-align:center;transition:.16s;
+        }
+        .drop:hover,.drop.is-over{background:var(--goldsoft);border-color:var(--gold)}
+        .drop-ico{font-size:1.5rem}
+        .drop-txt{font-size:.86rem;font-weight:700;color:var(--gold3)}
+        .drop-hint{font-size:.72rem;color:var(--ink3)}
+        .drop.is-busy{opacity:.65;pointer-events:none}
+        .preview{margin-top:10px;position:relative;background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);padding:8px;text-align:center}
+        .preview img{max-height:230px;width:auto;border-radius:10px;cursor:zoom-in;background:#fff}
+        .preview-cap{font-size:.72rem;color:var(--ok);margin-top:5px}
+        .up-bar{height:5px;background:var(--line2);border-radius:99px;overflow:hidden;margin-top:8px}
+        .up-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .2s}
+
+        /* ================== وصل کردنی ================== */
+        .match{display:grid;gap:9px}
+        .match-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1.15fr) auto;gap:8px;align-items:center}
+        .match-left{background:var(--card2);border:1px solid var(--line);border-radius:var(--r-md);padding:9px 11px;font-size:.9rem;font-weight:600;word-break:break-word}
+        .match-arrow{color:var(--gold);font-size:1rem}
+        .match-row.is-on .match-left{border-color:var(--gold);background:var(--goldsoft)}
+        @media (max-width:640px){
+            .match-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"left clear" "sel sel";row-gap:6px}
+            .match-left{grid-area:left}
+            .match-arrow{display:none}
+            .match-row select{grid-area:sel}
+            .match-clear{grid-area:clear}
+        }
+        .match-clear{
+            background:var(--errsoft);border:1px solid var(--errline);color:var(--err);
+            width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:.85rem;line-height:1;
+            display:grid;place-items:center;
+        }
+        .match-clear:hover{background:#fbdcdc}
+        .match-note{font-size:.74rem;color:var(--ink3);margin-bottom:8px}
+
+        /* ================== پنل کناری / پالت ================== */
+        .side{display:grid;gap:12px}
+        .side-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:13px;box-shadow:var(--sh1)}
+        .side-title{font-size:.86rem;font-weight:800;color:var(--gold3);display:flex;align-items:center;gap:7px;margin-bottom:10px}
+        .pal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:7px}
+        .pal{
+            aspect-ratio:1/1;border-radius:12px;border:1.5px solid var(--line);background:var(--card2);
+            cursor:pointer;font-weight:800;font-size:.85rem;color:var(--ink2);
+            display:grid;place-items:center;transition:.15s;position:relative;
+        }
+        .pal:hover:not(:disabled){border-color:var(--gold);transform:translateY(-1px)}
+        .pal.is-answered{background:var(--oksoft);border-color:var(--okline);color:var(--ok)}
+        .pal.is-current{border-color:var(--gold3);box-shadow:0 0 0 3px rgba(196,154,43,.28);color:var(--gold3);background:var(--goldsoft)}
+        .pal.is-answered.is-current{background:#dcf3e4}
+        .pal:disabled{opacity:.45;cursor:not-allowed}
+        .pal .tick{position:absolute;top:-4px;inset-inline-end:-4px;font-size:.6rem;background:var(--ok);color:#fff;border-radius:50%;width:15px;height:15px;display:grid;place-items:center}
+
+        .legend{display:flex;flex-wrap:wrap;gap:9px;margin-top:11px;font-size:.71rem;color:var(--ink2)}
+        .legend i{display:inline-block;width:11px;height:11px;border-radius:4px;margin-inline-end:4px;vertical-align:-1px;border:1.5px solid var(--line)}
+        .legend .l-ok{background:var(--oksoft);border-color:var(--okline)}
+        .legend .l-cur{background:var(--goldsoft);border-color:var(--gold3)}
+        .legend .l-no{background:var(--card2)}
+
+        .sum-rows{display:grid;gap:6px;font-size:.8rem}
+        .sum-row{display:flex;justify-content:space-between;gap:8px;color:var(--ink2)}
+        .sum-row b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+        .btn{
+            display:inline-flex;align-items:center;justify-content:center;gap:7px;
+            border:none;border-radius:999px;cursor:pointer;font-weight:800;
+            padding:11px 20px;font-size:.9rem;transition:.16s;text-decoration:none;
+        }
+        .btn:disabled{opacity:.55;cursor:not-allowed}
+        .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#fff;box-shadow:0 6px 16px rgba(140,105,20,.28)}
+        .btn-gold:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-1px)}
+        .btn-green{background:linear-gradient(135deg,#1c9149,#136b33);color:#fff;box-shadow:0 6px 16px rgba(19,107,51,.25)}
+        .btn-green:hover:not(:disabled){filter:brightness(1.07)}
+        .btn-ghost{background:var(--card2);border:1.5px solid var(--line);color:var(--ink2)}
+        .btn-ghost:hover:not(:disabled){border-color:var(--gold);color:var(--gold3);background:var(--goldsoft)}
+        .btn-block{width:100%}
+        .btn-sm{padding:7px 14px;font-size:.8rem}
+
+        /* ================== نوار پایین ================== */
+        .actionbar{
+            position:fixed;inset-inline:0;bottom:0;z-index:900;
+            background:rgba(255,253,250,.94);backdrop-filter:blur(10px);
+            border-top:1px solid var(--line);
+            padding:9px 12px calc(9px + env(safe-area-inset-bottom));
+        }
+        .ab-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:9px}
+        .ab-btn{
+            flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+            background:var(--card2);border:1.5px solid var(--line);border-radius:999px;
+            padding:9px 16px;font-weight:700;font-size:.85rem;cursor:pointer;color:var(--ink2);transition:.15s;
+        }
+        .ab-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold3);background:var(--goldsoft)}
+        .ab-btn:disabled{opacity:.45;cursor:not-allowed}
+        .ab-chip{
+            flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;
+            background:var(--goldsoft);border:1.5px solid #f0e0b8;border-radius:999px;
+            padding:8px 14px;font-size:.8rem;font-weight:700;color:var(--gold3);cursor:pointer;
+        }
+        .ab-chip:hover{border-color:var(--gold)}
+        .ab-mini{flex:1;max-width:110px;height:5px;background:#ecdcb4;border-radius:99px;overflow:hidden}
+        .ab-mini i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold3))}
+        .ab-submit{margin-inline-start:auto}
+
+        /* ================== مودال ================== */
+        .backdrop{position:fixed;inset:0;background:rgba(40,26,10,.5);backdrop-filter:blur(3px);z-index:940;opacity:0;pointer-events:none;transition:.2s}
+        .backdrop.on{opacity:1;pointer-events:auto}
+
+        .modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+        .modal.on{display:flex;animation:fadeUp .2s ease}
+        .modal-card{
+            background:var(--card);border-radius:var(--r-lg);box-shadow:var(--sh2);
+            width:min(520px,100%);max-height:min(88vh,660px);overflow:auto;padding:18px;
+            border:1px solid var(--line);display:flex;flex-direction:column;
+        }
+        .modal-ico{font-size:2.3rem;text-align:center;line-height:1}
+        .modal-title{font-size:1.05rem;font-weight:800;text-align:center;margin:8px 0 4px;color:var(--ink)}
+        .modal-text{text-align:center;font-size:.87rem;color:var(--ink2);margin-bottom:14px}
+        .modal-actions{
+            display:flex;gap:9px;flex-wrap:wrap;justify-content:center;
+            position:sticky;bottom:-18px;background:var(--card);
+            margin-top:auto;padding:12px 0 2px;border-top:1px solid var(--line2);
+        }
+        .modal-actions .btn{flex:1 1 150px}
+        .unanswered{
+            background:var(--warnsoft);border:1px solid var(--warnline);border-radius:var(--r-md);
+            padding:10px 12px;margin-bottom:13px;font-size:.8rem;color:var(--warn);
+        }
+        .unanswered .nums{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;max-height:26vh;overflow:auto}
+        .unanswered .nums button{
+            background:#fff;border:1px solid var(--warnline);border-radius:8px;cursor:pointer;
+            padding:1px 8px;font-size:.75rem;font-weight:700;color:var(--warn);
         }
 
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #f0e2d0;
+        /* زوم تصویر */
+        .zoom-modal{position:fixed;inset:0;background:rgba(12,8,3,.96);z-index:1200;display:none;place-items:center}
+        .zoom-modal.on{display:grid}
+        .zoom-canvas{width:100%;height:100%;overflow:hidden;display:grid;place-items:center;cursor:grab;touch-action:none}
+        .zoom-canvas:active{cursor:grabbing}
+        .zoom-img{max-width:none;max-height:none;transition:transform .06s linear;pointer-events:none;will-change:transform}
+        .zoom-btn{
+            position:absolute;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);
+            width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1.1rem;z-index:1201;
+            display:grid;place-items:center;
         }
-        .question-number {
-            background: linear-gradient(135deg, #c49a2b, #a07830);
-            color: white;
-            padding: 3px 12px;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            font-weight: 600;
+        .zoom-btn:hover{background:rgba(255,255,255,.3)}
+        .zoom-close{top:calc(14px + env(safe-area-inset-top));inset-inline-end:14px}
+        .zoom-reset{bottom:calc(14px + env(safe-area-inset-bottom));inset-inline-end:14px}
+        .zoom-hint{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));inset-inline-start:0;inset-inline-end:0;text-align:center;color:rgba(255,255,255,.75);font-size:.75rem}
+
+        /* ================== تست ================== */
+        .toast-wrap{position:fixed;top:calc(12px + env(safe-area-inset-top));inset-inline-start:50%;transform:translateX(50%);z-index:1300;display:grid;gap:8px;width:min(420px,calc(100% - 24px))}
+        [dir=rtl] .toast-wrap{transform:translateX(50%)}
+        .toast{
+            background:#3d2c1c;color:#fff;border-radius:var(--r-md);padding:10px 14px;font-size:.82rem;
+            box-shadow:var(--sh2);display:flex;gap:9px;align-items:flex-start;animation:fadeUp .2s ease;
         }
-        .question-score {
-            color: #c49a2b;
-            font-size: 0.65rem;
-            background: #fef5e8;
-            padding: 3px 10px;
-            border-radius: 20px;
+        .toast.warn{background:#8a5206}
+        .toast.err{background:#98201f}
+        .toast.ok{background:#146b33}
+
+        /* ================== حالت خالی ================== */
+        .empty-state{background:var(--card);border:1px dashed var(--line);border-radius:var(--r-lg);padding:26px 18px;text-align:center;color:var(--ink2)}
+        .empty-state .big{font-size:2.4rem}
+
+        /* ================== موبایل: پنل به‌صورت شیت پایین ================== */
+        @media (max-width:1023px){
+            .side{
+                position:fixed;inset-inline:0;bottom:0;z-index:950;
+                background:var(--card);border-radius:22px 22px 0 0;border:1px solid var(--line);
+                box-shadow:0 -12px 40px rgba(60,40,20,.22);
+                padding:12px 12px calc(16px + env(safe-area-inset-bottom));
+                max-height:76vh;overflow:auto;
+                transform:translateY(115%);transition:transform .28s ease;
+                display:block;
+            }
+            .side.open{transform:none}
+            .side .side-card{box-shadow:none;border-color:var(--line2)}
+            .side-grab{display:block;width:46px;height:5px;border-radius:99px;background:var(--line);margin:0 auto 10px}
+            .pal-grid{grid-template-columns:repeat(auto-fill,minmax(46px,1fr))}
         }
-        .question-text {
-            font-size: 0.85rem;
-            line-height: 1.55;
-            color: #4a3727;
-            margin-bottom: 14px;
+        @media (min-width:1024px){
+            .side-grab{display:none}
+            .side-close{display:none}
         }
-        .question-image {
-            max-width: 100%;
-            max-height: 180px;
-            border-radius: 14px;
-            margin-top: 10px;
-            cursor: pointer;
-            border: 1px solid #e8dcc8;
+        .side-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+        .side-close{background:var(--card2);border:1px solid var(--line);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:.9rem}
+
+        @media (max-width:520px){
+            body{padding-inline:7px}
+            .q-card{padding:12px;border-radius:16px}
+            .tb-row{padding:9px 11px;gap:8px}
+            .tb-sub{display:none}
+            .ab-btn span.lbl{display:none}
+            .ab-btn{padding:9px 13px}
         }
 
-        .options-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin: 12px 0;
+        @media (prefers-reduced-motion:reduce){
+            *{animation-duration:.001s !important;transition-duration:.001s !important}
         }
-        .option-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            background: #fcf9f2;
-            border-radius: 40px;
-            border: 1px solid #e8dcc8;
-            cursor: pointer;
-        }
-        .option-item input {
-            width: 16px;
-            height: 16px;
-            accent-color: #c49a2b;
-            cursor: pointer;
-        }
-        .option-item span {
-            font-size: 0.8rem;
-            color: #4a3727;
-        }
-
-        textarea, input[type="text"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #e0d0b8;
-            border-radius: 16px;
-            font-family: inherit;
-            font-size: 0.8rem;
-            background: #fefcf8;
-            resize: vertical;
-        }
-        textarea:focus, input:focus {
-            outline: none;
-            border-color: #c49a2b;
-        }
-
-        .matching-simple {
-            margin: 12px 0;
-        }
-        .match-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            padding: 12px;
-            background: #fcf9f2;
-            border-radius: 16px;
-            border: 1px solid #e8dcc8;
-        }
-        .match-left {
-            flex: 1;
-            min-width: 130px;
-            font-weight: 600;
-            color: #5a3e2b;
-            font-size: 0.85rem;
-            background: #fff5e8;
-            padding: 8px 12px;
-            border-radius: 30px;
-            text-align: center;
-        }
-        .match-select {
-            flex: 2;
-            min-width: 160px;
-            padding: 8px 14px;
-            border-radius: 30px;
-            border: 1px solid #d4b88c;
-            background: white;
-            font-size: 0.85rem;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .match-clear {
-            background: #fee2e2;
-            color: #b45353;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-        }
-
-        .upload-area {
-            margin-top: 12px;
-            padding: 12px;
-            border: 1px dashed #d4b88c;
-            border-radius: 16px;
-            text-align: center;
-            cursor: pointer;
-            background: #fefaf2;
-            font-size: 0.7rem;
-        }
-        .image-preview {
-            max-width: 70px;
-            max-height: 60px;
-            margin-top: 8px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-        .save-badge {
-            font-size: 0.6rem;
-            color: #7a9c3e;
-            margin-top: 8px;
-            display: inline-block;
-            background: #e9f5e1;
-            padding: 2px 10px;
-            border-radius: 20px;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #efe0ce;
-        }
-        .nav-btn {
-            background: #e8dccc;
-            color: #5a3e2b;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.75rem;
-            flex: 1;
-        }
-        .nav-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .submit-exam-btn {
-            background: linear-gradient(135deg, #a07830, #c49a2b);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin: 16px auto 25px;
-            display: block;
-            width: 90%;
-            max-width: 240px;
-        }
-
-        .warning-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #fef3c7;
-            color: #92400e;
-            padding: 6px;
-            text-align: center;
-            font-size: 0.65rem;
-            z-index: 99;
-            display: none;
-        }
-        .timeout-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-        .timeout-card {
-            background: white;
-            padding: 24px;
-            border-radius: 28px;
-            text-align: center;
-            max-width: 280px;
-        }
-
-        .zoom-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-        }
-        .zoom-modal.active { display: flex; }
-        .zoom-container {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: relative;
-        }
-        .zoom-canvas {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            cursor: grab;
-        }
-        .zoom-canvas:active { cursor: grabbing; }
-        .zoom-img {
-            max-width: none;
-            transition: transform 0.05s linear;
-            pointer-events: none;
-        }
-        .zoom-close, .zoom-reset {
-            position: absolute;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 3001;
-        }
-        .zoom-close { top: 15px; right: 15px; font-size: 24px; }
-        .zoom-reset { bottom: 15px; right: 15px; font-size: 18px; }
-
-        @media (max-width: 550px) {
-            .match-row { flex-direction: column; align-items: stretch; }
-            .match-left { text-align: center; }
-            .match-select { width: 100%; }
-            .match-clear { align-self: center; }
+        @media print{
+            .topbar,.actionbar,.side,.toast-wrap{display:none !important}
+            body{background:#fff;padding:0}
+            .q-card{break-inside:avoid;box-shadow:none}
         }
     </style>
 </head>
-<body>
+<body class="mode-{{ exam.show_questions_mode|default:'one_by_one' }} timer-{{ exam.timer_type|default:'floating' }}{% if exam.enable_anti_cheat %} anticheat{% endif %}">
+<a class="skip-link" href="#questionsContainer">پرش به سوالات</a>
 
-<div class="exam-header">
-    <div class="exam-title">{{ exam.title }}</div>
-    <div class="timer-box" id="timerDisplay">--:--:--</div>
-</div>
+<div class="shell">
 
-<div class="progress-bar">
-    <div class="progress-fill" id="progressFill"></div>
-</div>
-<div class="stats" id="statsText">0 از {{ questions|length }} پاسخ داده شده</div>
-
-<div id="questionsContainer">
-    {% for question in questions %}
-    <div class="question-card" data-qid="{{ question.id }}" data-type="{{ question.question_type }}" data-index="{{ forloop.counter0 }}">
-        <div class="question-header">
-            <span class="question-number">سوال {{ forloop.counter }}</span>
-            <span class="question-score">⭐ {{ question.max_score }} نمره</span>
+    <!-- ================= نوار بالای آزمون ================= -->
+    <header class="topbar" id="topbar">
+        <div class="tb-row">
+            <div class="tb-main">
+                <div class="tb-title">{{ exam.title }}</div>
+                <div class="tb-sub">
+                    <span class="tb-tag">🎓 پایه {{ exam.grade }}</span>
+                    <span class="tb-tag">📝 {{ questions|length }} سوال</span>
+                    <span class="tb-tag">⭐ {{ total_score }} نمره</span>
+                    {% if exam.timer_type == 'fixed' %}
+                        <span class="tb-tag">🔒 پایان: {{ end_time_jalali }}</span>
+                    {% else %}
+                        <span class="tb-tag">🏃 مدت آزمون: {{ exam.duration_minutes }} دقیقه</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="tb-timer">
+                <div class="timer" id="timerDisplay" role="timer" aria-label="زمان باقی‌مانده">--:--:--</div>
+                <div class="timer-label" id="timerLabel">
+                    {% if exam.timer_type == 'fixed' %}زمان تا پایان آزمون{% else %}زمان باقی‌مانده شما{% endif %}
+                </div>
+            </div>
         </div>
-        <div class="question-text">
-            {{ question.text|linebreaksbr }}
-            {% if question.image %}
-                <br><img src="{{ question.image.url }}" class="question-image zoom-trigger" alt="تصویر سوال">
-            {% endif %}
+        <div class="tb-progress" role="progressbar" aria-label="پیشرفت پاسخ‌دهی" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressWrap">
+            <div class="tb-bar" id="progressFill"></div>
         </div>
-        <div class="answer-area" id="answerArea{{ question.id }}"></div>
-        <div class="save-badge" id="saveStatus{{ question.id }}"></div>
-        {% if exam.show_questions_mode == 'one_by_one' %}
-        <div class="nav-buttons">
-            <button class="nav-btn prev-btn" data-idx="{{ forloop.counter0 }}">← قبلی</button>
-            <button class="nav-btn next-btn" data-idx="{{ forloop.counter0 }}">بعدی →</button>
+        <div class="tb-stats">
+            <span id="statsText">در حال آماده‌سازی…</span>
+            <span id="netStatus"><span class="tb-dot"></span>ذخیره خودکار پاسخ‌ها فعال است</span>
+        </div>
+    </header>
+
+    <!-- ================= بدنه اصلی ================= -->
+    <main class="main" id="main">
+
+        {% if exam.enable_anti_cheat %}
+        <div class="notice warn" id="antiCheatNotice">
+            <span class="ico">🛡️</span>
+            <div>
+                <b>حالت محافظت از آزمون فعال است.</b>
+                {% if exam.prevent_tab_switch %}خروج از صفحه یا تغییر تب،{% endif %}
+                {% if exam.prevent_copy_paste %}کپی/پیست و کلیک راست{% endif %}
+                به‌عنوان تخلف ثبت می‌شود. لطفاً تا ثبت نهایی آزمون، همین صفحه را باز نگه دارید.
+            </div>
         </div>
         {% endif %}
-    </div>
-    {% endfor %}
+
+        <div id="noticeArea"></div>
+
+        {% if questions %}
+        <div id="questionsContainer">
+            {% for question in questions %}
+            <article class="q-card"
+                     id="qcard_{{ question.id }}"
+                     data-qid="{{ question.id }}"
+                     data-index="{{ forloop.counter0 }}"
+                     data-type="{{ question.question_type }}"
+                     data-otype="{{ question.options_type }}"
+                     data-upload="{{ question.can_upload|yesno:'1,0' }}"
+                     data-maxscore="{{ question.max_score|floatformat:'-2' }}"
+                     data-options="{{ question.options_json }}"
+                     data-blanks="{{ question.blanks_json }}"
+                     data-blankscount="{{ question.blanks_count }}"
+                     data-pairs="{{ question.matching_pairs_json }}"
+                     aria-labelledby="qlabel_{{ question.id }}">
+                <div class="q-head">
+                    <span class="q-num" id="qlabel_{{ question.id }}">سوال {{ forloop.counter }}</span>
+                    <span class="q-chip">{{ question.type_display }}</span>
+                    <span class="q-state" id="qstate_{{ question.id }}">پاسخ داده نشده</span>
+                    <span class="q-score">⭐ {{ question.max_score|floatformat:"-2" }} نمره</span>
+                </div>
+
+                {% if question.text or question.image %}
+                <div class="q-text">
+                    {{ question.text|linebreaksbr }}
+                    {% if question.image %}
+                    <div class="q-img-wrap">
+                        <img src="{{ question.image.url }}" class="q-img zoom-trigger" alt="تصویر سوال {{ forloop.counter }}" loading="lazy">
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="q-answer" id="answerArea{{ question.id }}"></div>
+
+                <div class="q-foot">
+                    <span class="save-badge" id="saveStatus{{ question.id }}" aria-live="polite"></span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="big">📭</div>
+            <h2 style="font-size:1rem;margin:8px 0 4px">این آزمون هنوز سوالی ندارد</h2>
+            <p style="font-size:.85rem">معلم هنوز سوالی برای این آزمون ثبت نکرده است. لطفاً بعداً دوباره بررسی کنید.</p>
+            <a class="btn btn-ghost" href="/student/dashboard/" style="margin-top:14px">بازگشت به داشبورد</a>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- ================= پنل کناری: راهنمای سوالات ================= -->
+    <aside class="side" id="examSide" aria-label="راهنمای سوالات">
+        <div class="side-grab" aria-hidden="true"></div>
+
+        <div class="side-card">
+            <div class="side-head">
+                <div class="side-title"><span>🧭</span><span>راهنمای سوالات</span></div>
+                <button type="button" class="side-close" id="sideClose" aria-label="بستن راهنما">✕</button>
+            </div>
+            <div class="pal-grid" id="palette"></div>
+            <div class="legend">
+                <span><i class="l-ok"></i>پاسخ داده</span>
+                <span><i class="l-cur"></i>سوال جاری</span>
+                <span><i class="l-no"></i>بدون پاسخ</span>
+            </div>
+        </div>
+
+        <div class="side-card">
+            <div class="side-title"><span>📊</span><span>وضعیت آزمون</span></div>
+            <div class="sum-rows">
+                <div class="sum-row"><span>پاسخ داده شده</span><b id="sumAnswered">۰</b></div>
+                <div class="sum-row"><span>بدون پاسخ</span><b id="sumUnanswered">۰</b></div>
+                <div class="sum-row"><span>مجموع سوالات</span><b id="sumTotal">۰</b></div>
+                <div class="sum-row"><span>بارم کل</span><b>{{ total_score }}</b></div>
+            </div>
+            {% if questions %}
+            <button type="button" class="btn btn-green btn-block js-submit" style="margin-top:12px">
+                <span>📝</span><span>ثبت نهایی آزمون</span>
+            </button>
+            <p class="hint" style="text-align:center;margin-top:7px">پس از ثبت نهایی، امکان ویرایش پاسخ‌ها وجود ندارد.</p>
+            {% endif %}
+        </div>
+    </aside>
 </div>
 
-<button class="submit-exam-btn" id="submitExamBtn" style="display: none;">📝 ثبت نهایی آزمون</button>
-<div class="warning-bar" id="warningBar">⏰ زمان باقی‌مانده کم است!</div>
+<div class="backdrop" id="backdrop"></div>
 
-<div id="timeoutModal" class="timeout-modal">
-    <div class="timeout-card">
-        <div style="font-size: 40px;">⏰</div>
-        <h3>زمان آزمون به پایان رسید!</h3>
-        <button onclick="location.href='/student/dashboard/'" style="margin-top:16px;padding:8px 20px;background:#c49a2b;border:none;border-radius:30px;">باشه</button>
+<!-- ================= نوار پایین ================= -->
+<nav class="actionbar" id="actionbar">
+    <div class="ab-inner">
+        <button type="button" class="ab-btn" id="btnPrev" disabled>
+            <span aria-hidden="true">→</span><span class="lbl">قبلی</span>
+        </button>
+
+        <button type="button" class="ab-chip" id="btnPalette" aria-expanded="false" aria-controls="examSide">
+            <span id="abCounter">سوال ۱ از ۱</span>
+            <span class="ab-mini"><i id="abMiniFill"></i></span>
+        </button>
+
+        <button type="button" class="ab-btn" id="btnNext">
+            <span class="lbl">بعدی</span><span aria-hidden="true">←</span>
+        </button>
+
+        <button type="button" class="btn btn-green btn-sm ab-submit js-submit" id="btnSubmitBar">
+            <span>ثبت نهایی</span>
+        </button>
     </div>
-</div>
+</nav>
 
-<div id="zoomModal" class="zoom-modal">
-    <button class="zoom-close" onclick="closeZoom()">✕</button>
-    <button class="zoom-reset" onclick="resetZoom()">⟳</button>
-    <div class="zoom-container">
-        <div class="zoom-canvas" id="zoomCanvas">
-            <img id="zoomImage" class="zoom-img" src="" draggable="false">
+<!-- ================= مودال تایید ثبت ================= -->
+<div class="modal" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card">
+        <div class="modal-ico">📝</div>
+        <h2 class="modal-title" id="confirmTitle">ثبت نهایی آزمون</h2>
+        <p class="modal-text" id="confirmText">آیا مطمئن هستید که می‌خواهید آزمون را ثبت نهایی کنید؟</p>
+        <div class="unanswered" id="unansweredBox" style="display:none">
+            <b>⚠️ به این سوال‌ها پاسخ نداده‌اید:</b>
+            <div class="nums" id="unansweredNums"></div>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" id="confirmCancel">بازگشت به آزمون</button>
+            <button type="button" class="btn btn-green" id="confirmOk">بله، ثبت نهایی کن</button>
         </div>
     </div>
 </div>
 
+<!-- ================= مودال پایان زمان ================= -->
+<div class="modal" id="timeoutModal" role="dialog" aria-modal="true" aria-labelledby="timeoutTitle">
+    <div class="modal-card">
+        <div class="modal-ico">⏰</div>
+        <h2 class="modal-title" id="timeoutTitle">زمان آزمون به پایان رسید</h2>
+        <p class="modal-text" id="timeoutText">پاسخ‌های شما در حال ذخیره و ثبت نهایی است…</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-gold" id="timeoutOk" disabled>در حال ثبت…</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= مودال پیام عمومی ================= -->
+<div class="modal" id="alertModal" role="dialog" aria-modal="true" aria-labelledby="alertTitle">
+    <div class="modal-card">
+        <div class="modal-ico" id="alertIco">ℹ️</div>
+        <h2 class="modal-title" id="alertTitle">توجه</h2>
+        <p class="modal-text" id="alertText"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-gold" id="alertOk">باشه</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= زوم تصویر ================= -->
+<div class="zoom-modal" id="zoomModal" role="dialog" aria-modal="true" aria-label="نمایش بزرگ تصویر">
+    <button type="button" class="zoom-btn zoom-close" id="zoomClose" aria-label="بستن">✕</button>
+    <button type="button" class="zoom-btn zoom-reset" id="zoomReset" aria-label="بازنشانی بزرگ‌نمایی">⟳</button>
+    <div class="zoom-canvas" id="zoomCanvas">
+        <img id="zoomImage" class="zoom-img" src="" alt="تصویر بزرگ‌شده" draggable="false">
+    </div>
+    <div class="zoom-hint">با اسکرول یا دو انگشت بزرگ‌نمایی کنید · برای جابجایی تصویر را بکشید</div>
+</div>
+
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+{{ saved_answers_data|json_script:"savedAnswersData" }}
+
 <script>
-    // ========== تنظیمات از دیتابیس ==========
+(function () {
+    'use strict';
+
+    /* =========================================================
+       ۱) تنظیمات آزمون — دقیقاً همان چیزی که معلم انتخاب کرده
+       ========================================================= */
     const EXAM_CONFIG = {
-        id: {{ exam.id }},
+        id: {{ exam.id|default:0 }},
         hashedId: "{{ hashed_exam_id|default:'' }}",
         remainingSeconds: {{ remaining_seconds|default:0 }},
         durationMinutes: {{ duration_minutes|default:0 }},
-        showMode: "{{ exam.show_questions_mode }}",
+        timerType: "{{ exam.timer_type|default:'floating' }}",
+        showMode: "{{ exam.show_questions_mode|default:'one_by_one' }}",
         showBackBtn: {{ exam.show_back_button|yesno:"true,false" }},
         randomQuestions: {{ exam.random_questions|yesno:"true,false" }},
         preventCopy: {{ exam.prevent_copy_paste|yesno:"true,false" }},
         preventTab: {{ exam.prevent_tab_switch|yesno:"true,false" }},
-        antiCheat: {{ exam.enable_anti_cheat|yesno:"true,false" }}
+        antiCheat: {{ exam.enable_anti_cheat|yesno:"true,false" }},
+        trackIp: {{ exam.track_ip|yesno:"true,false" }},
+        deadlineLabel: "{{ end_time_jalali|default:'' }}"
     };
 
-    let questionsRaw = [
-        {% for q in questions %}
-        {
-            id: {{ q.id }},
-            type: "{{ q.question_type }}",
-            allowImage: {{ q.allow_image_answer|yesno:"true,false" }},
-            options: {{ q.options_json|default:"[]"|safe }},
-            matchingPairs: {{ q.matching_pairs_json|default:"[]"|safe }}
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
+    const URLS = {
+        save: '/student/save-answer/',
+        saveAll: '/student/save-all-answers/',
+        image: '/student/save-answer-image/',
+        removeImage: '/student/remove-answer-image/',
+        cheat: '/student/log-cheat/',
+        time: '/student/check-exam-time/' + EXAM_CONFIG.hashedId + '/',
+        submit: '/student/submit/' + EXAM_CONFIG.hashedId + '/',
+        dashboard: '/student/dashboard/'
+    };
 
-    // ذخیره نسخه اصلی جفت‌ها (بدون رندوم) برای رندر مجدد صحیح
-    const originalMatchingPairs = {};
-    questionsRaw.forEach(q => {
-        if (q.type === 'matching' && q.matchingPairs && q.matchingPairs.length) {
-            originalMatchingPairs[q.id] = JSON.parse(JSON.stringify(q.matchingPairs));
-            // اطمینان از وجود id برای هر جفت
-            originalMatchingPairs[q.id].forEach((pair, idx) => {
-                if (!pair.id) pair.id = `pair_${q.id}_${idx}`;
-            });
-            // به روز رسانی q.matchingPairs با id
-            q.matchingPairs = originalMatchingPairs[q.id];
-        }
-    });
+    let SAVED = {};
+    try {
+        const node = document.getElementById('savedAnswersData');
+        SAVED = node ? (JSON.parse(node.textContent) || {}) : {};
+    } catch (e) { SAVED = {}; }
 
-    if (EXAM_CONFIG.randomQuestions) {
-        for (let i = questionsRaw.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [questionsRaw[i], questionsRaw[j]] = [questionsRaw[j], questionsRaw[i]];
+    /* =========================================================
+       ۲) توابع کمکی
+       ========================================================= */
+    const FA_DIGITS = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    function fa(value) {
+        return String(value).replace(/[0-9]/g, d => FA_DIGITS[+d]);
+    }
+    function esc(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, m => (
+            {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]
+        ));
+    }
+    function el(id) { return document.getElementById(id); }
+    function getCsrf() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta && meta.content) return meta.content;
+        const m = document.cookie.match(/(^|;\s*)csrftoken=([^;]*)/);
+        return m ? decodeURIComponent(m[2]) : '';
+    }
+    function parseJson(text, fallback) {
+        try { const v = JSON.parse(text); return (v === null || v === undefined) ? fallback : v; }
+        catch (e) { return fallback; }
+    }
+    // شبه‌تصادفی پایدار (ترتیب گزینه‌های وصل‌کردنی با هر بارگذاری عوض نشود)
+    function seededShuffle(list, seed) {
+        const arr = list.slice();
+        let s = seed >>> 0;
+        for (let i = arr.length - 1; i > 0; i--) {
+            s = (s * 1664525 + 1013904223) >>> 0;
+            const j = s % (i + 1);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
+        return arr;
+    }
+    function looksLikeImage(value) {
+        if (!value) return false;
+        const v = String(value).trim();
+        return /^(https?:)?\/\//i.test(v) || /^\//.test(v) || /^data:image\//i.test(v) ||
+               /\.(png|jpe?g|gif|webp|svg|bmp)(\?|#|$)/i.test(v);
+    }
+    function formatClock(total) {
+        const s = Math.max(0, Math.floor(total));
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+        const p = n => String(n).padStart(2, '0');
+        return p(h) + ':' + p(m) + ':' + p(sec);
+    }
+    function debounce(fn, wait) {
+        let t; return function () { clearTimeout(t); const a = arguments; t = setTimeout(() => fn.apply(null, a), wait); };
     }
 
-    const questionsData = questionsRaw;
-    const totalQuestions = questionsData.length;
-    const savedAnswers = {{ saved_answers|safe }};
+    /* =========================================================
+       ۳) وضعیت سوالات
+       ========================================================= */
+    const cards = Array.prototype.slice.call(document.querySelectorAll('.q-card'));
+    const QUESTIONS = cards.map(card => {
+        const qid = parseInt(card.dataset.qid, 10);
+        const pairs = parseJson(card.dataset.pairs, []);
+        pairs.forEach((p, i) => { if (p && !p.id) p.id = 'pair_' + qid + '_' + i; });
+        const blanks = parseJson(card.dataset.blanks, []);
+        return {
+            id: qid,
+            index: parseInt(card.dataset.index, 10),
+            type: card.dataset.type,
+            optionsType: card.dataset.otype || 'text',
+            canUpload: card.dataset.upload === '1',
+            maxScore: card.dataset.maxscore,
+            options: parseJson(card.dataset.options, []),
+            blanks: Array.isArray(blanks) ? blanks : [],
+            blanksCount: parseInt(card.dataset.blankscount || '0', 10) || (Array.isArray(blanks) ? blanks.length : 0),
+            pairs: pairs,
+            card: card,
+            area: el('answerArea' + qid),
+            state: { text: '', blanks: [], pairs: {}, image: null },
+            dirty: false,
+            saveState: 'idle'
+        };
+    });
+    const BY_ID = {};
+    QUESTIONS.forEach(q => { BY_ID[q.id] = q; });
+    const TOTAL = QUESTIONS.length;
+    const ONE_BY_ONE = EXAM_CONFIG.showMode === 'one_by_one';
 
-    let userAnswers = {};
-    let answeredStatus = new Array(totalQuestions).fill(false);
-    let timerSeconds = EXAM_CONFIG.remainingSeconds;
-    let timerInterval = null;
-    let isSubmitted = false;
-    let isTimeout = false;
-    let currentPageIndex = 0;
+    const runtime = {
+        current: 0,
+        submitted: false,
+        timedOut: false,
+        submitting: false,
+        violations: { tab: 0, copy: 0 },
+        lastLog: {},
+        logCount: 0
+    };
 
-    // ========== توابع کمکی ==========
-    function getCsrf() { return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || ''; }
+    /* =========================================================
+       ۴) پیام‌های کوچک (toast)
+       ========================================================= */
+    function toast(message, kind, timeout) {
+        const wrap = el('toastWrap');
+        if (!wrap) return;
+        const box = document.createElement('div');
+        box.className = 'toast ' + (kind || '');
+        box.innerHTML = '<span aria-hidden="true">' +
+            (kind === 'err' ? '⛔' : kind === 'warn' ? '⚠️' : kind === 'ok' ? '✅' : 'ℹ️') +
+            '</span><span>' + esc(message) + '</span>';
+        wrap.appendChild(box);
+        setTimeout(() => {
+            box.style.transition = 'opacity .3s, transform .3s';
+            box.style.opacity = '0';
+            box.style.transform = 'translateY(-8px)';
+            setTimeout(() => box.remove(), 320);
+        }, timeout || 3600);
+    }
+    function alertModal(title, text, icon) {
+        el('alertTitle').textContent = title;
+        el('alertText').textContent = text;
+        el('alertIco').textContent = icon || 'ℹ️';
+        openModal('alertModal');
+    }
 
-    function logCheat(type, detail) {
-        if (!EXAM_CONFIG.antiCheat) return;
-        fetch('/student/log-cheat/', {
+    /* =========================================================
+       ۵) رندر ویجت پاسخ هر نوع سوال
+       ========================================================= */
+    function radioOption(q, value, keyLabel, bodyHtml, extraClass) {
+        const on = q.state.text === String(value) ? ' is-on' : '';
+        return '<label class="opt' + (extraClass ? ' ' + extraClass : '') + on + '" data-value="' + esc(value) + '">' +
+            '<input type="radio" name="q_' + q.id + '" value="' + esc(value) + '"' + (on ? ' checked' : '') + '>' +
+            bodyHtml +
+            '</label>';
+    }
+
+    function renderOptions(q) {
+        const opts = (q.options && q.options.length) ? q.options : ['گزینه ۱', 'گزینه ۲', 'گزینه ۳', 'گزینه ۴'];
+        const useImg = q.optionsType === 'image' || q.optionsType === 'mixed';
+        let html = '<div class="opt-grid' + (q.type === 'true_false' || (!useImg && opts.length <= 2) ? ' cols-2' : '') + '" role="radiogroup">';
+
+        if (q.type === 'true_false') {
+            html += radioOption(q, 'true', '', '<span class="opt-mark"></span><span class="opt-body"><span class="opt-text">✅ صحیح</span></span>');
+            html += radioOption(q, 'false', '', '<span class="opt-mark"></span><span class="opt-body"><span class="opt-text">❌ غلط</span></span>');
+        } else {
+            opts.forEach((opt, i) => {
+                const val = String(i + 1);
+                const key = fa(i + 1) + ')';
+                const isImg = useImg && looksLikeImage(opt);
+                let body = '<span class="opt-mark"></span>';
+                if (isImg) {
+                    body = '<span class="opt-head-row"><span class="opt-mark"></span>' +
+                        '<span class="opt-key">گزینه ' + fa(i + 1) + '</span></span>' +
+                        '<span class="opt-body">' +
+                        '<img class="opt-img" src="' + esc(opt) + '" alt="گزینه ' + fa(i + 1) + '" loading="lazy" ' +
+                        'data-fallback="' + esc(opt) + '">' +
+                        '</span>';
+                } else {
+                    body += '<span class="opt-body"><span class="opt-key">' + key + '</span>' +
+                        '<span class="opt-text">' + esc(opt) + '</span></span>';
+                }
+                html += radioOption(q, val, key, body, isImg ? 'is-img' : '');
+            });
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function renderBlanks(q) {
+        const count = q.blanksCount || 1;
+        let html = '<div class="blank-list">';
+        for (let i = 0; i < count; i++) {
+            const label = (q.blanks[i] && String(q.blanks[i]).trim()) ? String(q.blanks[i]).trim() : '';
+            const value = q.state.blanks[i] || '';
+            html += '<div class="blank-item">' +
+                '<span class="blank-label">' + esc(label || ('جای خالی ' + fa(i + 1))) + '</span>' +
+                '<input type="text" class="fld js-blank" data-idx="' + i + '" value="' + esc(value) + '" ' +
+                'placeholder="پاسخ خود را بنویسید…" maxlength="400" autocomplete="off" ' +
+                'aria-label="' + esc(label || ('جای خالی ' + fa(i + 1))) + '">' +
+                '</div>';
+        }
+        html += '</div>';
+        if (count > 1) html += '<p class="hint" style="margin-top:8px">پاسخ هر جای خالی را در کادر مقابل همان شماره بنویسید.</p>';
+        return html;
+    }
+
+    function renderTextarea(q, rows, placeholder, maxlength) {
+        const len = (q.state.text || '').length;
+        return '<textarea class="fld js-text" rows="' + rows + '" placeholder="' + esc(placeholder) + '" ' +
+            'maxlength="' + (maxlength || 10000) + '" aria-label="پاسخ سوال">' + esc(q.state.text || '') + '</textarea>' +
+            '<div class="fld-row"><span class="hint">پاسخ شما به‌صورت خودکار ذخیره می‌شود.</span>' +
+            '<span class="counter js-counter">' + fa(len) + ' نویسه</span></div>';
+    }
+
+    function renderUpload(q) {
+        const has = !!q.state.image;
+        return '<div class="drop js-drop" role="button" tabindex="0" aria-label="آپلود تصویر پاسخ">' +
+            '<span class="drop-ico">📷</span>' +
+            '<span class="drop-txt">' + (has ? 'تغییر تصویر پاسخ' : 'انتخاب یا کشیدن تصویر پاسخ') + '</span>' +
+            '<span class="drop-hint">JPG · PNG · WEBP · حداکثر ۵ مگابایت</span>' +
+            '<input type="file" class="js-file" accept="image/*" hidden>' +
+            '</div>' +
+            '<div class="up-bar js-upbar" style="display:none"><i></i></div>' +
+            '<div class="js-preview">' + (has ? previewHtml(q) : '') + '</div>';
+    }
+
+    function previewHtml(q) {
+        return '<div class="preview">' +
+            '<img src="' + esc(q.state.image) + '" class="zoom-trigger" alt="تصویر پاسخ شما" loading="lazy">' +
+            '<div class="preview-cap">✅ تصویر پاسخ ذخیره شد</div>' +
+            '<div class="fld-row" style="justify-content:center">' +
+            '<button type="button" class="btn btn-ghost btn-sm js-remove-img">🗑️ حذف تصویر</button>' +
+            '</div></div>';
+    }
+
+    function renderMatching(q) {
+        if (!q.pairs || !q.pairs.length) {
+            return '<div class="notice err"><span class="ico">⚠️</span><div>گزینه‌های این سوال توسط معلم تعریف نشده است.</div></div>';
+        }
+        const rights = seededShuffle(q.pairs.map((p, i) => ({ id: p.id || ('pair_' + q.id + '_' + i), text: p.right || '' })), q.id * 7919 + 13);
+        let html = '<p class="match-note">برای هر مورد، گزینه مناسب را از فهرست انتخاب کنید.</p><div class="match">';
+        q.pairs.forEach((pair, i) => {
+            const pid = pair.id || ('pair_' + q.id + '_' + i);
+            const selected = q.state.pairs[pid] || '';
+            html += '<div class="match-row' + (selected ? ' is-on' : '') + '" data-pid="' + esc(pid) + '">' +
+                '<div class="match-left">' + esc(pair.left || ('مورد ' + fa(i + 1))) + '</div>' +
+                '<span class="match-arrow" aria-hidden="true">⟵</span>' +
+                '<select class="fld js-match" data-pid="' + esc(pid) + '" aria-label="انتخاب گزینه برای ' + esc(pair.left || '') + '">' +
+                '<option value="">— انتخاب کنید —</option>';
+            rights.forEach(r => {
+                html += '<option value="' + esc(r.id) + '"' + (selected === r.id ? ' selected' : '') + '>' + esc(r.text) + '</option>';
+            });
+            html += '</select>' +
+                '<button type="button" class="match-clear js-match-clear" data-pid="' + esc(pid) + '" aria-label="پاک کردن انتخاب" ' +
+                (selected ? '' : 'style="display:none"') + '>✕</button>' +
+                '</div>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function renderWidget(q) {
+        if (!q.area) return;
+        let html = '';
+        const t = q.type;
+
+        if (t === 'true_false' || t === 'multiple_choice') {
+            html += renderOptions(q);
+        } else if (t === 'fill_blank') {
+            html += renderBlanks(q);
+        } else if (t === 'short_answer') {
+            html += renderTextarea(q, 2, 'پاسخ کوتاه خود را بنویسید…', 1000);
+        } else if (t === 'long_answer') {
+            html += renderTextarea(q, 6, 'پاسخ تشریحی خود را کامل بنویسید…', 10000);
+        } else if (t === 'matching') {
+            html += renderMatching(q);
+        } else if (t === 'image_answer') {
+            html += renderUpload(q);
+            html += '<div style="margin-top:11px">' + renderTextarea(q, 2, 'توضیح (اختیاری)…', 2000) + '</div>';
+        } else {
+            html += renderTextarea(q, 4, 'پاسخ خود را بنویسید…', 10000);
+        }
+
+        if (q.canUpload && t !== 'image_answer') {
+            html += '<div style="margin-top:12px">' + renderUpload(q) + '</div>';
+        }
+
+        q.area.innerHTML = html;
+        bindWidget(q);
+        syncImageErrors(q);
+    }
+
+    // اگر تصویر گزینه‌ها بارگذاری نشد، متن جایگزین نمایش داده می‌شود
+    function syncImageErrors(q) {
+        q.area.querySelectorAll('img.opt-img').forEach(img => {
+            img.addEventListener('error', function handler() {
+                img.removeEventListener('error', handler);
+                const body = img.closest('.opt-body');
+                if (body && !body.querySelector('.opt-broken')) {
+                    const div = document.createElement('div');
+                    div.className = 'opt-broken';
+                    div.textContent = 'تصویر بارگذاری نشد: ' + (img.dataset.fallback || '');
+                    body.appendChild(div);
+                }
+                img.style.display = 'none';
+            });
+        });
+    }
+
+    /* =========================================================
+       ۶) اتصال رویدادهای ویجت هر سوال
+       ========================================================= */
+    function bindWidget(q) {
+        const area = q.area;
+        if (!area) return;
+
+        // ---- گزینه‌های رادیویی (صحیح/غلط و تستی) ----
+        area.querySelectorAll('input[type=radio]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                q.state.text = radio.value;
+                area.querySelectorAll('.opt').forEach(o => {
+                    const input = o.querySelector('input');
+                    o.classList.toggle('is-on', !!(input && input.checked));
+                });
+                markChanged(q, true);
+            });
+        });
+
+        // ---- جاخالی ----
+        area.querySelectorAll('.js-blank').forEach(input => {
+            const handler = () => {
+                const idx = parseInt(input.dataset.idx, 10);
+                q.state.blanks[idx] = input.value;
+                markChanged(q, false);
+            };
+            input.addEventListener('input', handler);
+            input.addEventListener('blur', () => { if (q.dirty) flushOne(q.id); });
+        });
+
+        // ---- پاسخ تشریحی / کوتاه ----
+        area.querySelectorAll('.js-text').forEach(ta => {
+            const counter = ta.parentElement.querySelector('.js-counter');
+            const updateCounter = () => {
+                if (!counter) return;
+                counter.textContent = fa(ta.value.length) + ' نویسه';
+                counter.classList.toggle('over', ta.value.length >= (parseInt(ta.getAttribute('maxlength'), 10) || 10000));
+            };
+            ta.addEventListener('input', () => {
+                q.state.text = ta.value;
+                updateCounter();
+                markChanged(q, false);
+            });
+            ta.addEventListener('blur', () => { if (q.dirty) flushOne(q.id); });
+            updateCounter();
+        });
+
+        // ---- وصل کردنی ----
+        area.querySelectorAll('.js-match').forEach(sel => {
+            sel.addEventListener('change', () => {
+                const pid = sel.dataset.pid;
+                if (sel.value) q.state.pairs[pid] = sel.value;
+                else delete q.state.pairs[pid];
+                const row = sel.closest('.match-row');
+                if (row) {
+                    row.classList.toggle('is-on', !!sel.value);
+                    const clr = row.querySelector('.js-match-clear');
+                    if (clr) clr.style.display = sel.value ? 'grid' : 'none';
+                }
+                markChanged(q, true);
+            });
+        });
+        area.querySelectorAll('.js-match-clear').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pid = btn.dataset.pid;
+                delete q.state.pairs[pid];
+                const row = btn.closest('.match-row');
+                if (row) {
+                    const sel = row.querySelector('.js-match');
+                    if (sel) sel.value = '';
+                    row.classList.remove('is-on');
+                    btn.style.display = 'none';
+                }
+                markChanged(q, true);
+            });
+        });
+
+        // ---- آپلود تصویر ----
+        const drop = area.querySelector('.js-drop');
+        const fileInput = area.querySelector('.js-file');
+        if (drop && fileInput) {
+            const pick = () => fileInput.click();
+            drop.addEventListener('click', pick);
+            drop.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); }
+            });
+            ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+                e.preventDefault(); drop.classList.add('is-over');
+            }));
+            ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+                e.preventDefault(); drop.classList.remove('is-over');
+            }));
+            drop.addEventListener('drop', e => {
+                const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (f) uploadImage(q, f);
+            });
+            fileInput.addEventListener('change', () => {
+                const f = fileInput.files && fileInput.files[0];
+                if (f) uploadImage(q, f);
+                fileInput.value = '';
+            });
+        }
+        const removeBtn = area.querySelector('.js-remove-img');
+        if (removeBtn) removeBtn.addEventListener('click', () => removeImage(q));
+
+        area.querySelectorAll('.zoom-trigger').forEach(bindZoomTrigger);
+    }
+
+    function uploadImage(q, file) {
+        if (!file.type || file.type.indexOf('image/') !== 0) {
+            toast('فقط فایل تصویری مجاز است.', 'err'); return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast('حجم تصویر نباید بیشتر از ۵ مگابایت باشد.', 'err'); return;
+        }
+        const bar = q.area.querySelector('.js-upbar');
+        const drop = q.area.querySelector('.js-drop');
+        const fd = new FormData();
+        fd.append('question_id', q.id);
+        fd.append('answer_image', file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', URLS.image);
+        xhr.setRequestHeader('X-CSRFToken', getCsrf());
+        if (bar) { bar.style.display = 'block'; bar.firstElementChild.style.width = '8%'; }
+        if (drop) drop.classList.add('is-busy');
+        setBadge(q, 'saving', 'در حال آپلود تصویر…');
+
+        xhr.upload.onprogress = e => {
+            if (bar && e.lengthComputable) bar.firstElementChild.style.width = Math.round(e.loaded / e.total * 100) + '%';
+        };
+        xhr.onload = () => {
+            if (bar) bar.style.display = 'none';
+            if (drop) drop.classList.remove('is-busy');
+            let data = {};
+            try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) { data = {}; }
+            if (xhr.status >= 200 && xhr.status < 300 && data.success) {
+                q.state.image = data.image_url || null;
+                if (q.state.text === q.state.image) q.state.text = '';
+                repaintUpload(q);
+                refreshQuestion(q);
+                setBadge(q, 'saved', 'تصویر ذخیره شد ✓');
+                toast('تصویر پاسخ با موفقیت ذخیره شد.', 'ok', 2200);
+            } else if (xhr.status === 403) {
+                lockExam(data.error || 'زمان آزمون به پایان رسیده است.');
+            } else {
+                setBadge(q, 'error', data.error || 'آپلود ناموفق بود');
+                toast(data.error || 'آپلود تصویر ناموفق بود.', 'err');
+            }
+        };
+        xhr.onerror = () => {
+            if (bar) bar.style.display = 'none';
+            if (drop) drop.classList.remove('is-busy');
+            setBadge(q, 'error', 'خطای اتصال در آپلود تصویر');
+            toast('اتصال شبکه برقرار نیست؛ تصویر ذخیره نشد.', 'err');
+        };
+        xhr.send(fd);
+    }
+
+    function removeImage(q) {
+        fetch(URLS.removeImage, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
-            body: JSON.stringify({ exam_id: EXAM_CONFIG.id, cheat_type: type, detail: detail })
-        }).catch(e => console.log);
+            body: JSON.stringify({ question_id: q.id })
+        }).then(r => r.json().catch(() => ({}))).then(() => {
+            q.state.image = null;
+            repaintUpload(q);
+            refreshQuestion(q);
+            setBadge(q, 'saved', 'تصویر حذف شد');
+        }).catch(() => toast('حذف تصویر ناموفق بود.', 'err'));
     }
 
-    if (EXAM_CONFIG.preventCopy) {
-        document.addEventListener('copy', e => { e.preventDefault(); logCheat('copy_paste', 'تلاش برای کپی'); });
-        document.addEventListener('paste', e => { e.preventDefault(); logCheat('copy_paste', 'تلاش برای پیست'); });
-        document.addEventListener('contextmenu', e => { e.preventDefault(); logCheat('right_click', 'کلیک راست'); });
-    }
-
-    let tabCount = 0;
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden && EXAM_CONFIG.preventTab && !isSubmitted && !isTimeout) {
-            tabCount++;
-            logCheat('tab_switch', `تغییر تب (دفعه ${tabCount})`);
-        }
-    });
-
-    // ========== تایمر ==========
-    function formatTime(s) {
-        if (s < 0) s = 0;
-        let h = Math.floor(s / 3600);
-        let m = Math.floor((s % 3600) / 60);
-        let sec = s % 60;
-        return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
-    }
-
-    function updateTimerUI() {
-        const el = document.getElementById('timerDisplay');
-        if (!el) return;
-        el.innerText = formatTime(timerSeconds);
-        el.classList.remove('warning', 'danger');
-        if (timerSeconds <= 60) {
-            el.classList.add('danger');
-            document.getElementById('warningBar').style.display = 'block';
-        } else if (timerSeconds <= EXAM_CONFIG.durationMinutes * 60 * 0.15) {
-            el.classList.add('warning');
+    function repaintUpload(q) {
+        const holder = q.area.querySelector('.js-preview');
+        if (holder) holder.innerHTML = q.state.image ? previewHtml(q) : '';
+        const dropTxt = q.area.querySelector('.drop-txt');
+        if (dropTxt) dropTxt.textContent = q.state.image ? 'تغییر تصویر پاسخ' : 'انتخاب یا کشیدن تصویر پاسخ';
+        if (holder) {
+            const btn = holder.querySelector('.js-remove-img');
+            if (btn) btn.addEventListener('click', () => removeImage(q));
+            holder.querySelectorAll('.zoom-trigger').forEach(bindZoomTrigger);
         }
     }
 
-    async function autoSubmit() {
-        if (isSubmitted || isTimeout) return;
-        isTimeout = true;
+    /* =========================================================
+       ۷) وضعیت پاسخ‌ها و ذخیره خودکار
+       ========================================================= */
+    function isAnswered(q) {
+        const s = q.state;
+        if (q.type === 'fill_blank') return (s.blanks || []).some(v => v && String(v).trim());
+        if (q.type === 'matching') return Object.keys(s.pairs || {}).some(k => !!s.pairs[k]);
+        if (q.type === 'image_answer') return !!s.image || !!(s.text && s.text.trim());
+        return !!(s.text && String(s.text).trim()) || !!s.image;
+    }
+
+    function payloadFor(q) {
+        if (q.type === 'fill_blank') return { blanks: (q.state.blanks || []).map(v => (v || '').trim()) };
+        if (q.type === 'matching') return { answer_text: JSON.stringify(q.state.pairs || {}) };
+        return { answer_text: q.state.text || '' };
+    }
+
+    function setBadge(q, kind, text) {
+        const b = el('saveStatus' + q.id);
+        if (!b) return;
+        b.className = 'save-badge' + (kind && kind !== 'idle' ? ' ' + kind : '');
+        b.textContent = '';
+        if (!text) return;
+        const prefix = kind === 'saving' ? '⏳ ' : kind === 'saved' ? '✅ ' : kind === 'error' ? '⛔ ' : '';
+        b.appendChild(document.createTextNode(prefix + text));
+        if (kind === 'error') {
+            const retry = document.createElement('button');
+            retry.type = 'button';
+            retry.textContent = 'تلاش مجدد';
+            retry.addEventListener('click', () => flushOne(q.id, true));
+            b.appendChild(document.createTextNode(' '));
+            b.appendChild(retry);
+        }
+        if (kind === 'saved') setTimeout(() => { if (b.classList.contains('saved')) b.textContent = ''; }, 2500);
+    }
+
+    function refreshQuestion(q) {
+        const ok = isAnswered(q);
+        q.card.classList.toggle('is-answered', ok);
+        const st = el('qstate_' + q.id);
+        if (st) {
+            st.textContent = ok ? 'پاسخ داده شد' : 'پاسخ داده نشده';
+            st.classList.toggle('on', ok);
+        }
+        updateStats();
+        refreshPalette();
+    }
+
+    function markChanged(q, immediate) {
+        if (runtime.locked || runtime.submitted) return;
+        q.dirty = true;
+        dirty.set(q.id, payloadFor(q));
+        refreshQuestion(q);
+        updateNet();
+        if (immediate) flushOne(q.id);
+        else scheduleFlush(q.id);
+    }
+
+    const dirty = new Map();
+    const timers = {};
+
+    function scheduleFlush(qid) {
+        clearTimeout(timers[qid]);
+        timers[qid] = setTimeout(() => flushOne(qid), 900);
+    }
+
+    function flushOne(qid, force) {
+        const q = BY_ID[qid];
+        if (!q) return Promise.resolve(false);
+        const payload = dirty.get(qid);
+        if (!payload) return Promise.resolve(true);
+        if (runtime.locked || runtime.submitted) return Promise.resolve(false);
+        if (q.saving && !force) return q.saving;
+
+        setBadge(q, 'saving', 'در حال ذخیره…');
+        const body = Object.assign({ question_id: qid }, payload);
+
+        const p = fetch(URLS.save, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'fetch' },
+            body: JSON.stringify(body),
+            keepalive: true
+        }).then(async res => {
+            let data = {};
+            try { data = await res.json(); } catch (e) { data = {}; }
+            q.saving = null;
+            if (res.ok && data.success) {
+                dirty.delete(qid);
+                q.dirty = false;
+                setBadge(q, 'saved', 'ذخیره شد');
+                updateNet();
+                return true;
+            }
+            if (res.status === 403) {
+                lockExam(data.error || 'امکان ذخیره پاسخ وجود ندارد.');
+                return false;
+            }
+            setBadge(q, 'error', data.error || 'ذخیره پاسخ ناموفق بود');
+            updateNet();
+            return false;
+        }).catch(() => {
+            q.saving = null;
+            setBadge(q, 'error', 'خطای اتصال — ذخیره نشد');
+            updateNet();
+            return false;
+        });
+
+        q.saving = p;
+        return p;
+    }
+
+    async function flushAll() {
+        const ids = Array.from(dirty.keys());
+        for (const id of ids) { await flushOne(id); }
+        return dirty.size === 0;
+    }
+
+    function updateNet() {
+        const node = el('netStatus');
+        if (!node) return;
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            node.innerHTML = '<span class="tb-dot" style="background:#ff9b9b"></span>اتصال قطع است — پاسخ‌ها ذخیره نمی‌شوند';
+            return;
+        }
+        if (runtime.locked) {
+            node.innerHTML = '<span class="tb-dot" style="background:#ff9b9b"></span>ذخیره پاسخ غیرفعال شد';
+            return;
+        }
+        if (dirty.size) {
+            node.innerHTML = '<span class="tb-dot" style="background:#ffd27a"></span>' + fa(dirty.size) + ' پاسخ در انتظار ذخیره';
+            return;
+        }
+        node.innerHTML = '<span class="tb-dot"></span>ذخیره خودکار پاسخ‌ها فعال است';
+    }
+
+    function lockExam(message) {
+        if (runtime.locked) return;
+        runtime.locked = true;
         clearInterval(timerInterval);
-        await saveAllAnswers();
-        document.getElementById('timeoutModal').style.display = 'flex';
-        setTimeout(() => {
-            window.location.href = `/student/submit/${EXAM_CONFIG.hashedId}/`;
-        }, 1500);
+        updateNet();
+        const box = el('noticeArea');
+        if (box) {
+            box.innerHTML = '<div class="notice err"><span class="ico">⛔</span><div><b>' + esc(message) + '</b><br>' +
+                'پاسخ‌های ذخیره‌شده شما محفوظ است. برای مشاهده وضعیت، به داشبورد بازگردید.' +
+                '<div style="margin-top:9px"><a class="btn btn-ghost btn-sm" href="' + URLS.dashboard + '">بازگشت به داشبورد</a></div>' +
+                '</div></div>';
+        }
+        toast(message, 'err', 6000);
+    }
+
+    /* =========================================================
+       ۸) تایمر (شناور یا ثابت — طبق انتخاب معلم)
+       ========================================================= */
+    let timerInterval = null;
+    let syncInterval = null;
+    let deadlineTs = Date.now() + Math.max(0, EXAM_CONFIG.remainingSeconds || 0) * 1000;
+    const initialSeconds = Math.max(1, EXAM_CONFIG.remainingSeconds || 0);
+    const warnSeconds = Math.min(300, Math.max(30, Math.round(initialSeconds * 0.2)));
+
+    function paintTimer() {
+        const left = Math.max(0, Math.round((deadlineTs - Date.now()) / 1000));
+        const text = formatClock(left);
+        const main = el('timerDisplay');
+
+        let cls = 'timer';
+        if (left <= 60) cls += ' danger';
+        else if (left <= warnSeconds) cls += ' warning';
+
+        if (main) { main.textContent = text; main.className = cls; }
+        if (left === 300 || left === 60) {
+            toast(left === 60 ? 'تنها ۱ دقیقه تا پایان آزمون فرصت دارید!' : '۵ دقیقه تا پایان آزمون باقی مانده است.', left === 60 ? 'err' : 'warn', 5000);
+        }
+        return left;
     }
 
     function startTimer() {
-        updateTimerUI();
+        paintTimer();
         timerInterval = setInterval(() => {
-            if (isSubmitted || isTimeout) return;
-            if (timerSeconds <= 1) {
-                clearInterval(timerInterval);
-                timerSeconds = 0;
-                updateTimerUI();
-                autoSubmit();
-            } else {
-                timerSeconds--;
-                updateTimerUI();
-            }
+            if (runtime.submitted || runtime.timedOut) return;
+            const left = paintTimer();
+            if (left <= 0) timeUp();
         }, 1000);
+
+        // همگام‌سازی با سرور (جلوگیری از خطای ساعت دستگاه یا خواب رفتن لپ‌تاپ)
+        syncInterval = setInterval(syncWithServer, 60000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                const left = paintTimer();
+                if (left <= 0 && !runtime.submitted && !runtime.timedOut) timeUp();
+                else syncWithServer();
+            }
+        });
     }
 
-    // ========== ذخیره پاسخ ==========
-    async function saveAnswerToServer(qId, value) {
-        const statusDiv = document.getElementById(`saveStatus${qId}`);
-        if (statusDiv) statusDiv.innerText = '💾 ذخیره...';
+    function syncWithServer() {
+        if (runtime.submitted || runtime.timedOut) return;
+        fetch(URLS.time, { headers: { 'X-Requested-With': 'fetch' }, cache: 'no-store' })
+            .then(r => r.json()).then(data => {
+                if (typeof data.remaining_seconds !== 'number') return;
+                const local = Math.max(0, Math.round((deadlineTs - Date.now()) / 1000));
+                const server = Math.max(0, data.remaining_seconds);
+                if (server <= 0) { timeUp(); return; }
+                if (Math.abs(server - local) > 20) {
+                    deadlineTs = Date.now() + server * 1000;
+                    paintTimer();
+                }
+            }).catch(() => { /* آفلاین: تایمر محلی ادامه دارد */ });
+    }
+
+    function timeUp() {
+        if (runtime.timedOut || runtime.submitted) return;
+        runtime.timedOut = true;
+        clearInterval(timerInterval);
+        clearInterval(syncInterval);
+        const t = el('timerDisplay');
+        if (t) { t.textContent = '00:00:00'; t.className = 'timer danger'; }
+        el('timeoutText').textContent = 'پاسخ‌های شما در حال ذخیره و ثبت نهایی است…';
+        openModal('timeoutModal');
+        finalizeSubmit(true);
+    }
+
+    /* =========================================================
+       ۹) ثبت نهایی
+       ========================================================= */
+    function collectAllAnswers() {
+        const out = {};
+        QUESTIONS.forEach(q => {
+            const payload = dirty.get(q.id) || (q.dirty ? payloadFor(q) : null);
+            if (payload) out[q.id] = payload;
+        });
+        return out;
+    }
+
+    // ⚠️ قبل از ثبت نهایی، همه ذخیره‌های در جریان باید تمام شوند؛
+    // وگرنه ممکن است پاسخی بعد از «ثبت شد» به سرور برسد و با ۴۰۳ رد شود.
+    async function awaitPendingSaves() {
+        for (let round = 0; round < 3; round++) {
+            const inflight = QUESTIONS.map(q => q.saving).filter(Boolean);
+            if (!inflight.length) break;
+            await Promise.all(inflight.map(p => p.catch(() => false)));
+        }
+        const ids = Array.from(dirty.keys());
+        for (const id of ids) { await flushOne(id); }
+    }
+
+    function setSubmitButtons(busy) {
+        document.querySelectorAll('.js-submit').forEach(btn => {
+            btn.disabled = busy;
+            if (busy) {
+                btn.dataset.label = btn.innerHTML;
+                btn.innerHTML = '<span>⏳</span><span>در حال ثبت…</span>';
+            } else if (btn.dataset.label) {
+                btn.innerHTML = btn.dataset.label;
+            }
+        });
+    }
+
+    async function finalizeSubmit(isTimeout) {
+        if (runtime.submitting) return;
+        runtime.submitting = true;
+        setSubmitButtons(true);
+
+        await awaitPendingSaves();
+        const answers = collectAllAnswers();
+        let redirect = URLS.dashboard;
+
         try {
-            const res = await fetch('/student/save-answer/', {
+            const res = await fetch(URLS.submit, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
-                body: JSON.stringify({ question_id: qId, answer_text: value })
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'fetch' },
+                body: JSON.stringify({ answers: answers })
             });
-            if (res.ok && statusDiv) {
-                statusDiv.innerText = '✅ ذخیره شد';
-                setTimeout(() => { if (statusDiv) statusDiv.innerText = ''; }, 1200);
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.success) {
+                runtime.submitted = true;
+                dirty.clear();
+                clearInterval(timerInterval);
+                clearInterval(syncInterval);
+                redirect = data.redirect || redirect;
+                window.onbeforeunload = null;
+                window.location.href = redirect;
+                return;
+            }
+            if (res.status === 404) {
+                // تلاش ثبت نشده (مثلاً ورود مستقیم) — مسیر جایگزین GET
+                window.location.href = URLS.submit;
+                return;
+            }
+            throw new Error(data.error || 'خطای نامشخص');
+        } catch (err) {
+            runtime.submitting = false;
+            setSubmitButtons(false);
+            if (isTimeout) {
+                el('timeoutText').textContent = 'ثبت نهایی با خطا مواجه شد. لطفاً اتصال خود را بررسی کرده و دوباره تلاش کنید.';
+                const ok = el('timeoutOk');
+                ok.disabled = false;
+                ok.textContent = 'تلاش مجدد برای ثبت';
+                ok.onclick = () => { ok.disabled = true; ok.textContent = 'در حال ثبت…'; finalizeSubmit(true); };
             } else {
-                const errorData = await res.json();
-                console.error('Save error:', errorData);
-                if(statusDiv) statusDiv.innerText = '❌ خطا';
-            }
-        } catch(e) {
-            console.error(e);
-            if(statusDiv) statusDiv.innerText = '❌ خطا';
-        }
-    }
-
-    function updateAnswer(qId, value, questionIndex) {
-        userAnswers[qId] = value;
-        const isAnswered = (value && value.length > 0 && value !== '{}' && value !== '[]');
-        answeredStatus[questionIndex] = isAnswered;
-
-        const answeredCount = answeredStatus.filter(v => v === true).length;
-        document.getElementById('statsText').innerHTML = `${answeredCount} از ${totalQuestions} پاسخ داده شده`;
-        document.getElementById('progressFill').style.width = (answeredCount / totalQuestions * 100) + '%';
-
-        if (EXAM_CONFIG.showMode === 'one_by_one') {
-            const submitBtn = document.getElementById('submitExamBtn');
-            submitBtn.style.display = (currentPageIndex === totalQuestions - 1) ? 'block' : 'none';
-        }
-
-        saveAnswerToServer(qId, value);
-    }
-
-    async function saveAllAnswers() {
-        for (let qId in userAnswers) {
-            if (userAnswers[qId]) await saveAnswerToServer(parseInt(qId), userAnswers[qId]);
-        }
-    }
-
-    // ========== رندر انواع سوال ==========
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
-    }
-
-    // رندر سوالات وصل کردنی با استفاده از ID ثابت - حل مشکل رندوم و ذخیره‌سازی صحیح
-    function renderMatching(qId, pairs, savedAnswerMap, questionIndex) {
-        if (!pairs || pairs.length === 0) return '<div>داده‌ای وجود ندارد</div>';
-
-        // ساخت ستون راست با رندوم کردن (اما حفظ ID اصلی)
-        let rightItems = pairs.map(p => ({ id: p.id, text: p.right }));
-        for (let i = rightItems.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [rightItems[i], rightItems[j]] = [rightItems[j], rightItems[i]];
-        }
-
-        let html = `<div class="matching-simple" data-matching-qid="${qId}">`;
-        for (let i = 0; i < pairs.length; i++) {
-            const pair = pairs[i];
-            const savedValue = (savedAnswerMap && savedAnswerMap[pair.id]) ? savedAnswerMap[pair.id] : '';
-
-            html += `<div class="match-row" data-row-idx="${i}" data-left-id="${pair.id}">
-                        <div class="match-left">${escapeHtml(pair.left)}</div>
-                        <select class="match-select" data-left-id="${pair.id}">
-                            <option value="">-- انتخاب کنید --</option>`;
-
-            for (let j = 0; j < rightItems.length; j++) {
-                const selected = (savedValue === rightItems[j].id) ? 'selected' : '';
-                html += `<option value="${escapeHtml(rightItems[j].id)}" ${selected}>${escapeHtml(rightItems[j].text)}</option>`;
-            }
-
-            html += `</select>
-                    <button type="button" class="match-clear" data-left-id="${pair.id}" ${!savedValue ? 'style="display:none"' : ''}>✕</button>
-                    </div>`;
-        }
-        html += `</div>`;
-
-        return { html, rightItems };
-    }
-
-    // تابع جمع‌آوری پاسخ matching
-    function collectMatchingAnswer(qId) {
-        const container = document.querySelector(`#answerArea${qId} .matching-simple`);
-        if (!container) return '{}';
-
-        const selects = container.querySelectorAll('.match-select');
-        const answerMap = {};
-        selects.forEach(select => {
-            const leftId = select.dataset.leftId;
-            const selectedValue = select.value;
-            if (selectedValue) {
-                answerMap[leftId] = selectedValue;
-            }
-        });
-        return JSON.stringify(answerMap);
-    }
-
-    // رندر سوالات تشریحی و چند گزینه‌ای
-    function renderQuestion(qId, qData, savedValue, savedImage, questionIndex) {
-        const container = document.getElementById(`answerArea${qId}`);
-        if (!container) return;
-
-        let html = '';
-        let matchingRightItems = null;
-
-        if (qData.type === 'true_false') {
-            html = `<div class="options-group">
-                        <label class="option-item"><input type="radio" name="q_${qId}" value="true" ${savedValue === 'true' ? 'checked' : ''}> <span>✅ صحیح</span></label>
-                        <label class="option-item"><input type="radio" name="q_${qId}" value="false" ${savedValue === 'false' ? 'checked' : ''}> <span>❌ غلط</span></label>
-                    </div>`;
-        }
-        else if (qData.type === 'multiple_choice') {
-            const opts = qData.options.length ? qData.options : ['گزینه 1', 'گزینه 2', 'گزینه 3', 'گزینه 4'];
-            html = `<div class="options-group">`;
-            opts.forEach((opt, i) => {
-                const val = (i+1).toString();
-                html += `<label class="option-item"><input type="radio" name="q_${qId}" value="${val}" ${savedValue === val ? 'checked' : ''}> <span>${escapeHtml(opt)}</span></label>`;
-            });
-            html += `</div>`;
-        }
-        else if (qData.type === 'matching') {
-            let savedMap = {};
-            try {
-                const parsed = JSON.parse(savedValue || '{}');
-                if (typeof parsed === 'object' && parsed !== null) savedMap = parsed;
-            } catch(e) { savedMap = {}; }
-            const result = renderMatching(qId, qData.matchingPairs, savedMap, questionIndex);
-            html = result.html;
-            matchingRightItems = result.rightItems;
-        }
-        else if (qData.type === 'short_answer') {
-            html = `<textarea rows="3" id="text_${qId}" placeholder="پاسخ کوتاه خود را وارد کنید...">${escapeHtml(savedValue)}</textarea>`;
-        }
-        else if (qData.type === 'long_answer') {
-            html = `<textarea rows="5" id="text_${qId}" placeholder="پاسخ تشریحی خود را بنویسید...">${escapeHtml(savedValue)}</textarea>`;
-        }
-        else {
-            html = `<textarea rows="4" id="text_${qId}" placeholder="پاسخ خود را وارد کنید...">${escapeHtml(savedValue)}</textarea>`;
-        }
-
-        if (qData.allowImage || qData.type === 'image_answer') {
-            html += `<div class="upload-area" onclick="document.getElementById('file_${qId}').click()">
-                        📷 آپلود تصویر
-                        <input type="file" id="file_${qId}" accept="image/*" style="display:none">
-                    </div>
-                    <div id="preview_${qId}">${savedImage ? `<img src="${savedImage}" class="image-preview zoom-trigger">` : ''}</div>
-                    <button type="button" class="remove-img-btn" id="removeImg_${qId}" style="${savedImage ? 'display:inline-block' : 'display:none'}">🗑️ حذف</button>`;
-        }
-
-        container.innerHTML = html;
-
-        // اتصال رویدادها
-        if (qData.type === 'true_false' || qData.type === 'multiple_choice') {
-            const radios = document.querySelectorAll(`input[name="q_${qId}"]`);
-            radios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    const selected = document.querySelector(`input[name="q_${qId}"]:checked`);
-                    if (selected) updateAnswer(qId, selected.value, questionIndex);
-                });
-            });
-        }
-        else if (qData.type === 'matching') {
-            // اتصال رویدادهای matching
-            const selects = document.querySelectorAll(`#answerArea${qId} .match-select`);
-            const clears = document.querySelectorAll(`#answerArea${qId} .match-clear`);
-
-            const saveMatchingCallback = () => {
-                const answerMap = {};
-                selects.forEach(select => {
-                    const leftId = select.dataset.leftId;
-                    if (select.value) {
-                        answerMap[leftId] = select.value;
-                    }
-                });
-                updateAnswer(qId, JSON.stringify(answerMap), questionIndex);
-            };
-
-            selects.forEach(select => {
-                select.addEventListener('change', () => {
-                    const leftId = select.dataset.leftId;
-                    const clearBtn = document.querySelector(`#answerArea${qId} .match-clear[data-left-id="${leftId}"]`);
-                    if (clearBtn) clearBtn.style.display = select.value ? 'inline-block' : 'none';
-                    saveMatchingCallback();
-                });
-            });
-
-            clears.forEach(clear => {
-                clear.addEventListener('click', () => {
-                    const leftId = clear.dataset.leftId;
-                    const select = document.querySelector(`#answerArea${qId} .match-select[data-left-id="${leftId}"]`);
-                    if (select) select.value = '';
-                    clear.style.display = 'none';
-                    saveMatchingCallback();
-                });
-            });
-        }
-        else {
-            const textarea = document.getElementById(`text_${qId}`);
-            if (textarea) {
-                let timeout;
-                textarea.addEventListener('input', () => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => {
-                        updateAnswer(qId, textarea.value, questionIndex);
-                    }, 600);
-                });
+                closeAllModals();
+                alertModal('ثبت نهایی ناموفق بود', 'پاسخ‌های شما ذخیره شده‌اند، اما ثبت نهایی انجام نشد. لطفاً دوباره تلاش کنید.', '⛔');
             }
         }
-
-        // آپلود تصویر
-        const fileInput = document.getElementById(`file_${qId}`);
-        if (fileInput) {
-            fileInput.addEventListener('change', async (e) => {
-                if (!e.target.files[0]) return;
-                const fd = new FormData();
-                fd.append('question_id', qId);
-                fd.append('answer_image', e.target.files[0]);
-                const statusDiv = document.getElementById(`saveStatus${qId}`);
-                if(statusDiv) statusDiv.innerText = '📤 آپلود...';
-                try {
-                    const res = await fetch('/student/save-answer-image/', {
-                        method: 'POST', headers: { 'X-CSRFToken': getCsrf() }, body: fd
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        const preview = document.getElementById(`preview_${qId}`);
-                        if (preview) preview.innerHTML = `<img src="${data.image_url}" class="image-preview zoom-trigger">`;
-                        document.getElementById(`removeImg_${qId}`).style.display = 'inline-block';
-                        updateAnswer(qId, data.image_url, questionIndex);
-                        if(statusDiv) statusDiv.innerText = '✅ عکس ذخیره شد';
-                        setTimeout(() => { if(statusDiv) statusDiv.innerText = ''; }, 1200);
-                        initZoomTriggers();
-                    }
-                } catch(e) { if(statusDiv) statusDiv.innerText = '❌ خطا'; }
-            });
-        }
-
-        const removeBtn = document.getElementById(`removeImg_${qId}`);
-        if (removeBtn) {
-            removeBtn.addEventListener('click', async () => {
-                await fetch('/student/remove-answer-image/', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
-                    body: JSON.stringify({ question_id: qId })
-                });
-                document.getElementById(`preview_${qId}`).innerHTML = '';
-                removeBtn.style.display = 'none';
-                updateAnswer(qId, '', questionIndex);
-            });
-        }
     }
 
-    // ========== مدیریت حالت نمایش ==========
-    function applyDisplayMode() {
-        const cards = document.querySelectorAll('.question-card');
-        const submitBtn = document.getElementById('submitExamBtn');
-
-        if (EXAM_CONFIG.showMode === 'one_by_one') {
-            cards.forEach((card, i) => {
-                card.classList.add('page-mode');
-                card.classList.toggle('active', i === currentPageIndex);
-            });
-            submitBtn.style.display = (currentPageIndex === totalQuestions - 1) ? 'block' : 'none';
-            updateNavButtons();
-        } else {
-            cards.forEach(card => card.classList.remove('page-mode', 'active'));
-            submitBtn.style.display = 'block';
-        }
-    }
-
-    function updateNavButtons() {
-        const prevBtn = document.querySelector(`.prev-btn[data-idx="${currentPageIndex}"]`);
-        const nextBtn = document.querySelector(`.next-btn[data-idx="${currentPageIndex}"]`);
-        if (prevBtn) {
-            prevBtn.disabled = (!EXAM_CONFIG.showBackBtn || currentPageIndex === 0);
-            prevBtn.onclick = () => { if (currentPageIndex > 0) showPageQuestion(currentPageIndex - 1); };
-        }
-        if (nextBtn) {
-            nextBtn.disabled = (currentPageIndex === totalQuestions - 1);
-            nextBtn.onclick = () => { if (currentPageIndex < totalQuestions - 1) showPageQuestion(currentPageIndex + 1); };
-        }
-    }
-
-    function showPageQuestion(index) {
-        if (index < 0 || index >= totalQuestions) return;
-        currentPageIndex = index;
-        const cards = document.querySelectorAll('.question-card');
-        cards.forEach((card, i) => card.classList.toggle('active', i === index));
-        updateNavButtons();
-        const submitBtn = document.getElementById('submitExamBtn');
-        submitBtn.style.display = (currentPageIndex === totalQuestions - 1) ? 'block' : 'none';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // ========== زوم ==========
-    let zoomScale = 1, zoomX = 0, zoomY = 0;
-    let isPanning = false, panStartX = 0, panStartY = 0, panStartZoomX = 0, panStartZoomY = 0;
-
-    function updateZoomTransform() {
-        const img = document.getElementById('zoomImage');
-        if (img) img.style.transform = `translate(${zoomX}px, ${zoomY}px) scale(${zoomScale})`;
-    }
-
-    function openZoom(src) {
-        const modal = document.getElementById('zoomModal');
-        const img = document.getElementById('zoomImage');
-        zoomScale = 1; zoomX = 0; zoomY = 0;
-        img.src = src;
-        updateZoomTransform();
-        modal.classList.add('active');
-    }
-
-    function closeZoom() { document.getElementById('zoomModal').classList.remove('active'); }
-    function resetZoom() { zoomScale = 1; zoomX = 0; zoomY = 0; updateZoomTransform(); }
-
-    function setupZoomEvents() {
-        const canvas = document.getElementById('zoomCanvas');
-        if (!canvas) return;
-
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? -0.1 : 0.1;
-            zoomScale = Math.min(Math.max(zoomScale + delta, 0.8), 3);
-            updateZoomTransform();
-        }, { passive: false });
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (zoomScale <= 1) return;
-            isPanning = true;
-            panStartX = e.clientX;
-            panStartY = e.clientY;
-            panStartZoomX = zoomX;
-            panStartZoomY = zoomY;
-            canvas.style.cursor = 'grabbing';
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isPanning) return;
-            zoomX = panStartZoomX + (e.clientX - panStartX);
-            zoomY = panStartZoomY + (e.clientY - panStartY);
-            updateZoomTransform();
-        });
-
-        window.addEventListener('mouseup', () => { isPanning = false; canvas.style.cursor = 'grab'; });
-
-        let touchStartX = 0, touchStartY = 0, touchStartZoomX = 0, touchStartZoomY = 0;
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1 && zoomScale > 1) {
-                e.preventDefault();
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                touchStartZoomX = zoomX;
-                touchStartZoomY = zoomY;
-            }
-        });
-        canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 1 && zoomScale > 1) {
-                e.preventDefault();
-                zoomX = touchStartZoomX + (e.touches[0].clientX - touchStartX);
-                zoomY = touchStartZoomY + (e.touches[0].clientY - touchStartY);
-                updateZoomTransform();
-            }
-        });
-        canvas.style.cursor = 'grab';
-    }
-
-    function initZoomTriggers() {
-        document.querySelectorAll('.zoom-trigger').forEach(img => {
-            img.removeEventListener('click', img._zoomHandler);
-            img._zoomHandler = (e) => { e.stopPropagation(); openZoom(img.src); };
-            img.addEventListener('click', img._zoomHandler);
-        });
-    }
-
-    // ========== مقداردهی اولیه ==========
-    function initQuestions() {
-        const cards = document.querySelectorAll('.question-card');
-        cards.forEach((card, idx) => {
-            const qId = parseInt(card.dataset.qid);
-            const qData = questionsData.find(q => q.id === qId);
-            if (!qData) return;
-
-            // بازیابی پاسخ ذخیره شده
-            let savedText = '';
-            let savedImg = null;
-
-            if (savedAnswers && savedAnswers[qId]) {
-                savedText = savedAnswers[qId].answer_text || '';
-                savedImg = savedAnswers[qId].answer_image || null;
-            }
-
-            // اگر سوال matching است و savedText خالی نباشد، آن را معتبر می‌کنیم
-            if (qData.type === 'matching' && savedText) {
-                try {
-                    const parsed = JSON.parse(savedText);
-                    if (typeof parsed === 'object' && parsed !== null) {
-                        savedText = JSON.stringify(parsed);
-                        userAnswers[qId] = savedText;
-                        if (Object.keys(parsed).length > 0) answeredStatus[idx] = true;
-                    } else {
-                        userAnswers[qId] = '{}';
-                        savedText = '{}';
-                    }
-                } catch(e) {
-                    userAnswers[qId] = '{}';
-                    savedText = '{}';
-                }
-            } else if (savedText && savedText.length > 0 && savedText !== '{}' && savedText !== '[]') {
-                userAnswers[qId] = savedText;
-                answeredStatus[idx] = true;
-            } else {
-                if (qData.type === 'matching') {
-                    userAnswers[qId] = '{}';
-                    savedText = '{}';
-                } else {
-                    userAnswers[qId] = '';
-                }
-            }
-
-            if (savedImg) {
-                userAnswers[qId] = savedImg;
-                answeredStatus[idx] = true;
-            }
-
-            renderQuestion(qId, qData, savedText, savedImg, idx);
-        });
-
-        const answeredCount = answeredStatus.filter(v => v === true).length;
-        document.getElementById('statsText').innerHTML = `${answeredCount} از ${totalQuestions} پاسخ داده شده`;
-        document.getElementById('progressFill').style.width = (answeredCount / totalQuestions * 100) + '%';
-
-        applyDisplayMode();
-    }
-
-    document.getElementById('submitExamBtn').onclick = async () => {
-        if (isSubmitted || isTimeout) {
-            alert('آزمون قبلاً ثبت شده است');
+    function openConfirm() {
+        if (runtime.submitted || runtime.submitting) return;
+        closeSide();
+        if (!TOTAL) {
+            alertModal('سوالی وجود ندارد', 'این آزمون هنوز سوالی ندارد؛ امکان ثبت نهایی وجود ندارد.', '📭');
             return;
         }
-        if (confirm('آیا از ثبت نهایی آزمون مطمئن هستید؟')) {
-            isSubmitted = true;
-            clearInterval(timerInterval);
-            const btn = document.getElementById('submitExamBtn');
-            btn.disabled = true;
-            btn.innerText = '⏳ در حال ثبت...';
-            await saveAllAnswers();
-            window.location.href = `/student/submit/${EXAM_CONFIG.hashedId}/`;
+        const unanswered = QUESTIONS.filter(q => !isAnswered(q));
+        el('confirmText').textContent = 'شما به ' + fa(TOTAL - unanswered.length) + ' سوال از ' + fa(TOTAL) +
+            ' سوال پاسخ داده‌اید. پس از ثبت نهایی امکان ویرایش پاسخ‌ها وجود ندارد.';
+        const box = el('unansweredBox');
+        const nums = el('unansweredNums');
+        nums.innerHTML = '';
+        if (unanswered.length) {
+            box.style.display = 'block';
+            unanswered.forEach(q => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = 'سوال ' + fa(q.index + 1);
+                b.addEventListener('click', () => { closeAllModals(); goTo(q.index); });
+                nums.appendChild(b);
+            });
+        } else {
+            box.style.display = 'none';
         }
-    };
+        openModal('confirmModal');
+    }
 
-    initQuestions();
-    initZoomTriggers();
-    setupZoomEvents();
-    startTimer();
+    /* =========================================================
+       ۱۰) ناوبری بین سوالات + پالت
+       ========================================================= */
+    function goTo(index, silent) {
+        if (!TOTAL) return;
+        index = Math.max(0, Math.min(TOTAL - 1, index));
+        if (!EXAM_CONFIG.showBackBtn && index < runtime.current) {
+            if (!silent) toast('بازگشت به سوالهای قبلی توسط معلم غیرفعال شده است.', 'warn');
+            return;
+        }
+        runtime.current = index;
+        const q = QUESTIONS[index];
+
+        if (ONE_BY_ONE) {
+            cards.forEach((c, i) => c.classList.toggle('is-active', i === index));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (q && q.card) {
+            q.card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            q.card.classList.remove('flash');
+            void q.card.offsetWidth;
+            q.card.classList.add('flash');
+        }
+        updateNav();
+        refreshPalette();
+        closeSide();
+    }
+
+    function updateNav() {
+        const prev = el('btnPrev'), next = el('btnNext'), chip = el('abCounter');
+        if (prev) prev.disabled = !TOTAL || !EXAM_CONFIG.showBackBtn || runtime.current <= 0;
+        if (next) next.disabled = !TOTAL || runtime.current >= TOTAL - 1;
+        if (chip) {
+            chip.textContent = TOTAL ? ('سوال ' + fa(runtime.current + 1) + ' از ' + fa(TOTAL)) : 'سوالی وجود ندارد';
+        }
+    }
+
+    function updateStats() {
+        if (!TOTAL) {
+            const st = el('statsText');
+            if (st) st.textContent = 'این آزمون سوالی ندارد';
+            return;
+        }
+        const answered = QUESTIONS.filter(isAnswered).length;
+        const pct = Math.round(answered / TOTAL * 100);
+        const st = el('statsText');
+        if (st) st.textContent = fa(answered) + ' از ' + fa(TOTAL) + ' سوال پاسخ داده شده (' + fa(pct) + '٪)';
+        const fill = el('progressFill');
+        if (fill) fill.style.width = pct + '%';
+        const wrap = el('progressWrap');
+        if (wrap) wrap.setAttribute('aria-valuenow', String(pct));
+        const mini = el('abMiniFill');
+        if (mini) mini.style.width = pct + '%';
+        const sa = el('sumAnswered'); if (sa) sa.textContent = fa(answered);
+        const su = el('sumUnanswered'); if (su) su.textContent = fa(TOTAL - answered);
+        const stt = el('sumTotal'); if (stt) stt.textContent = fa(TOTAL);
+    }
+
+    function buildPalette() {
+        const host = el('palette');
+        if (!host) return;
+        host.innerHTML = '';
+        if (!TOTAL) {
+            host.innerHTML = '<p class="hint">سوالی برای نمایش وجود ندارد.</p>';
+            return;
+        }
+        QUESTIONS.forEach(q => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'pal';
+            b.dataset.idx = String(q.index);
+            b.setAttribute('aria-label', 'رفتن به سوال ' + fa(q.index + 1));
+            const num = document.createElement('span');
+            num.textContent = fa(q.index + 1);
+            b.appendChild(num);
+            b.addEventListener('click', () => goTo(q.index));
+            host.appendChild(b);
+        });
+    }
+
+    function refreshPalette() {
+        const chips = document.querySelectorAll('.pal');
+        chips.forEach(b => {
+            const idx = parseInt(b.dataset.idx, 10);
+            const q = QUESTIONS[idx];
+            if (!q) return;
+            const answered = isAnswered(q);
+            b.classList.toggle('is-answered', answered);
+            b.classList.toggle('is-current', idx === runtime.current);
+            b.disabled = ONE_BY_ONE && !EXAM_CONFIG.showBackBtn && idx < runtime.current;
+            b.setAttribute('aria-current', idx === runtime.current ? 'true' : 'false');
+            let tick = b.querySelector('.tick');
+            if (answered && !tick) {
+                tick = document.createElement('span');
+                tick.className = 'tick';
+                tick.textContent = '✓';
+                b.appendChild(tick);
+            } else if (!answered && tick) {
+                tick.remove();
+            }
+        });
+    }
+
+    function openSide() {
+        const side = el('examSide'), bd = el('backdrop'), btn = el('btnPalette');
+        if (!side) return;
+        side.classList.add('open');
+        if (bd) bd.classList.add('on');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+    }
+    function closeSide() {
+        const side = el('examSide'), bd = el('backdrop'), btn = el('btnPalette');
+        if (!side) return;
+        if (!side.classList.contains('open')) return;
+        side.classList.remove('open');
+        if (bd && !document.querySelector('.modal.on')) bd.classList.remove('on');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    /* =========================================================
+       ۱۱) مودال‌ها
+       ========================================================= */
+    function openModal(id) {
+        const m = el(id);
+        if (!m) return;
+        m.classList.add('on');
+        const bd = el('backdrop');
+        if (bd) bd.classList.add('on');
+        const focusable = m.querySelector('button:not([disabled])');
+        if (focusable) setTimeout(() => focusable.focus(), 60);
+    }
+    function closeAllModals() {
+        document.querySelectorAll('.modal.on').forEach(m => m.classList.remove('on'));
+        const bd = el('backdrop');
+        if (bd && !el('examSide').classList.contains('open')) bd.classList.remove('on');
+    }
+
+    /* =========================================================
+       ۱۲) زوم تصویر
+       ========================================================= */
+    let zoomScale = 1, zoomX = 0, zoomY = 0, panning = false, startX = 0, startY = 0, baseX = 0, baseY = 0, pinchStart = 0;
+
+    function applyZoom() {
+        const img = el('zoomImage');
+        if (img) img.style.transform = 'translate(' + zoomX + 'px,' + zoomY + 'px) scale(' + zoomScale + ')';
+    }
+    function openZoom(src) {
+        const m = el('zoomModal'), img = el('zoomImage');
+        if (!m || !img) return;
+        zoomScale = 1; zoomX = 0; zoomY = 0;
+        img.src = src;
+        applyZoom();
+        m.classList.add('on');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeZoom() {
+        const m = el('zoomModal');
+        if (m) m.classList.remove('on');
+        if (!document.querySelector('.modal.on') && !el('examSide').classList.contains('open')) document.body.style.overflow = '';
+    }
+    function bindZoomTrigger(img) {
+        if (img._zoomBound) return;
+        img._zoomBound = true;
+        img.addEventListener('click', e => { e.stopPropagation(); openZoom(img.currentSrc || img.src); });
+    }
+    function initZoom() {
+        const canvas = el('zoomCanvas');
+        if (!canvas) return;
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.15 : 0.15;
+            zoomScale = Math.min(5, Math.max(0.6, zoomScale + delta));
+            applyZoom();
+        }, { passive: false });
+
+        canvas.addEventListener('pointerdown', e => {
+            if (e.pointerType === 'touch' && e.isPrimary === false) return;
+            panning = true; startX = e.clientX; startY = e.clientY; baseX = zoomX; baseY = zoomY;
+            try { canvas.setPointerCapture(e.pointerId); } catch (err) { }
+        });
+        canvas.addEventListener('pointermove', e => {
+            if (!panning) return;
+            zoomX = baseX + (e.clientX - startX);
+            zoomY = baseY + (e.clientY - startY);
+            applyZoom();
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev =>
+            canvas.addEventListener(ev, () => { panning = false; }));
+
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 2) {
+                panning = false;
+                pinchStart = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                ) || 1;
+            }
+        }, { passive: true });
+        canvas.addEventListener('touchmove', e => {
+            if (e.touches.length === 2 && pinchStart) {
+                e.preventDefault();
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                zoomScale = Math.min(5, Math.max(0.6, zoomScale * (dist / pinchStart)));
+                pinchStart = dist;
+                applyZoom();
+            }
+        }, { passive: false });
+
+        el('zoomClose').addEventListener('click', closeZoom);
+        el('zoomReset').addEventListener('click', () => { zoomScale = 1; zoomX = 0; zoomY = 0; applyZoom(); });
+        el('zoomModal').addEventListener('click', e => { if (e.target === el('zoomModal')) closeZoom(); });
+    }
+
+    /* =========================================================
+       ۱۳) سامانه ضد تقلب — فقط وقتی معلم فعال کرده باشد
+       ========================================================= */
+    function logCheat(type, detail) {
+        if (!EXAM_CONFIG.antiCheat) return;
+        const now = Date.now();
+        if (runtime.lastLog[type] && now - runtime.lastLog[type] < 3000) return;
+        if (runtime.logCount >= 40) return;
+        runtime.lastLog[type] = now;
+        runtime.logCount++;
+        fetch(URLS.cheat, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+            body: JSON.stringify({ exam_id: EXAM_CONFIG.id, cheat_type: type, detail: detail || '' }),
+            keepalive: true
+        }).catch(() => { });
+    }
+
+    function initAntiCheat() {
+        if (!EXAM_CONFIG.antiCheat) return;
+
+        if (EXAM_CONFIG.preventCopy) {
+            const blocked = e => {
+                e.preventDefault();
+                runtime.violations.copy++;
+                logCheat('copy_paste', 'تلاش برای ' + e.type + ' (دفعه ' + runtime.violations.copy + ')');
+                toast('کپی/پیست و کلیک راست در این آزمون غیرفعال است (' + fa(runtime.violations.copy) + ' تخلف ثبت شد).', 'warn', 2600);
+            };
+            ['copy', 'cut', 'paste'].forEach(ev => document.addEventListener(ev, blocked));
+            document.addEventListener('contextmenu', e => {
+                if (e.target && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { e.preventDefault(); return; }
+                blocked(e);
+            });
+            document.addEventListener('dragstart', e => {
+                if (e.target && e.target.tagName === 'IMG') e.preventDefault();
+            });
+        }
+
+        if (EXAM_CONFIG.preventTab) {
+            const onHidden = () => {
+                if (document.hidden && !runtime.submitted && !runtime.timedOut) {
+                    runtime.violations.tab++;
+                    logCheat('tab_switch', 'تغییر تب / کوچک کردن پنجره (دفعه ' + runtime.violations.tab + ')');
+                }
+            };
+            document.addEventListener('visibilitychange', onHidden);
+            window.addEventListener('blur', () => {
+                if (!runtime.submitted && !runtime.timedOut && document.hasFocus && !document.hasFocus()) {
+                    runtime.violations.tab++;
+                    logCheat('tab_switch', 'خروج فوکوس از پنجره آزمون (دفعه ' + runtime.violations.tab + ')');
+                }
+            });
+            window.addEventListener('focus', () => {
+                if (runtime.violations.tab > 0 && !runtime.submitted) {
+                    toast('خروج از صفحه آزمون ثبت شد (' + fa(runtime.violations.tab) + ' مورد). لطفاً در همین صفحه بمانید.', 'warn', 5000);
+                }
+            });
+        }
+
+        window.addEventListener('beforeprint', () => logCheat('print_screen', 'تلاش برای چاپ صفحه آزمون'));
+        document.addEventListener('keydown', e => {
+            const k = (e.key || '').toLowerCase();
+            if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's' || k === 'u')) {
+                e.preventDefault();
+                logCheat(k === 'u' ? 'right_click' : 'print_screen', 'کلید میانبر: ' + k);
+                toast('این عملیات در آزمون مجاز نیست و ثبت شد.', 'warn');
+            }
+            if (k === 'printscreen' || e.keyCode === 44) {
+                logCheat('screenshot', 'فشردن کلید Print Screen');
+                toast('گرفتن تصویر از صفحه ثبت شد.', 'warn');
+            }
+        });
+    }
+
+    /* =========================================================
+       ۱۴) بازیابی پاسخ‌های ذخیره‌شده قبلی
+       ========================================================= */
+    function restoreSaved() {
+        QUESTIONS.forEach(q => {
+            const rec = SAVED[q.id] || SAVED[String(q.id)] || {};
+            let text = rec.answer_text || '';
+            const image = rec.answer_image || null;
+
+            // ⚠️ در نسخه قدیمی، آدرس عکس در متن پاسخ ذخیره می‌شد — خودترمیمی
+            if (image && text === image) text = '';
+            if (!image && q.canUpload && text && looksLikeImage(text) && text.length < 300) {
+                q.state.image = text;
+                text = '';
+            }
+
+            if (q.type === 'matching') {
+                const map = parseJson(text, {});
+                q.state.pairs = (map && typeof map === 'object' && !Array.isArray(map)) ? map : {};
+                const valid = {};
+                q.pairs.forEach((p, i) => {
+                    const pid = p.id || ('pair_' + q.id + '_' + i);
+                    if (q.state.pairs[pid]) valid[pid] = q.state.pairs[pid];
+                });
+                q.state.pairs = valid;
+            } else if (q.type === 'fill_blank') {
+                const parts = String(text).split('|').map(s => s.trim());
+                q.state.blanks = parts.length > 1 ? parts : (text ? [text] : []);
+                while (q.state.blanks.length < (q.blanksCount || 1)) q.state.blanks.push('');
+            } else {
+                q.state.text = String(text || '');
+            }
+            if (image && !q.state.image) q.state.image = image;
+            q.dirty = false;
+        });
+    }
+
+    /* =========================================================
+       ۱۵) راه‌اندازی
+       ========================================================= */
+    function bindGlobal() {
+        const prev = el('btnPrev'), next = el('btnNext');
+        if (prev) prev.addEventListener('click', () => goTo(runtime.current - 1));
+        if (next) next.addEventListener('click', () => goTo(runtime.current + 1));
+
+        const chip = el('btnPalette');
+        if (chip) chip.addEventListener('click', () => {
+            el('examSide').classList.contains('open') ? closeSide() : openSide();
+        });
+        const sideClose = el('sideClose');
+        if (sideClose) sideClose.addEventListener('click', closeSide);
+        const bd = el('backdrop');
+        if (bd) bd.addEventListener('click', () => { closeSide(); closeAllModals(); });
+
+        document.querySelectorAll('.js-submit').forEach(btn => btn.addEventListener('click', openConfirm));
+        el('confirmCancel').addEventListener('click', closeAllModals);
+        el('confirmOk').addEventListener('click', () => { closeAllModals(); finalizeSubmit(false); });
+        el('alertOk').addEventListener('click', closeAllModals);
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                if (el('zoomModal').classList.contains('on')) { closeZoom(); return; }
+                if (el('timeoutModal').classList.contains('on')) return;
+                if (document.querySelector('.modal.on')) { closeAllModals(); return; }
+                closeSide();
+            }
+            if (e.altKey && !e.ctrlKey && !e.metaKey && TOTAL) {
+                if (e.key === 'ArrowLeft') { e.preventDefault(); goTo(runtime.current + 1); }
+                else if (e.key === 'ArrowRight') { e.preventDefault(); goTo(runtime.current - 1); }
+            }
+        });
+
+        window.addEventListener('online', () => { updateNet(); toast('اتصال برقرار شد؛ در حال ذخیره پاسخ‌ها…', 'ok', 2500); flushAll(); });
+        window.addEventListener('offline', () => { updateNet(); toast('اتصال اینترنت قطع شد. پاسخ‌ها را وارد کنید؛ پس از اتصال، ذخیره می‌شوند.', 'warn', 6000); });
+
+        window.addEventListener('beforeunload', e => {
+            if (runtime.submitted || runtime.timedOut) return;
+            if (dirty.size > 0) { e.preventDefault(); e.returnValue = ''; }
+        });
+        window.addEventListener('pagehide', () => {
+            if (runtime.submitted || runtime.timedOut || !dirty.size) return;
+            dirty.forEach((payload, qid) => {
+                try {
+                    fetch(URLS.save, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+                        body: JSON.stringify(Object.assign({ question_id: qid }, payload)),
+                        keepalive: true
+                    });
+                } catch (err) { }
+            });
+        });
+
+        // در حالت «همه سوالات در یک صفحه»، سوال جاری با اسکرول مشخص می‌شود
+        if (!ONE_BY_ONE && 'IntersectionObserver' in window && TOTAL) {
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const idx = parseInt(entry.target.dataset.index, 10);
+                    if (!isNaN(idx) && idx !== runtime.current) {
+                        runtime.current = idx;
+                        updateNav();
+                        refreshPalette();
+                    }
+                });
+            }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+            cards.forEach(c => io.observe(c));
+        }
+    }
+
+    function init() {
+        restoreSaved();
+        QUESTIONS.forEach(q => { renderWidget(q); refreshQuestion(q); });
+        buildPalette();
+        updateStats();
+        updateNet();
+        bindGlobal();
+        initAntiCheat();
+        initZoom();
+        document.querySelectorAll('.q-text .zoom-trigger').forEach(bindZoomTrigger);
+
+        if (TOTAL) {
+            if (ONE_BY_ONE) {
+                cards.forEach((c, i) => c.classList.toggle('is-active', i === 0));
+                runtime.current = 0;
+            }
+            updateNav();
+            refreshPalette();
+        } else {
+            const bar = el('actionbar');
+            if (bar) bar.style.display = 'none';
+            updateNav();
+        }
+
+        startTimer();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();
 </script>
 </body>
-</html>a
+</html>

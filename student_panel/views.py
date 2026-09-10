@@ -7,11 +7,13 @@ import uuid
 import json
 import hmac
 import hashlib
+from datetime import timedelta
 from decimal import Decimal
 from functools import wraps
 
 import jdatetime
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, Http404
 from django.utils import timezone
@@ -20,7 +22,8 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import PermissionDenied
 from django.core.files.images import get_image_dimensions
 
-from exams.models import Exam, Question, StudentAnswer, ExamAttempt, ExamSession, CheatAttempt
+from exams.models import (Exam, Question, StudentAnswer, ExamAttempt, ExamSession,
+                          CheatAttempt, TeacherAnswer)
 from accounts.models import Grade
 
 # ========== تنظیمات هش امنیتی ==========
@@ -147,6 +150,181 @@ def validate_image_file(file_obj, max_size=5 * 1024 * 1024):
         return False, 'فرمت مجاز: JPEG, PNG, GIF, WEBP'
 
     return True, 'OK'
+
+
+# ========== توابع کمکی آزمون (تنظیمات معلم) ==========
+SUBMIT_GRACE_SECONDS = 120  # فرصت ذخیره پاسخ‌ها لحظاتی بعد از پایان تایمر
+
+
+def get_client_ip(request):
+    """استخراج IP واقعی کاربر (با پشتیبانی از پروکسی)"""
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    if forwarded:
+        ip = forwarded.split(',')[0].strip()
+        if ip:
+            return ip[:45]
+    return (request.META.get('REMOTE_ADDR', '') or '')[:45]
+
+
+def exam_deadline(exam, attempt):
+    """محاسبه مهلت پایان آزمون بر اساس نوع تایمر انتخابی معلم"""
+    if exam.timer_type == 'fixed':
+        return exam.end_time
+    if attempt and attempt.started_at:
+        return attempt.started_at + timedelta(minutes=exam.duration_minutes or 0)
+    return None
+
+
+def exam_window_open(exam, attempt, grace_seconds=SUBMIT_GRACE_SECONDS):
+    """آیا هنوز امکان ذخیره پاسخ وجود دارد؟ (با اندکی فرصت برای ثبت خودکار)"""
+    deadline = exam_deadline(exam, attempt)
+    if not deadline:
+        return True
+    if timezone.is_naive(deadline):
+        deadline = timezone.make_aware(deadline)
+    return timezone.now() <= deadline + timedelta(seconds=grace_seconds)
+
+
+def render_correct_answer(question):
+    """پاسخ صحیح به شکل خوانا (برای نمایش بعد از آزمون، فقط اگر معلم اجازه داده باشد)"""
+    correct = (question.correct_answer or '').strip()
+    if not correct:
+        return ''
+
+    qtype = question.question_type
+    if qtype == 'true_false':
+        return '✅ صحیح' if correct.lower() == 'true' else '❌ غلط'
+
+    if qtype == 'multiple_choice':
+        options = question.options or []
+        try:
+            idx = int(correct) - 1
+        except (TypeError, ValueError):
+            return correct
+        if 0 <= idx < len(options):
+            return f'گزینه {idx + 1}: {options[idx]}'
+        return correct
+
+    if qtype == 'fill_blank':
+        parts = [p.strip() for p in correct.replace('،', ',').split(',') if p.strip()]
+        blanks = question.blanks or []
+        if len(parts) > 1:
+            lines = []
+            for i, val in enumerate(parts):
+                label = str(blanks[i]).strip() if i < len(blanks) and blanks[i] else f'جای خالی {i + 1}'
+                lines.append(f'{label}: {val}')
+            return '\n'.join(lines)
+        return correct
+
+    if qtype == 'matching':
+        try:
+            selections = json.loads(correct)
+        except (TypeError, ValueError):
+            return correct
+        pairs = question.matching_pairs or []
+        lines = []
+        for i, pair in enumerate(pairs):
+            key = f'pair_{question.id}_{i}'
+            value = selections.get(key)
+            left = pair.get('left', '')
+            right = ''
+            if value:
+                try:
+                    idx = int(str(value).split('_')[-1])
+                    if 0 <= idx < len(pairs):
+                        right = pairs[idx].get('right', '')
+                except (TypeError, ValueError):
+                    right = ''
+            lines.append(f'{left} ← {right or "—"}')
+        return '\n'.join(lines)
+
+    return correct
+
+
+def track_exam_session(request, exam):
+    """ثبت/به‌روزرسانی نشست آزمون در صورت فعال بودن «ردیابی IP» توسط معلم"""
+    if not exam.track_ip:
+        return None
+
+    ip = get_client_ip(request)
+    user_agent = request.META.get('HTTP_USER_AGENT', '')[:200]
+
+    session, created = ExamSession.objects.get_or_create(
+        student=request.user,
+        exam=exam,
+        defaults={
+            'ip_address': ip or None,
+            'user_agent': user_agent,
+            'is_active': True,
+        },
+    )
+
+    if created:
+        return session
+
+    previous_ip = session.ip_address
+    changed = False
+
+    if ip and ip != previous_ip:
+        if exam.enable_anti_cheat:
+            CheatAttempt.objects.create(
+                session=session,
+                cheat_type='different_ip',
+                detail=f'ورود با IP جدید: {ip} (IP قبلی: {previous_ip or "نامشخص"})',
+            )
+        session.ip_address = ip
+        changed = True
+
+    if user_agent and user_agent != session.user_agent:
+        session.user_agent = user_agent
+        changed = True
+
+    if not session.is_active:
+        session.is_active = True
+        changed = True
+
+    if changed:
+        session.save()
+    else:
+        ExamSession.objects.filter(pk=session.pk).update(last_activity=timezone.now())
+
+    return session
+
+
+def _normalize_fa(value):
+    """یکسان‌سازی متن فارسی برای مقایسه (ی/ك عربی، نیم‌فاصله، فاصله اضافی)"""
+    if value is None:
+        return ''
+    text = str(value).strip().lower()
+    text = text.replace('\u200c', ' ').replace('\u064a', 'ی').replace('\u0643', 'ک').replace('\u0629', 'ه')
+    return ' '.join(text.split())
+
+
+def blank_labels(blanks, correct_answer):
+    """برچسب جاهای خالی برای نمایش به دانش‌آموز
+
+    اگر معلم به‌جای «عنوان» جاهای خالی، خودِ پاسخ‌ها را در این فیلد وارد کرده باشد،
+    برای جلوگیری از لو رفتن پاسخ، برچسب‌ها خالی فرستاده می‌شوند (فقط تعداد محفوظ می‌ماند).
+    """
+    items = [str(b).strip() for b in (blanks or [])]
+    if not items:
+        return []
+    correct_parts = str(correct_answer or '').replace('،', ',').split(',')
+    correct_set = {_normalize_fa(p) for p in correct_parts if p.strip()}
+    if any(_normalize_fa(b) and _normalize_fa(b) in correct_set for b in items):
+        return ['' for _ in items]
+    return items
+
+
+def build_fill_blank_text(values):
+    """ساخت متن پاسخ جاخالی از فهرست ورودی‌ها: «مقدار۱ | مقدار۲»"""
+    if not isinstance(values, (list, tuple)):
+        return None
+    cleaned = [('' if v is None else str(v)).strip() for v in values]
+    if not any(cleaned):
+        return ''
+    return ' | '.join(cleaned)
+
 
 
 @login_required
@@ -367,11 +545,12 @@ def take_exam(request, exam):
             return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
 
     # گرفتن سوالات
-    questions = list(exam.questions.all())
+    questions = list(exam.questions.all().order_by('order', 'id'))
     if exam.random_questions:
         random.Random(request.user.id + exam.id).shuffle(questions)
 
-    # تنظیم گزینه‌های پیش‌فرض
+    # تنظیم گزینه‌های پیش‌فرض و داده‌های موردنیاز قالب
+    total_score = 0.0
     for q in questions:
         if q.question_type == 'multiple_choice' and not q.options:
             q.options = ['گزینه 1', 'گزینه 2', 'گزینه 3', 'گزینه 4']
@@ -380,7 +559,21 @@ def take_exam(request, exam):
         # شامل ' یا </script> باشد صفحه می‌شکند. برای همین JSON سریال می‌کنیم.
         q.options_json = json.dumps(q.options or [], ensure_ascii=False)
         q.matching_pairs_json = json.dumps(q.matching_pairs or [], ensure_ascii=False)
-        q.blanks_json = json.dumps(q.blanks or [], ensure_ascii=False)
+        blanks_list = list(q.blanks or [])
+        q.blanks_json = json.dumps(blank_labels(blanks_list, q.correct_answer), ensure_ascii=False)
+        q.blanks_count = len(blanks_list) or 1
+
+        # ✅ داده‌های مشتق‌شده برای قالب/جاوااسکریپت
+        q.options_type = q.options_type or 'text'
+        q.can_upload = bool(q.allow_image_answer or q.question_type == 'image_answer')
+        q.type_display = q.get_question_type_display()
+        try:
+            total_score += float(q.max_score or 0)
+        except (TypeError, ValueError):
+            pass
+
+    # ✅ ردیابی IP طبق تنظیمات معلم
+    track_exam_session(request, exam)
 
     # گرفتن پاسخ‌های قبلی
     saved_answers = {}
@@ -397,48 +590,152 @@ def take_exam(request, exam):
         'exam': exam,
         'questions': questions,
         'remaining_seconds': int(remaining),
-        'saved_answers': json.dumps(saved_answers),
+        'saved_answers': json.dumps(saved_answers, ensure_ascii=False),
+        'saved_answers_data': saved_answers,
         'duration_minutes': exam.duration_minutes,
         'timer_type': exam.timer_type,
-        'end_time_jalali': to_jalali(exam.end_time) if exam.timer_type == 'fixed' else None,
+        'start_time_jalali': to_jalali(exam.start_time),
+        'end_time_jalali': to_jalali(exam.end_time),
+        'total_score': ('%g' % total_score),
+        'attempt_started_jalali': to_jalali(attempt.started_at) if attempt.started_at else '',
         'hashed_exam_id': hashed_exam_id,  # ✅ اضافه شده
     })
 # ========== ذخیره پاسخ ==========
+def _resolve_question(question_id):
+    return Question.objects.filter(id=question_id).first() if question_id else None
+
+
+def _apply_answer_payload(user, question, data):
+    """اعمال یک پاسخ روی StudentAnswer — پاسخ ۴۰۰/۴۰۳ یا شیء ذخیره‌شده"""
+    attempt = ExamAttempt.objects.filter(student=user, exam=question.exam).first()
+    if attempt and attempt.status in ['submitted', 'timeout']:
+        return JsonResponse({'error': 'آزمون ثبت نهایی شده است'}, status=403)
+
+    if not exam_window_open(question.exam, attempt):
+        return JsonResponse({'error': 'زمان آزمون به پایان رسیده است'}, status=403)
+
+    raw_text = data.get('answer_text', None)
+    blanks = data.get('blanks', None)
+
+    # ✅ سوال جاخالی: چند ورودی مستقل → یک متن واحد «مقدار۱ | مقدار۲»
+    if question.question_type == 'fill_blank' and blanks is not None:
+        raw_text = build_fill_blank_text(blanks)
+        if raw_text is None:
+            return JsonResponse({'error': 'مقادیر جای خالی نامعتبر است'}, status=400)
+
+    if raw_text is not None and not isinstance(raw_text, str):
+        return JsonResponse({'error': 'پاسخ نامعتبر است'}, status=400)
+
+    answer_text = None if raw_text is None else raw_text.strip()
+    if answer_text is not None and len(answer_text) > 10000:
+        return JsonResponse({'error': 'پاسخ بیش از حد طولانی است'}, status=400)
+
+    defaults = {}
+    # ⚠️ answer_text=None یعنی «بدون تغییر» (مثلاً فقط عکس آپلود شده است)
+    if answer_text is not None:
+        defaults['answer_text'] = answer_text
+
+    if not defaults:
+        answer = StudentAnswer.objects.filter(student=user, question=question).first()
+        if not answer:
+            answer = StudentAnswer.objects.create(student=user, question=question, answer_text='')
+        return answer
+
+    answer, _created = StudentAnswer.objects.update_or_create(
+        student=user,
+        question=question,
+        defaults=defaults,
+    )
+    return answer
+
+
 @require_http_methods(["POST"])
 @login_required
 def save_answer(request):
     """ذخیره پاسخ دانش‌آموز (AJAX)"""
     try:
         data = json.loads(request.body)
-        question_id = data.get('question_id')
-        answer_text = data.get('answer_text', '').strip()
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'داده نامعتبر'}, status=400)
 
-        if len(answer_text) > 10000:
-            return JsonResponse({'error': 'پاسخ بیش از حد طولانی است'}, status=400)
+    try:
+        question = _resolve_question(data.get('question_id'))
 
         # ⚠️ به‌جای get_object_or_404؛ چون Http404 داخل except Exception
         # به پاسخ 500 تبدیل می‌شد و خطای نامعتبر به‌صورت خطای سرور نمایش داده می‌شد
-        question = Question.objects.filter(id=question_id).first() if question_id else None
         if not question:
             return JsonResponse({'error': 'سوال یافت نشد'}, status=404)
 
         if request.user not in question.exam.students.all():
             return JsonResponse({'error': 'شما مجاز به پاسخ دادن نیستید'}, status=403)
 
-        attempt = ExamAttempt.objects.filter(student=request.user, exam=question.exam).first()
-        if attempt and attempt.status in ['submitted', 'timeout']:
-            return JsonResponse({'error': 'زمان آزمون به اتمام رسیده'}, status=403)
-
-        answer, created = StudentAnswer.objects.update_or_create(
-            student=request.user,
-            question=question,
-            defaults={'answer_text': answer_text}
-        )
+        answer = _apply_answer_payload(request.user, question, data)
+        if isinstance(answer, JsonResponse):
+            return answer
 
         return JsonResponse({'success': True, 'saved_at': str(answer.updated_at)})
 
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+@login_required
+def save_all_answers(request):
+    """ذخیره دسته‌ای همه پاسخ‌ها در یک درخواست (برای ثبت نهایی مطمئن)"""
+    try:
+        data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({'error': 'داده نامعتبر'}, status=400)
+
+    try:
+        exam_id = data.get('exam_id')
+        answers = data.get('answers') or {}
+
+        exam = Exam.objects.filter(id=exam_id).first() if exam_id else None
+        if not exam:
+            return JsonResponse({'error': 'آزمون یافت نشد'}, status=404)
+
+        if request.user not in exam.students.all():
+            return JsonResponse({'error': 'شما مجاز به پاسخ دادن نیستید'}, status=403)
+
+        attempt = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
+        if attempt and attempt.status in ['submitted', 'timeout']:
+            return JsonResponse({'success': True, 'saved': 0, 'skipped': len(answers),
+                                 'warning': 'آزمون قبلاً ثبت نهایی شده است'})
+
+        if not exam_window_open(exam, attempt):
+            return JsonResponse({'error': 'زمان آزمون به پایان رسیده است'}, status=403)
+
+        if not isinstance(answers, dict):
+            return JsonResponse({'error': 'داده نامعتبر'}, status=400)
+
+        saved = 0
+        failed = 0
+        question_ids = []
+        for key in list(answers.keys())[:200]:
+            try:
+                question_ids.append(int(key))
+            except (TypeError, ValueError):
+                failed += 1
+
+        questions = {q.id: q for q in Question.objects.filter(id__in=question_ids, exam=exam)}
+
+        for qid, value in answers.items():
+            question = questions.get(int(qid)) if str(qid).isdigit() else None
+            if not question:
+                failed += 1
+                continue
+
+            payload = value if isinstance(value, dict) else {'answer_text': value}
+            result = _apply_answer_payload(request.user, question, payload)
+            if isinstance(result, JsonResponse):
+                failed += 1
+            else:
+                saved += 1
+
+        return JsonResponse({'success': True, 'saved': saved, 'failed': failed})
+
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
@@ -520,15 +817,49 @@ def remove_answer_image(request):
 @login_required
 @exam_access_required
 def submit_exam(request, exam):
-    """ثبت نهایی آزمون"""
+    """ثبت نهایی آزمون (GET: ریدایرکت / POST: ذخیره پاسخ‌ها + ثبت نهایی)"""
+    # ✅ در حالت POST می‌توان پاسخ‌های نهایی را همراه درخواست فرستاد
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body or b'{}')
+        except json.JSONDecodeError:
+            data = {}
+
+        answers = data.get('answers') if isinstance(data, dict) else None
+        if isinstance(answers, dict) and answers:
+            attempt_check = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
+            already_done = bool(attempt_check and attempt_check.status in ['submitted', 'timeout'])
+            if not already_done:
+                question_ids = [int(k) for k in answers.keys() if str(k).isdigit()]
+                questions = {q.id: q for q in Question.objects.filter(id__in=question_ids, exam=exam)}
+                for qid, value in answers.items():
+                    question = questions.get(int(qid)) if str(qid).isdigit() else None
+                    if not question:
+                        continue
+                    payload = value if isinstance(value, dict) else {'answer_text': value}
+                    result = _apply_answer_payload(request.user, question, payload)
+                    if isinstance(result, JsonResponse) and result.status_code == 403:
+                        break
+
     attempt = get_object_or_404(ExamAttempt, student=request.user, exam=exam)
 
     if attempt.status == 'submitted':
+        if request.method == 'POST':
+            return JsonResponse({'success': True, 'already_submitted': True,
+                                 'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
         return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
 
     attempt.status = 'submitted'
     attempt.submitted_at = timezone.now()
     attempt.save()
+
+    # بستن نشست ردیابی IP
+    if exam.track_ip:
+        ExamSession.objects.filter(student=request.user, exam=exam).update(is_active=False)
+
+    if request.method == 'POST':
+        return JsonResponse({'success': True,
+                             'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
 
     return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
 
@@ -547,7 +878,11 @@ def exam_result_detail(request, exam_id):
     if request.user not in exam.students.all():
         return redirect('student_dashboard')
 
-    if not exam.show_score_to_student:
+    show_score = bool(exam.show_score_to_student)
+    show_answers = bool(exam.show_answers_after_exam)
+
+    # ⚠️ اگر معلم هیچ‌کدام را فعال نکرده باشد، دانش‌آموز کارنامه‌ای نمی‌بیند
+    if not show_score and not show_answers:
         return redirect('student_dashboard')
 
     attempt = ExamAttempt.objects.filter(student=request.user, exam=exam, status='submitted').first()
@@ -573,12 +908,18 @@ def exam_result_detail(request, exam_id):
 
         total_score += score
 
-        question_scores.append({
+        item = {
             'question': question,
             'answer': answer,
             'score': float(score),  # برای نمایش در قالب به float تبدیل می‌شود
             'max_score': float(max_score),
-        })
+            'correct_display': '',
+            'teacher_answer': None,
+        }
+        if show_answers:
+            item['correct_display'] = render_correct_answer(question)
+            item['teacher_answer'] = TeacherAnswer.objects.filter(question=question).first()
+        question_scores.append(item)
 
     total_score_float = float(total_score)
     total_possible_float = float(total_possible)
@@ -590,6 +931,8 @@ def exam_result_detail(request, exam_id):
         'total_possible': total_possible_float,
         'percentage': round(percentage, 1),
         'question_scores': question_scores,
+        'show_score': show_score,
+        'show_answers': show_answers,
     })
 # ========== API ==========
 @login_required
