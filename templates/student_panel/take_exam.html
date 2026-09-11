@@ -523,6 +523,12 @@
             .timer{font-size:1.02rem;padding:2px 10px}
         }
 
+        /* هاله سوال جاری در حالت «همه سوالات در یک صفحه» */
+        body.mode-all .q-card.is-current{
+            border-color:#e2cb8f;
+            box-shadow:0 0 0 2px rgba(196,154,43,.16), var(--sh1);
+        }
+
         /* فلش سفارشی برای فهرست‌های کشویی (وصل‌کردنی) */
         select.fld{
             appearance:none;-webkit-appearance:none;-moz-appearance:none;
@@ -1662,9 +1668,14 @@
             void q.card.offsetWidth;
             q.card.classList.add('flash');
         }
+        setCurrentCard(index);
         updateNav();
         refreshPalette();
         closeSide();
+    }
+
+    function setCurrentCard(index) {
+        cards.forEach((c, i) => c.classList.toggle('is-current', i === index));
     }
 
     function updateNav() {
@@ -2034,6 +2045,7 @@
                         runtime.current = idx;
                         updateNav();
                         refreshPalette();
+                        setCurrentCard(idx);
                     }
                 });
             }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
@@ -2057,6 +2069,7 @@
                 cards.forEach((c, i) => c.classList.toggle('is-active', i === 0));
                 runtime.current = 0;
             }
+            setCurrentCard(runtime.current);
             updateNav();
             refreshPalette();
         } else {
