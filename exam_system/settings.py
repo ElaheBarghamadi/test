@@ -10,8 +10,22 @@ SECRET_KEY = os.getenv(
     "django-insecure-change-this-in-production"
 )
 
-# ⚠️ Production mode
-DEBUG = os.getenv("DEBUG", "False") == "True"
+# ⚠️ حالت توسعه / تولید
+# اگر متغیر محیطی DEBUG تنظیم نشده باشد: اجرای با `runserver` یعنی توسعه،
+# و غیر از آن (gunicorn و…) یعنی تولید — تا روی دستگاه محلی فقط با
+# `python manage.py runserver` همه‌چیز بدون تنظیمات اضافه درست کار کند.
+import sys
+
+
+def _env_flag(name, default):
+    raw = os.getenv(name)
+    if raw is None or raw.strip() == '':
+        return default
+    return raw.strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+_RUNNING_DEV_SERVER = any(a.startswith('runserver') for a in sys.argv[1:])
+DEBUG = _env_flag('DEBUG', _RUNNING_DEV_SERVER)
 
 # 🔒 کوکی‌ها و نشست‌ها
 SESSION_COOKIE_HTTPONLY = True          # جاوااسکریپت به کوکی نشست دسترسی ندارد
@@ -64,10 +78,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'exam_system.middleware.SecurityHeadersMiddleware',
+]
 
-    # static files (IMPORTANT for Render)
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+if not DEBUG:
+    # سرویس فایل‌های استاتیک با WhiteNoise فقط در تولید؛
+    # در توسعه خودِ django.contrib.staticfiles بدون هشدار missing-dir سرو می‌کند.
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
 
+MIDDLEWARE += [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -127,7 +145,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+if not DEBUG:
+    # فقط در تولید: فشرده‌سازی + هش‌زدن نام فایل‌ها (نیازمند collectstatic)
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # 📸 Media (for exam images)
 MEDIA_URL = '/media/'
