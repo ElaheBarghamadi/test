@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>{% block title %}سامانه آزمون غیرحضوری{% endblock %}</title>
     <style>
-        * {
+        
+        /* ================== فونت وزیرمتن (بسته محلی) ================== */
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
+
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;

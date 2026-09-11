@@ -9,6 +9,12 @@
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='30'%20fill='%23c49a2b'/%3E%3Ctext%20x='32'%20y='44'%20font-size='34'%20text-anchor='middle'%3E%E2%9C%8D%3C/text%3E%3C/svg%3E">
     <title>{{ exam.title }} | آزمون آنلاین</title>
     <style>
+        /* ================== فونت وزیرمتن (بسته محلی) ================== */
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
+
         /* ================== متغیرهای طراحی ================== */
         :root{
             --bg1:#f8f3e9; --bg2:#e9dfcb;
@@ -516,6 +522,52 @@
             .tb-timer{align-self:start}
             .timer{font-size:1.02rem;padding:2px 10px}
         }
+
+        /* فلش سفارشی برای فهرست‌های کشویی (وصل‌کردنی) */
+        select.fld{
+            appearance:none;-webkit-appearance:none;-moz-appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a67c1e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:left 12px center;background-size:12px 8px;
+            padding-left:34px;cursor:pointer;
+        }
+
+        /* ---------- جزئیات تعاملی پاس دوم ---------- */
+        /* شماره گزینه به‌صورت نشان گرد */
+        .opt-key{
+            display:inline-grid;place-items:center;min-width:1.45em;height:1.45em;
+            background:#fff;border:1px solid var(--line);border-radius:8px;
+            font-size:.7rem;color:var(--gold3);margin-inline-end:7px;vertical-align:-3px;
+        }
+        .opt.is-on .opt-key{background:var(--gold);border-color:var(--gold);color:#fff}
+
+        /* نقطه وضعیت ذخیره: تپش ملایم */
+        .tb-dot{animation:pulse 2s ease-in-out infinite}
+        @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.65}}
+
+        /* بزرگ‌نمایی ظریف تصویر سوال هنگام hover */
+        .q-img{transition:transform .25s ease,box-shadow .25s ease;box-shadow:0 2px 10px rgba(60,40,20,.08)}
+        .q-img:hover{transform:scale(1.012);box-shadow:0 8px 22px rgba(60,40,20,.14)}
+
+        /* مودال‌ها: نوار طلایی بالا + نشان آیکن */
+        .modal-card{position:relative;overflow:hidden;padding-top:26px}
+        .modal-card::before{
+            content:'';position:absolute;top:0;inset-inline:0;height:6px;
+            background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));
+        }
+        .modal-ico{
+            width:64px;height:64px;margin:2px auto 0;border-radius:50%;
+            background:var(--goldsoft);border:1px solid #f0e0b8;display:grid;place-items:center;
+            font-size:1.9rem;box-shadow:0 6px 16px rgba(140,105,20,.15);
+        }
+
+        /* توست: آیکن داخل نشان */
+        .toast > span:first-child{
+            flex:0 0 26px;width:26px;height:26px;border-radius:50%;
+            background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:.85rem;
+        }
+
+        /* فشاردن دکمه‌ها */
+        .btn:active:not(:disabled),.ab-btn:active:not(:disabled),.pal:active:not(:disabled){transform:scale(.97)}
 
         @media (prefers-reduced-motion:reduce){
             *{animation-duration:.001s !important;transition-duration:.001s !important}
