@@ -1,0 +1,356 @@
+/* =====================================================================
+   سیستم طراحی یکپارچه سامانه آزمون
+   این فایل بعد از استایل اختصاصی هر صفحه لود می‌شود تا همه صفحه‌ها
+   یک تم مشترک (طلایی/کرم)، یک تایپوگرافی و یک رفتار ریسپانسیو داشته باشند.
+   ===================================================================== */
+
+@media screen {
+
+    :root {
+        --bg1: #f8f3e9; --bg2: #e9dfcb;
+        --card: #fffdfa; --card2: #fdf7ec;
+        --ink: #3d2c1c; --ink2: #6d543a; --ink3: #9c8568;
+        --line: #e9dcc4; --line2: #f3ead9;
+        --gold: #c49a2b; --gold2: #a67c1e; --gold3: #7d5d10; --goldsoft: #fdf4de;
+        --ok: #157a3b; --oksoft: #e7f6ec; --okline: #b9e2c6;
+        --warn: #b96c07; --warnsoft: #fff3e0; --warnline: #f3d3a4;
+        --err: #bd2222; --errsoft: #fdecec; --errline: #f2c4c4;
+        --r-lg: 20px; --r-md: 14px; --r-sm: 10px;
+        --sh1: 0 1px 2px rgba(80, 55, 30, .05), 0 6px 18px rgba(80, 55, 30, .06);
+    }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+        background-image:
+            radial-gradient(rgba(140, 105, 20, .05) 1px, transparent 1.4px),
+            linear-gradient(150deg, var(--bg1) 0%, var(--bg2) 100%);
+        background-size: 22px 22px, auto;
+        background-attachment: fixed;
+        color: var(--ink);
+        font-family: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
+        line-height: 1.85;
+    }
+
+    /* حباب‌ها/لایه‌های تزئینی ثابت صفحه‌های قدیمی حذف شوند */
+    body::before { content: none; }
+
+    ::selection { background: rgba(196, 154, 43, .35); color: var(--ink); }
+    :focus-visible { outline: 3px solid rgba(196, 154, 43, .6); outline-offset: 2px; border-radius: 6px; }
+
+    h1, h2, h3, h4 { color: var(--ink); }
+    a { color: var(--gold3); }
+
+    /* ================== نوار بالا: طلایی، هم‌شکل سربرگ صفحه آزمون ================== */
+    .navbar {
+        position: sticky; top: 0; z-index: 900;
+        background: linear-gradient(135deg, #6f5210, #a67c1e 55%, #c49a2b);
+        border: none; box-shadow: 0 6px 20px rgba(80, 55, 30, .18);
+        backdrop-filter: none; border-radius: 0;
+    }
+    .nav-container {
+        max-width: 1240px; margin: 0 auto;
+        display: flex; align-items: center; gap: 12px;
+        padding: 9px 16px;
+    }
+    .logo { display: flex; align-items: center; gap: 9px; }
+    .logo-icon {
+        width: 40px; height: 40px; font-size: 1.25rem;
+        background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .28);
+        border-radius: 12px; display: grid; place-items: center;
+    }
+    .logo-text { color: #fff; font-weight: 800; font-size: .95rem; line-height: 1.4; }
+    .logo-sub { color: rgba(255, 255, 255, .78); font-size: .62rem; line-height: 1.4; }
+    .nav-links { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .nav-link {
+        color: rgba(255, 255, 255, .94); text-decoration: none;
+        background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2);
+        padding: 5px 14px; border-radius: 999px; font-size: .78rem; font-weight: 600;
+        transition: .15s; white-space: nowrap;
+    }
+    .nav-link:hover { background: rgba(255, 255, 255, .25); }
+    .dropdown-btn {
+        display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+        color: #fff; background: rgba(255, 255, 255, .12);
+        border: 1px solid rgba(255, 255, 255, .25);
+        padding: 5px 14px; border-radius: 999px; font-size: .78rem; font-weight: 700;
+        font-family: inherit;
+    }
+    .dropdown-btn:hover { background: rgba(255, 255, 255, .25); }
+    .dropdown-content {
+        background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+        box-shadow: var(--sh1), 0 14px 34px rgba(60, 40, 20, .16);
+        padding: 6px; min-width: 200px;
+    }
+    .dropdown-content a,
+    .dropdown-content .logout-dropdown-btn {
+        color: var(--ink2); font-size: .78rem; font-weight: 600;
+        padding: 9px 12px; border-radius: 10px;
+        display: flex; align-items: center; gap: 8px; width: 100%;
+        background: none; border: none; cursor: pointer; text-align: right; font-family: inherit;
+    }
+    .dropdown-content a:hover,
+    .dropdown-content .logout-dropdown-btn:hover { background: var(--goldsoft); color: var(--gold3); }
+    .hamburger span { background: #fff; }
+
+    /* منوی موبایل base */
+    .mobile-menu, .nav-links.mobile-open {
+        background: var(--card); border-top: 1px solid var(--line);
+    }
+    .mobile-menu a, .nav-links.mobile-open a { color: var(--ink2); }
+
+    /* ================== کنترل‌های فرم یکسان ================== */
+    input[type=text], input[type=search], input[type=password], input[type=number],
+    input[type=email], input[type=date], input[type=datetime-local], select, textarea {
+        background: #fff; border: 1.5px solid var(--line); border-radius: var(--r-md);
+        padding: 9px 12px; font-size: .88rem; color: var(--ink);
+        font-family: inherit; transition: .15s; line-height: 1.7;
+    }
+    input:hover, select:hover, textarea:hover { border-color: #dcc489; }
+    input:focus, select:focus, textarea:focus {
+        border-color: var(--gold); outline: none; background: #fffdf6;
+        box-shadow: 0 0 0 3px rgba(196, 154, 43, .16);
+    }
+    select {
+        appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a67c1e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: left 12px center; background-size: 12px 8px;
+        padding-left: 32px; cursor: pointer;
+    }
+    label { font-size: .78rem; font-weight: 700; color: var(--ink2); }
+
+    /* ================== دکمه‌ها ================== */
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        background: var(--card2); color: var(--ink2); border: 1.5px solid var(--line);
+        border-radius: 999px; cursor: pointer;
+        font-weight: 700; font-size: .8rem; padding: 8px 16px;
+        font-family: inherit; text-decoration: none; transition: .15s; line-height: 1.6;
+    }
+    .btn:hover { border-color: var(--gold); color: var(--gold3); background: var(--goldsoft); }
+    a[class*="btn-"], a.btn { text-decoration: none; }
+    /* ورودی‌های دارای آیکن داخل کادر (صفحه ورود) */
+    .form-group input, .input-box input, .input-wrap input { padding: 12px 44px 12px 16px; }
+    .btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled, .btn.btn-disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    /* رنگ‌بندی معنایی یکسان برای دکمه‌های صفحه‌های مختلف */
+    .btn-primary, .btn-gold, .btn-start, .btn-questions, .btn-edit, .semester-btn,
+    .btn-filter, .filters .btn, .filters button {
+        background: linear-gradient(135deg, var(--gold), var(--gold3)); color: #fff;
+        border-color: transparent;
+        box-shadow: 0 5px 14px rgba(140, 105, 20, .25);
+    }
+    .btn-success, .btn-results, .btn-save, .btn-submit, .btn-answers {
+        background: linear-gradient(135deg, #1c9149, #136b33); color: #fff;
+        border-color: transparent;
+        box-shadow: 0 5px 14px rgba(19, 107, 51, .22);
+    }
+    .btn-info { background: var(--goldsoft); color: var(--gold3); border-color: #f0e0b8; }
+    .btn-danger, .btn-delete {
+        background: var(--errsoft); color: var(--err); border: 1px solid var(--errline);
+    }
+    .btn-danger:hover, .btn-delete:hover { background: #fbdcdc; }
+    .btn-secondary, .btn-print, .btn-toggle, .btn-back {
+        background: var(--card2); color: var(--ink2); border: 1.5px solid var(--line);
+    }
+    .btn-secondary:hover, .btn-print:hover, .btn-toggle:hover, .btn-back:hover {
+        border-color: var(--gold); color: var(--gold3); background: var(--goldsoft);
+    }
+    .btn-warning, .btn-grade {
+        background: linear-gradient(135deg, #e79a17, #b96c07); color: #fff; border-color: transparent;
+    }
+    .btn-primary:hover, .btn-gold:hover, .btn-start:hover, .btn-questions:hover, .btn-edit:hover,
+    .btn-success:hover, .btn-results:hover, .btn-save:hover, .btn-answers:hover,
+    .btn-warning:hover, .btn-grade:hover, .filters .btn:hover, .filters button:hover {
+        filter: brightness(1.07); color: #fff; background-image: none;
+    }
+
+    /* ================== کاشی‌های آمار ================== */
+    .stats {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px; margin-bottom: 16px;
+    }
+    .stat-card, .stat-tile, .info-stat {
+        position: relative; overflow: hidden;
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+        box-shadow: var(--sh1); padding: 14px 12px; text-align: center;
+    }
+    .stat-card::before, .info-stat::before {
+        content: ''; position: absolute; top: 0; inset-inline: 0; height: 4px;
+        background: linear-gradient(90deg, var(--gold), var(--gold2));
+    }
+    .stat-card.active::before, .stat-card.students::before { background: linear-gradient(90deg, #35b569, var(--ok)); }
+    .stat-card.ongoing::before { background: linear-gradient(90deg, #f0b429, var(--warn)); }
+    .stat-card.inactive::before { background: linear-gradient(90deg, #c9b391, var(--ink3)); }
+    .stat-number, .info-stat .value, .stat-card b {
+        font-size: 1.5rem; font-weight: 800; color: var(--gold3);
+        font-variant-numeric: tabular-nums; line-height: 1.4;
+    }
+    .stat-label, .info-stat .label { font-size: .74rem; color: var(--ink2); font-weight: 600; }
+
+    /* ================== کارت‌ها و بخش‌ها ================== */
+    .card, .welcome-card, .filter-card, .report-card, .panel, .box {
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+        box-shadow: var(--sh1); padding: 16px;
+    }
+    .welcome-card {
+        background:
+            radial-gradient(circle at 96% -30%, rgba(196, 154, 43, .16), transparent 55%),
+            linear-gradient(135deg, var(--card), var(--card2));
+        position: relative; overflow: hidden;
+    }
+    .welcome-title { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
+    .welcome-subtitle { font-size: .82rem; color: var(--ink2); }
+
+    .section-title, .page-title, h2.title {
+        display: flex; align-items: center; gap: 9px;
+        font-size: 1rem; font-weight: 800; color: var(--gold3);
+        margin: 18px 0 12px;
+    }
+    .section-title::before, .page-title::before {
+        content: ''; width: 4px; height: 1.15em; border-radius: 99px;
+        background: linear-gradient(180deg, var(--gold), var(--gold2));
+    }
+
+    /* ================== فیلترها ================== */
+    .filters {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px; align-items: end;
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+        box-shadow: var(--sh1); padding: 14px; margin-bottom: 16px;
+    }
+    .filter-group { display: grid; gap: 5px; }
+    .filter-group label { font-size: .72rem; }
+    .filter-group input, .filter-group select { width: 100%; }
+    .filters .btn { height: 41px; }
+
+    /* ================== کارت‌های آزمون ================== */
+    .exams-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 14px;
+    }
+    .exam-card, .exam-item {
+        position: relative; overflow: hidden;
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+        box-shadow: var(--sh1); padding: 14px 15px;
+        display: flex; flex-direction: column; gap: 10px;
+        transition: box-shadow .2s, transform .2s;
+    }
+    .exam-card:hover { box-shadow: var(--sh1), 0 10px 26px rgba(60, 40, 20, .10); transform: translateY(-2px); }
+    .exam-card::before {
+        content: ''; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 5px;
+        background: linear-gradient(180deg, var(--gold), var(--gold2));
+    }
+    .exam-card.status-ongoing::before, .exam-card.ongoing::before { background: linear-gradient(180deg, #f0b429, var(--warn)); }
+    .exam-card.status-completed::before, .exam-card.finished::before { background: linear-gradient(180deg, #35b569, var(--ok)); }
+    .exam-card.status-inactive::before, .exam-card.inactive::before { background: linear-gradient(180deg, #c9b391, var(--ink3)); }
+    .exam-title { font-size: .95rem; font-weight: 800; color: var(--ink); }
+    .exam-details, .exam-meta {
+        display: flex; flex-wrap: wrap; gap: 6px 14px;
+        font-size: .74rem; color: var(--ink2);
+    }
+    .exam-actions {
+        display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px;
+        border-top: 1px dashed var(--line2);
+    }
+    .exam-actions .btn, .exam-actions a, .exam-actions button {
+        font-size: .72rem; padding: 6px 12px; flex: 0 1 auto;
+    }
+
+
+    /* ================== نشان‌های وضعیت ================== */
+    .status-badge, .exam-status, .badge, .chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: .68rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+        background: var(--goldsoft); color: var(--gold3); border: 1px solid #f0e0b8;
+        white-space: nowrap;
+    }
+    .status-ongoing, .badge-warning, .status-badge.status-ongoing {
+        background: var(--warnsoft); color: var(--warn); border-color: var(--warnline);
+    }
+    .status-completed, .badge-success, .status-badge.status-completed {
+        background: var(--oksoft); color: var(--ok); border-color: var(--okline);
+    }
+    .status-inactive, .badge-secondary {
+        background: var(--card2); color: var(--ink3); border-color: var(--line);
+    }
+    .badge-danger, .status-error { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
+
+    /* ================== جدول‌ها ================== */
+    table {
+        width: 100%; border-collapse: separate; border-spacing: 0;
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md);
+        overflow: hidden; font-size: .82rem;
+    }
+    thead th {
+        background: var(--goldsoft); color: var(--gold3); font-weight: 800; font-size: .74rem;
+        padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+    }
+    tbody td { padding: 10px 12px; border-bottom: 1px solid var(--line2); color: var(--ink2); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: var(--card2); }
+    @media (max-width: 720px) {
+        table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+
+    /* ================== حالت خالی ================== */
+    .empty-state {
+        background: var(--card); border: 1.5px dashed var(--line); border-radius: var(--r-lg);
+        padding: 30px 18px; text-align: center; color: var(--ink2); font-size: .85rem;
+    }
+
+    /* ================== کاشی/چیپ اطلاعات ================== */
+    .info-stat {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255, 255, 255, .68); border: 1px solid var(--line);
+        border-radius: 999px; padding: 3px 12px;
+        font-size: .72rem; font-weight: 700; color: var(--ink2);
+    }
+    .info-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .info-badge {
+        display: grid; gap: 2px; text-align: center;
+        background: var(--card2); border: 1px solid var(--line2);
+        border-radius: var(--r-md); padding: 8px 10px;
+    }
+    .info-badge .label { font-size: .66rem; color: var(--ink3); font-weight: 600; }
+    .info-badge .value {
+        font-size: .82rem; font-weight: 800; color: var(--ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .info-two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .exam-card .btn-start, .exam-card .btn-disabled {
+        display: flex; width: 100%; justify-content: center;
+        padding: 10px; border-radius: 14px; font-size: .82rem; font-weight: 700;
+    }
+    .btn-disabled {
+        background: var(--card2); color: var(--ink3);
+        border: 1.5px dashed var(--line); cursor: not-allowed;
+    }
+
+    /* ================== ظرف صفحه‌ها ================== */
+    .container, .container-custom, .container-dashboard {
+        max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px;
+    }
+
+    /* ================== ریسپانسیو عمومی ================== */
+    @media (max-width: 640px) {
+        .stats { grid-template-columns: 1fr 1fr; gap: 9px; }
+        .stat-number, .info-stat .value { font-size: 1.25rem; }
+        .exams-grid { grid-template-columns: 1fr; }
+        .nav-container { padding: 8px 12px; }
+        .nav-link, .dropdown-btn { font-size: .72rem; padding: 4px 11px; }
+        .filters { grid-template-columns: 1fr 1fr; }
+        .filters .filter-group:last-of-type, .filters .btn { grid-column: 1 / -1; }
+        .welcome-card, .card, .report-card { padding: 13px; }
+        .container, .container-custom, .container-dashboard { padding: 12px 10px 60px; }
+        .exam-actions .btn, .exam-actions a { flex: 1 1 auto; justify-content: center; }
+    }
+
+    /* اسکرول‌بار باریک طلایی */
+    ::-webkit-scrollbar { width: 9px; height: 9px; }
+    ::-webkit-scrollbar-thumb { background: #d9c69a; border-radius: 99px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+}
