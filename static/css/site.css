@@ -330,6 +330,54 @@
         border: 1.5px dashed var(--line); cursor: not-allowed;
     }
 
+    /* ================== یکسان‌سازی تم‌های قدیمی (تخته‌سبز/شیشه تیره) ================== */
+    .exam-hero, .glass-header {
+        background: linear-gradient(135deg, #6f5210, #a67c1e 55%, #c49a2b) !important;
+        border: none !important; backdrop-filter: none !important;
+        border-radius: var(--r-lg) !important; color: #fff !important;
+        box-shadow: 0 10px 26px rgba(140, 105, 20, .22);
+        padding: 18px 20px !important; margin: 0 0 16px !important;
+    }
+    .exam-hero h1, .exam-hero h2, .exam-hero h3, .exam-hero p,
+    .glass-header h1, .glass-header h2, .glass-header h3, .glass-header p, .glass-header div {
+        color: #fff !important;
+    }
+    .exam-hero .exam-meta span, .glass-header .exam-meta span,
+    .exam-hero span[class], .glass-header span[class] {
+        background: rgba(255, 255, 255, .16) !important;
+        border: 1px solid rgba(255, 255, 255, .25) !important; color: #fff !important;
+    }
+    .progress-section, .mode-tabs {
+        background: var(--card) !important; border: 1px solid var(--line);
+        box-shadow: var(--sh1); border-radius: 16px; margin: 0 0 14px !important;
+    }
+    .progress-section { padding: 14px !important; }
+    .progress-stats { color: var(--ink2) !important; }
+    .progress-bar { background: var(--line2) !important; }
+    .progress-fill { background: linear-gradient(90deg, var(--gold), var(--gold3)) !important; }
+    .mode-tab { color: var(--ink2) !important; }
+    .mode-tab.active {
+        background: linear-gradient(135deg, var(--gold), var(--gold3)) !important;
+        color: #fff !important;
+    }
+    .btn-score {
+        background: var(--goldsoft); color: var(--gold3); border: 1px solid #f0e0b8;
+        border-radius: 999px; padding: 5px 12px; font-size: .72rem; font-weight: 700; cursor: pointer;
+    }
+    .btn-score.btn-zero { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
+    .btn-template { background: var(--card2); color: var(--ink2); border: 1.5px solid var(--line); }
+    .apply-filter-btn {
+        background: linear-gradient(135deg, var(--gold), var(--gold3)) !important;
+        color: #fff !important; border: none !important; border-radius: 999px !important;
+        padding: 8px 24px !important; font-weight: 700; cursor: pointer; font-family: inherit;
+        box-shadow: 0 5px 14px rgba(140, 105, 20, .25);
+    }
+    .reset-filter-btn {
+        background: var(--errsoft) !important; color: var(--err) !important;
+        border: 1px solid var(--errline) !important; border-radius: 999px !important;
+        padding: 8px 18px !important; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+
     /* ================== ظرف صفحه‌ها ================== */
     .container, .container-custom, .container-dashboard {
         max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px;
@@ -340,8 +388,15 @@
         .stats { grid-template-columns: 1fr 1fr; gap: 9px; }
         .stat-number, .info-stat .value { font-size: 1.25rem; }
         .exams-grid { grid-template-columns: 1fr; }
-        .nav-container { padding: 8px 12px; }
-        .nav-link, .dropdown-btn { font-size: .72rem; padding: 4px 11px; }
+        .nav-container { padding: 8px 12px; flex-wrap: wrap; }
+        .nav-links {
+            order: 3; width: 100%; display: flex; flex-wrap: nowrap; overflow-x: auto;
+            scrollbar-width: none; padding-bottom: 2px;
+            -webkit-mask-image: linear-gradient(to left, #000 88%, transparent);
+            mask-image: linear-gradient(to left, #000 88%, transparent);
+        }
+        .nav-links::-webkit-scrollbar { display: none; }
+        .nav-link, .dropdown-btn { font-size: .72rem; padding: 4px 11px; flex: 0 0 auto; }
         .filters { grid-template-columns: 1fr 1fr; }
         .filters .filter-group:last-of-type, .filters .btn { grid-column: 1 / -1; }
         .welcome-card, .card, .report-card { padding: 13px; }
