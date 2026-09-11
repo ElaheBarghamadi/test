@@ -4,7 +4,7 @@
 # ========== ایمپورت‌های پایه ==========
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q, Max
@@ -208,6 +208,16 @@ def teacher_dashboard(request):
     active_count = ongoing_count = inactive_count = 0
 
     for exam in exams:
+        # آمار سریع هر آزمون برای کارت‌های داشبورد
+        from django.db.models import Sum
+        submitted = ExamAttempt.objects.filter(exam=exam, status__in=['submitted', 'timeout']).count()
+        totals = [r['t'] for r in StudentAnswer.objects.filter(
+            question__exam=exam, score_obtained__isnull=False
+        ).values('student').annotate(t=Sum('score_obtained'))]
+        exam.submitted_count = submitted
+        exam.avg_total = round(sum(totals) / len(totals), 1) if totals else None
+        exam.questions_count = exam.questions.count()
+
         if not exam.is_active:
             status_data = ('inactive', 'غیرفعال', 'status-inactive', 'inactive')
             inactive_count += 1
@@ -759,6 +769,7 @@ def grade_exam(request, exam_id):
                 'answer_id': answer.id,
                 'score': float(answer.score_obtained) if answer.score_obtained is not None else None,
                 'is_correct': is_correct,
+                'auto_graded': bool(answer.auto_graded),
             })
 
         questions_with_answers.append({
@@ -802,6 +813,7 @@ def save_score(request):
     answer.score_obtained = score
     answer.graded_by = request.user
     answer.graded_at = timezone.now()
+    answer.auto_graded = False  # نمره دستی معلم جای تصحیح خودکار می‌نشیند
     answer.save()
 
     return JsonResponse({'success': True, 'score': float(score)})
@@ -834,6 +846,7 @@ def save_student_score(request, exam_id, student_id, question_id):
     answer.score_obtained = score
     answer.graded_by = request.user
     answer.graded_at = timezone.now()
+    answer.auto_graded = False  # نمره دستی معلم جای تصحیح خودکار می‌نشیند
     answer.save()
 
     return JsonResponse({'success': True, 'score': float(score)})
@@ -953,6 +966,7 @@ def exam_results(request, exam_id):
 
     return render(request, 'teacher_panel/exam_results.html', {
         'exam': exam,
+        'analysis': question_analysis(exam),
         'results': results,
         'stats': {
             'average_score': round(avg_score, 2),
@@ -1203,3 +1217,80 @@ def download_question_template(request):
             os.remove(template_path)
 
     return response
+
+
+def duplicate_exam(request, exam_id):
+    """کپی کامل آزمون همراه سوال‌ها و دانش‌آموزها (غیرفعال تا ویرایش معلم)"""
+    if request.method != 'POST':
+        return redirect('teacher_dashboard')
+    exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
+    check_teacher_access(request.user, exam)
+    questions = list(exam.questions.all())
+    students = list(exam.students.all())
+    title = exam.title
+    exam.pk = None
+    exam.title = f'{title} (کپی)'
+    exam.is_active = False
+    exam.save()
+    for q in questions:
+        q.pk = None
+        q.exam = exam
+        q.save()
+    exam.students.set(students)
+    return redirect('teacher_dashboard')
+
+
+def export_results_csv(request, exam_id):
+    """خروجی اکسل‌پسند (CSV با BOM فارسی) از نتایج آزمون"""
+    import csv
+    from decimal import Decimal
+
+    exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
+    check_teacher_access(request.user, exam)
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="exam-{exam.id}-results.csv"'
+    response.write('\ufeff')
+    writer = csv.writer(response)
+    writer.writerow(['ردیف', 'نام دانش‌آموز', 'نام کاربری', 'نمره', 'از مجموع', 'درصد', 'وضعیت', 'زمان ثبت'])
+
+    row = 1
+    for student in exam.students.filter(grade=exam.grade):
+        total_score = Decimal('0.00')
+        total_possible = Decimal('0.00')
+        for question in exam.questions.all():
+            answer = StudentAnswer.objects.filter(student=student, question=question).first()
+            total_possible += Decimal(str(question.max_score))
+            if answer and answer.score_obtained is not None:
+                total_score += Decimal(str(answer.score_obtained))
+        percentage = round(float(total_score / total_possible * 100), 1) if total_possible else 0
+        attempt = ExamAttempt.objects.filter(student=student, exam=exam).first()
+        status_text = dict(ExamAttempt.STATUS_CHOICES).get(attempt.status, '—') if attempt else '—'
+        submitted_at = to_jalali(attempt.submitted_at) if attempt and attempt.submitted_at else '—'
+        writer.writerow([row, student.get_full_name(), student.username,
+                         float(total_score), float(total_possible), percentage, status_text, submitted_at])
+        row += 1
+    return response
+
+
+def question_analysis(exam):
+    """تحلیل سوال‌به‌سوال: پاسخ داده‌شده، کاملاً صحیح، درصد موفقیت و میانگین نمره"""
+    out = []
+    students = exam.students.all()
+    for i, q in enumerate(exam.questions.all(), 1):
+        answers = StudentAnswer.objects.filter(question=q, student__in=students)
+        answered = answers.count()
+        full = answers.filter(score_obtained__gte=float(q.max_score)).count() if answered else 0
+        scores = [a.score_obtained for a in answers if a.score_obtained is not None]
+        rate = round(full / answered * 100) if answered else 0
+        out.append({
+            'order': i,
+            'text': (q.text or '')[:60],
+            'type': q.get_question_type_display(),
+            'max_score': float(q.max_score),
+            'answered': answered,
+            'full': full,
+            'rate': rate,
+            'avg': round(sum(scores) / len(scores), 2) if scores else 0,
+        })
+    return out

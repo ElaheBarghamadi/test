@@ -84,20 +84,35 @@
                 <span>📚 {{ exam.grade.get_name_display }}</span>
                 <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
                 <span>📅 {{ exam.start_time|date:"Y/m/d H:i" }}</span>
-                <span>🏁 {{ exam.end_time|date:"Y/m/d H:i" }}</span>
                 <span>👥 {{ exam.students_count }} نفر</span>
             </div>
+            <div class="exam-stats">
+                <div class="exam-stat"><b>{{ exam.questions_count|default:"0" }}</b><span>سوال</span></div>
+                <div class="exam-stat"><b>{{ exam.submitted_count|default:"0" }}</b><span>ثبت‌شده</span></div>
+                <div class="exam-stat"><b>{% if exam.avg_total is not None %}{{ exam.avg_total }}{% else %}—{% endif %}</b><span>میانگین نمره</span></div>
+            </div>
             <div class="exam-actions">
-                <a href="{% url 'edit_exam_info' exam.id %}" class="btn btn-info" title="ویرایش اطلاعات">✏️ اطلاعات</a>
-                <a href="{% url 'edit_exam' exam.id %}" class="btn btn-questions" title="مدیریت سوالات">📋 سوالات</a>
                 <a href="{% url 'grade_exam' exam.id %}" class="btn btn-grade" title="تصحیح آزمون">📝 تصحیح</a>
                 <a href="{% url 'exam_results' exam.id %}" class="btn btn-results" title="مشاهده نتایج">📊 نتایج</a>
-                <a href="{% url 'print_exam_paper' exam.id %}" class="btn btn-print" target="_blank" title="چاپ برگه">🖨️ چاپ</a>
-                <a href="{% url 'print_answer_sheet' exam.id %}" class="btn btn-answers" target="_blank" title="چاپ پاسخنامه">📋 پاسخنامه</a>
-                <a href="{% url 'toggle_exam_status' exam.id %}" class="btn btn-toggle" onclick="return confirm('تغییر وضعیت آزمون؟')" title="فعال/غیرفعال">
-                    {% if exam.is_active %}🔒 غیرفعال{% else %}✅ فعال{% endif %}
-                </a>
-                <a href="{% url 'delete_exam' exam.id %}" class="btn btn-delete" onclick="return confirm('آیا مطمئنی می‌خوای این آزمون رو حذف کنی؟')" title="حذف آزمون">🗑️ حذف</a>
+                <a href="{% url 'edit_exam' exam.id %}" class="btn btn-questions" title="مدیریت سوالات">📋 سوالات</a>
+                <details class="more-menu">
+                    <summary title="امکانات بیشتر">⋯</summary>
+                    <div class="more-items">
+                        <a href="{% url 'edit_exam_info' exam.id %}">✏️ ویرایش اطلاعات</a>
+                        <a href="{% url 'exam_settings' exam.id %}">⚙️ تنظیمات آزمون</a>
+                        <a href="{% url 'print_exam_paper' exam.id %}" target="_blank">🖨️ چاپ برگه</a>
+                        <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">📋 چاپ پاسخنامه</a>
+                        <a href="{% url 'exam_cheats_report' exam.id %}">⚠️ گزارش تخلفات</a>
+                        <form method="post" action="{% url 'duplicate_exam' exam.id %}">
+                            {% csrf_token %}
+                            <button type="submit">📑 کپی این آزمون</button>
+                        </form>
+                        <a href="{% url 'toggle_exam_status' exam.id %}" onclick="return confirm('تغییر وضعیت آزمون؟')">
+                            {% if exam.is_active %}🔒 غیرفعال کردن{% else %}✅ فعال کردن{% endif %}
+                        </a>
+                        <a class="danger" href="{% url 'delete_exam' exam.id %}" onclick="return confirm('آیا مطمئنی می‌خوای این آزمون رو حذف کنی؟')">🗑️ حذف آزمون</a>
+                    </div>
+                </details>
             </div>
         </div>
         {% empty %}

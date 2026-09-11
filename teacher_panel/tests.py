@@ -358,3 +358,100 @@ class FillBlankGradingTests(TeacherPanelTestCase):
         html = res.content.decode()
         self.assertIn('پایتخت: تهران', html)
         self.assertIn('بزرگترین شهر: مشهد', html)
+
+
+class TeacherFeaturesTests(TestCase):
+    """امکانات جدید: تصحیح خودکار، کپی آزمون، خروجی CSV، تحلیل سوال‌ها"""
+
+    def setUp(self):
+        from accounts.models import User, Grade
+        from exams.models import Exam, Question
+        import datetime
+        from django.utils import timezone
+        self.teacher = User.objects.create_user(username='t1', password='test12345', role='teacher')
+        grade = Grade.objects.first() or Grade.objects.create(name='7')
+        self.student = User.objects.create_user(username='s1', password='test12345', role='student', grade=grade)
+        now = timezone.now()
+        self.exam = Exam.objects.create(
+            teacher=self.teacher, grade=grade, title='آزمون ویژگی‌ها',
+            duration_minutes=10, start_time=now - datetime.timedelta(hours=1),
+            end_time=now + datetime.timedelta(hours=1))
+        self.exam.students.add(self.student)
+        self.q_mc = Question.objects.create(exam=self.exam, question_type='multiple_choice',
+                                              text='سوال تستی', options=['الف', 'ب'], correct_answer='2',
+                                              max_score=2, order=1)
+        self.q_tf = Question.objects.create(exam=self.exam, question_type='true_false',
+                                              text='سوال صحیح غلط', correct_answer='true', max_score=1, order=2)
+        self.q_blank = Question.objects.create(exam=self.exam, question_type='fill_blank',
+                                               text='جاخالی', correct_answer='تهران', max_score=1, order=3)
+        self.q_match = Question.objects.create(
+            exam=self.exam, question_type='matching', text='وصل کن',
+            matching_pairs=[{'left': 'a', 'right': '1'}, {'left': 'b', 'right': '2'}],
+            max_score=2, order=4)
+        self.q_match.correct_answer = json.dumps({
+            'pair_%d_0' % self.q_match.id: 'pair_%d_0' % self.q_match.id,
+            'pair_%d_1' % self.q_match.id: 'pair_%d_1' % self.q_match.id})
+        self.q_match.save()
+        self.q_long = Question.objects.create(exam=self.exam, question_type='long_answer',
+                                              text='تشریحی', max_score=4, order=5)
+
+    def _answer(self, q, text):
+        from exams.models import StudentAnswer
+        return StudentAnswer.objects.create(student=self.student, question=q, answer_text=text)
+
+    def test_auto_grade_attempt_scores_objective(self):
+        from exams.grading import auto_grade_attempt
+        from exams.models import StudentAnswer
+        self._answer(self.q_mc, '2')      # صحیح
+        self._answer(self.q_tf, 'false')  # غلط
+        self._answer(self.q_blank, ' تهران ')  # صحیح با فاصله
+        self._answer(self.q_match, json.dumps({'pair_%d_0' % self.q_match.id: 'pair_%d_0' % self.q_match.id,
+                                               'pair_%d_1' % self.q_match.id: 'pair_%d_1' % self.q_match.id}))
+        self._answer(self.q_long, 'متن تشریحی')
+        n = auto_grade_attempt(self.student, self.exam)
+        self.assertEqual(n, 4)
+        self.assertEqual(float(StudentAnswer.objects.get(question=self.q_mc).score_obtained), 2.0)
+        self.assertEqual(float(StudentAnswer.objects.get(question=self.q_tf).score_obtained), 0.0)
+        self.assertEqual(float(StudentAnswer.objects.get(question=self.q_blank).score_obtained), 1.0)
+        self.assertTrue(StudentAnswer.objects.get(question=self.q_mc).auto_graded)
+        self.assertIsNone(StudentAnswer.objects.get(question=self.q_long).score_obtained)
+
+    def test_auto_grade_respects_manual_score(self):
+        from exams.grading import auto_grade_attempt
+        a = self._answer(self.q_mc, '1')  # غلط ولی معلم نمره دستی داده
+        a.score_obtained = 2.0
+        a.graded_by = self.teacher
+        a.save()
+        auto_grade_attempt(self.student, self.exam)
+        a.refresh_from_db()
+        self.assertEqual(float(a.score_obtained), 2.0)
+
+    def test_duplicate_exam(self):
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('duplicate_exam', args=[self.exam.id]))
+        self.assertEqual(r.status_code, 302)
+        from exams.models import Exam
+        copy = Exam.objects.filter(teacher=self.teacher).exclude(id=self.exam.id).first()
+        self.assertIsNotNone(copy)
+        self.assertIn('(کپی)', copy.title)
+        self.assertFalse(copy.is_active)
+        self.assertEqual(copy.questions.count(), 5)
+        self.assertEqual(copy.students.count(), 1)
+
+    def test_export_results_csv(self):
+        self.client.login(username='t1', password='test12345')
+        r = self.client.get(reverse('export_results_csv', args=[self.exam.id]))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('text/csv', r['Content-Type'])
+        body = b''.join(r.streaming_content) if hasattr(r, 'streaming_content') else r.content
+        self.assertTrue(body.startswith(b'\xef\xbb\xbf'))  # BOM فارسی
+        text = body.decode('utf-8-sig')
+        self.assertIn('نام دانش‌آموز', text)
+        self.assertIn('s1', text)
+
+    def test_results_page_has_analysis(self):
+        self.client.login(username='t1', password='test12345')
+        self._answer(self.q_mc, '2')
+        r = self.client.get(reverse('exam_results', args=[self.exam.id]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'تحلیل سوال‌به‌سوال')

@@ -105,6 +105,7 @@ class StudentAnswer(models.Model):
     answer_text = models.TextField(blank=True, null=True)
     answer_image = models.ImageField(upload_to='student_answers/', null=True, blank=True)
     score_obtained = models.FloatField(null=True, blank=True)
+    auto_graded = models.BooleanField(default=False, verbose_name="تصحیح خودکار")
     graded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
                                   related_name='graded_answers')
     graded_at = models.DateTimeField(null=True, blank=True)

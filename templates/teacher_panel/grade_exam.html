@@ -368,7 +368,8 @@
                     answerImage: "{{ a.answer_image.url|default:''|escapejs }}",
                     answerId: {{ a.answer_id }},
                     score: {{ a.score|default:'null' }},
-                    isCorrect: {{ a.is_correct|default:'false'|lower }}
+                    isCorrect: {{ a.is_correct|default:'false'|lower }},
+                    autoGraded: {{ a.auto_graded|yesno:"true,false" }}
                 },
                 {% endfor %}
             ]
@@ -687,6 +688,7 @@
                                 <button class="btn-score btn-save save-btn-${a.answerId}" onclick="saveScore(${a.answerId}, ${q.maxScore}, document.getElementById('score_${a.answerId}').value)">💾 ذخیره</button>
                             </div>
                             ${a.score != null ? '<span class="saved-tick">✓ نمره ثبت شد</span>' : ''}
+                            ${a.autoGraded ? '<span class="auto-chip">🤖 تصحیح خودکار</span>' : ''}
                         </div>
                         </div>
                     </div>`;
@@ -773,6 +775,7 @@
                                 <button class="btn-score btn-save save-btn-${a.answerId}" onclick="saveScore(${a.answerId}, ${q.maxScore}, document.getElementById('score_${a.answerId}').value)">💾 ذخیره</button>
                             </div>
                             ${a.score != null ? '<span class="saved-tick">✓ نمره ثبت شد</span>' : ''}
+                            ${a.autoGraded ? '<span class="auto-chip">🤖 تصحیح خودکار</span>' : ''}
                         </div>
                         </div>
                     </div>`;

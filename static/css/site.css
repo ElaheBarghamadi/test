@@ -305,6 +305,51 @@
     }
     .badge-danger, .status-error { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
 
+    /* ================== کارت آزمون: آمار سریع + منوی «بیشتر» ================== */
+    .exam-stats {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+        margin: 10px 0; padding-top: 10px; border-top: 1px dashed var(--line2);
+    }
+    .exam-stat {
+        background: var(--card2); border: 1px solid var(--line2); border-radius: 12px;
+        padding: 6px 4px; text-align: center; display: grid; gap: 0;
+    }
+    .exam-stat b {
+        font-size: 1rem; font-weight: 800; color: var(--gold3);
+        font-variant-numeric: tabular-nums; line-height: 1.5;
+    }
+    .exam-stat span { font-size: .68rem; color: var(--ink3); font-weight: 600; }
+    .more-menu { position: relative; display: inline-block; }
+    .exam-card:has(.more-menu[open]) { overflow: visible; z-index: 70; }
+    .more-menu summary {
+        list-style: none; cursor: pointer; user-select: none;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 38px; height: 34px; border-radius: 12px;
+        background: var(--card2); border: 1.5px solid var(--line); color: var(--ink2);
+        font-size: 1.05rem; font-weight: 800; line-height: 1;
+    }
+    .more-menu summary::-webkit-details-marker { display: none; }
+    .more-menu[open] summary { border-color: var(--gold); color: var(--gold3); background: var(--goldsoft); }
+    .more-items {
+        position: absolute; z-index: 60; top: calc(100% + 6px); inset-inline-end: 0;
+        min-width: 190px; background: var(--card); border: 1px solid var(--line);
+        border-radius: 14px; box-shadow: 0 12px 34px rgba(80, 55, 30, .18);
+        padding: 6px; display: grid; gap: 2px;
+    }
+    .more-items a, .more-items button {
+        display: flex; align-items: center; gap: 8px; width: 100%;
+        background: none; border: none; cursor: pointer; font-family: inherit;
+        color: var(--ink2); font-size: .8rem; font-weight: 600; text-decoration: none;
+        padding: 8px 10px; border-radius: 10px; text-align: right;
+    }
+    .more-items a:hover, .more-items button:hover { background: var(--goldsoft); color: var(--gold3); }
+    .more-items a.danger, .more-items a.danger:hover { color: var(--err); background: var(--errsoft); }
+    .auto-chip {
+        background: var(--oksoft); color: var(--ok); border: 1px solid var(--okline);
+        border-radius: 999px; font-size: .68rem; font-weight: 700;
+        padding: 2px 10px; margin-inline-start: 6px; white-space: nowrap;
+    }
+
     /* ================== جدول‌ها ================== */
     table {
         width: 100%; border-collapse: separate; border-spacing: 0;
@@ -464,6 +509,8 @@
         .exam-hero-row { gap: 10px; }
         .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .stat-card, .stat-tile { padding: 10px 8px; border-radius: 14px; }
+        .exam-stat b { font-size: .92rem; }
+        .exam-stat span { font-size: .64rem; }
         .exams-grid { grid-template-columns: 1fr; gap: 10px; }
         .filters, .filter-bar, .filter-row, .filters-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
         .filters .filter-group:last-of-type, .filters .btn, .filters button,

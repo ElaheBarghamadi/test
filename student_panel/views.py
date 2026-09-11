@@ -883,6 +883,10 @@ def submit_exam(request, exam):
     attempt.submitted_at = timezone.now()
     attempt.save()
 
+    # ✅ تصحیح خودکار پاسخ‌های عینی (تستی/صحیح‌غلط/جاخالی/وصل‌کردنی)
+    from exams.grading import auto_grade_attempt
+    auto_grade_attempt(request.user, exam)
+
     # بستن نشست ردیابی IP
     if exam.track_ip:
         ExamSession.objects.filter(student=request.user, exam=exam).update(is_active=False)

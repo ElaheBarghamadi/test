@@ -216,10 +216,24 @@
         text-align: center;
     }
 
+    .btn-csv {
+        background: linear-gradient(135deg, #35b569, #157a3b); color: #fff; border: none;
+        border-radius: 999px; padding: 9px 18px; font-size: .8rem; font-weight: 700;
+        text-decoration: none; cursor: pointer; font-family: inherit; display: inline-flex;
+        align-items: center; gap: 6px; box-shadow: 0 5px 14px rgba(21,122,59,.25);
+    }
+    .analysis-card { margin-top: 16px; }
+    .analysis-text { max-width: 260px; white-space: normal !important; font-size: .78rem; }
+    .rate-wrap {
+        display: inline-block; width: 70px; height: 8px; background: #f3ead9;
+        border-radius: 99px; overflow: hidden; vertical-align: middle; margin-inline-end: 6px;
+    }
+    .rate-bar { display: block; height: 100%; background: linear-gradient(90deg, #c49a2b, #7d5d10); border-radius: 99px; }
+
     /* Print Styles */
     @media print {
         body { background: white; padding: 0; margin: 0; }
-        .navbar, .footer, .export-buttons, .btn-view, .results-header button, .btn-back { display: none !important; }
+        .navbar, .footer, .export-buttons, .btn-view, .results-header button, .btn-back, .analysis-card { display: none !important; }
         .stat-card, .results-card { box-shadow: none; border: 1px solid #ddd; background: white; }
         th, td { border: 1px solid #ddd; }
     }
@@ -305,6 +319,7 @@
             <div class="export-buttons">
                 <button class="btn-print" onclick="window.print()">🖨️ چاپ</button>
                 <button class="btn-pdf" id="pdfBtn">📄 خروجی PDF</button>
+                <a class="btn-csv" href="{% url 'export_results_csv' exam.id %}">📥 خروجی اکسل</a>
             </div>
         </div>
 
@@ -361,9 +376,44 @@
         </div>
 
         <div class="footer-note">
-            💡 نکته: نمرات بر اساس تصحیح‌های انجام شده محاسبه می‌شود. برای تغییر نمره، روی دکمه "تصحیح" کلیک کنید.
+            💡 نکته: نمرات سوالات تستی/صحیح‌غلط/جاخالی/وصل‌کردنی به‌محض ثبت نهایی آزمون، <b>به‌صورت خودکار</b> محاسبه می‌شود؛ سوالات تشریحی را دستی تصحیح کنید.
         </div>
     </div>
+
+    {% if analysis %}
+    <div class="results-card analysis-card">
+        <div class="results-header">
+            <h2><span>📈</span> تحلیل سوال‌به‌سوال</h2>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th><th>سوال</th><th>نوع</th><th>پاسخ‌داده</th>
+                        <th>کاملاً صحیح</th><th>درصد موفقیت</th><th>میانگین نمره</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for a in analysis %}
+                    <tr>
+                        <td>{{ a.order }}</td>
+                        <td class="analysis-text">{{ a.text|default:"—" }}</td>
+                        <td>{{ a.type }}</td>
+                        <td>{{ a.answered }}</td>
+                        <td>{{ a.full }}</td>
+                        <td>
+                            <span class="rate-wrap"><span class="rate-bar" style="width: {{ a.rate }}%"></span></span>
+                            {{ a.rate }}٪
+                        </td>
+                        <td>{{ a.avg }} / {{ a.max_score }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="footer-note">💡 سوال‌هایی با درصد موفقیت پایین‌تر، نامزد بازبینی تدریس یا سخت‌بودن سوال هستند.</div>
+    </div>
+    {% endif %}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

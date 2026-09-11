@@ -26,6 +26,8 @@ urlpatterns = [
     # تصحیح و نمره‌دهی
     path('exam/<int:exam_id>/grade/', views.grade_exam, name='grade_exam'),
     path('exam/<int:exam_id>/results/', views.exam_results, name='exam_results'),
+    path('exam/<int:exam_id>/results/csv/', views.export_results_csv, name='export_results_csv'),
+    path('exam/<int:exam_id>/duplicate/', views.duplicate_exam, name='duplicate_exam'),
     path('exam/<int:exam_id>/student-answers/', views.view_student_answers, name='view_student_answers'),
     path('exam/<int:exam_id>/cheats-report/', views.exam_cheats_report, name='exam_cheats_report'),
     path('save-score/', views.save_score, name='save_score'),
