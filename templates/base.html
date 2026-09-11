@@ -477,8 +477,26 @@
                 {% elif user.role == 'teacher' %}
                     <a href="{% url 'teacher_dashboard' %}" class="nav-link">🏠 داشبورد</a>
                     <a href="{% url 'create_exam' %}" class="nav-link">➕ آزمون جدید</a>
+                    <a href="{% url 'question_bank' %}" class="nav-link">📚 بانک سوال</a>
+                    <a href="{% url 'groups' %}" class="nav-link">👥 گروه‌ها</a>
                 {% elif user.role == 'student' %}
                     <a href="{% url 'student_dashboard' %}" class="nav-link">🏠 داشبورد</a>
+                    <details class="bell-menu">
+                        <summary title="اطلاعیه‌ها">🔔{% if bell_count %}<b>{{ bell_count }}</b>{% endif %}</summary>
+                        <div class="bell-items">
+                            {% if bell_announcements %}
+                                {% for a in bell_announcements %}
+                                <div class="bell-item">
+                                    <div class="bell-title">{{ a.title }}</div>
+                                    {% if a.body %}<div class="bell-body">{{ a.body|truncatewords:18 }}</div>{% endif %}
+                                    <div class="bell-time">{{ a.created_at|date:"Y/m/d H:i" }}</div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="bell-empty">📭 اطلاعیه‌ای نیست</div>
+                            {% endif %}
+                        </div>
+                    </details>
                 {% endif %}
 
                 <div class="dropdown" id="userDropdown">

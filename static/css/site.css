@@ -464,8 +464,69 @@
         max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px;
     }
 
-    /* =====================================================================
-       حالت موبایل: بدون حاشیه اضافه + تایپوگرافی خوانا
+    /* ================== زنگوله اطلاعیه‌ها + کارت اطلاعیه + چیپ گروه ================== */
+    .bell-menu { position: relative; display: inline-block; }
+    .bell-menu summary {
+        list-style: none; cursor: pointer; position: relative;
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 38px; height: 34px; padding: 0 10px; border-radius: 999px;
+        background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .3);
+        font-size: 1rem; color: #fff;
+    }
+    .bell-menu summary::-webkit-details-marker { display: none; }
+    .bell-menu summary b {
+        position: absolute; top: -5px; inset-inline-end: -4px;
+        background: var(--err); color: #fff; font-size: .62rem; font-weight: 800;
+        min-width: 17px; height: 17px; border-radius: 999px; display: grid; place-items: center;
+        padding: 0 4px; box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+    }
+    .bell-items {
+        position: absolute; z-index: 950; top: calc(100% + 8px); inset-inline-end: 0;
+        width: min(320px, 88vw); background: var(--card); border: 1px solid var(--line);
+        border-radius: 16px; box-shadow: 0 14px 40px rgba(80, 55, 30, .22);
+        padding: 8px; display: grid; gap: 6px; max-height: 60vh; overflow: auto;
+    }
+    .bell-item { background: var(--card2); border: 1px solid var(--line2); border-radius: 12px; padding: 8px 10px; }
+    .bell-title { font-size: .82rem; font-weight: 800; color: var(--ink); }
+    .bell-body { font-size: .76rem; color: var(--ink2); }
+    .bell-time { font-size: .68rem; color: var(--ink3); margin-top: 2px; }
+    .bell-empty { text-align: center; color: var(--ink3); font-size: .8rem; padding: 14px 8px; }
+
+    .announce-card { border-inline-start: 4px solid var(--gold); }
+    .announce-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .announce-form { display: grid; gap: 8px; }
+    .announce-form input[type=text], .announce-form textarea, .announce-form select {
+        width: 100%; background: #fff; border: 1.5px solid var(--line); border-radius: 12px;
+        padding: 9px 12px; font-family: inherit; font-size: .86rem; color: var(--ink);
+    }
+    .announce-form textarea { min-height: 56px; resize: vertical; }
+    .announce-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .announce-row select { flex: 1 1 160px; }
+    .announce-list { display: grid; gap: 8px; margin-top: 12px; }
+    .announce-item {
+        display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+        background: var(--card2); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 12px;
+    }
+    .announce-item b { font-size: .86rem; color: var(--ink); }
+    .announce-body { font-size: .78rem; color: var(--ink2); }
+    .announce-time { font-size: .68rem; color: var(--ink3); margin-top: 3px; }
+    .student-announce { margin-bottom: 12px; }
+
+    .group-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .group-chips-label { font-size: .78rem; font-weight: 700; color: var(--ink2); }
+    .group-chip {
+        background: var(--goldsoft); color: var(--gold3); border: 1px solid #f0e0b8;
+        border-radius: 999px; padding: 6px 14px; font-size: .78rem; font-weight: 700;
+        cursor: pointer; font-family: inherit; transition: .15s;
+    }
+    .group-chip:hover { background: var(--gold); color: #fff; }
+    .bank-check {
+        display: flex; align-items: center; gap: 8px; margin: 10px 0;
+        font-size: .84rem; font-weight: 600; color: var(--ink2); cursor: pointer;
+    }
+    .bank-check input { width: 17px; height: 17px; accent-color: #a67c1e; }
+
+    /* ================== حالت موبایل: بدون حاشیه اضافه + تایپوگرافی خوانا
        ===================================================================== */
     @media (max-width: 640px) {
 
@@ -511,6 +572,9 @@
         .stat-card, .stat-tile { padding: 10px 8px; border-radius: 14px; }
         .exam-stat b { font-size: .92rem; }
         .exam-stat span { font-size: .64rem; }
+        .announce-row { flex-direction: column; }
+        .announce-row select, .announce-row button { width: 100%; }
+        .announce-item { flex-direction: column; }
         .exams-grid { grid-template-columns: 1fr; gap: 10px; }
         .filters, .filter-bar, .filter-row, .filters-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
         .filters .filter-group:last-of-type, .filters .btn, .filters button,

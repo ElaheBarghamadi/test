@@ -455,3 +455,97 @@ class TeacherFeaturesTests(TestCase):
         r = self.client.get(reverse('exam_results', args=[self.exam.id]))
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'تحلیل سوال‌به‌سوال')
+
+
+class BankGroupsAnnounceTests(TestCase):
+    """بانک سوال، گروه‌های دانش‌آموزی و اطلاعیه‌ها"""
+
+    def setUp(self):
+        from accounts.models import User, Grade
+        from exams.models import Exam
+        import datetime
+        from django.utils import timezone
+        self.teacher = User.objects.create_user(username='t1', password='test12345', role='teacher')
+        self.other = User.objects.create_user(username='t2', password='test12345', role='teacher')
+        self.grade = Grade.objects.first() or Grade.objects.create(name='7')
+        self.s1 = User.objects.create_user(username='s1', password='test12345', role='student', grade=self.grade)
+        self.s2 = User.objects.create_user(username='s2', password='test12345', role='student', grade=self.grade)
+        now = timezone.now()
+        self.exam = Exam.objects.create(
+            teacher=self.teacher, grade=self.grade, title='آزمون بانک',
+            duration_minutes=10, start_time=now - datetime.timedelta(hours=1),
+            end_time=now + datetime.timedelta(hours=1))
+
+    def test_bank_add_import_delete(self):
+        from exams.models import QuestionBank
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('question_bank'), {
+            'text': 'سوال بانکی تستی', 'question_type': 'multiple_choice',
+            'options': 'الف\nب', 'correct_answer': '1', 'max_score': '2'})
+        self.assertEqual(r.status_code, 302)
+        bank = QuestionBank.objects.get(teacher=self.teacher)
+        self.assertEqual(bank.options, ['الف', 'ب'])
+        r = self.client.post(reverse('import_bank_question', args=[bank.id]), {'exam_id': self.exam.id})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.exam.questions.count(), 1)
+        q = self.exam.questions.first()
+        self.assertEqual(q.options, ['الف', 'ب'])
+        self.assertEqual(float(q.max_score), 2.0)
+        bank.refresh_from_db()
+        self.assertEqual(bank.use_count, 1)
+        r = self.client.post(reverse('delete_bank_question', args=[bank.id]))
+        self.assertEqual(QuestionBank.objects.count(), 0)
+
+    def test_save_to_bank_checkbox_on_add_question(self):
+        from exams.models import QuestionBank
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('add_question', args=[self.exam.id]), {
+            'text': 'سوال جدید', 'question_type': 'true_false', 'max_score': '1',
+            'correct_answer': 'true', 'save_to_bank': '1'})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(QuestionBank.objects.filter(teacher=self.teacher).count(), 1)
+
+    def test_group_create_and_apply(self):
+        from exams.models import StudentGroup
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('groups'), {
+            'action': 'create', 'name': 'کلاس الف', 'students': [str(self.s1.id), str(self.s2.id)]})
+        self.assertEqual(r.status_code, 302)
+        g = StudentGroup.objects.get(teacher=self.teacher)
+        self.assertEqual(g.students.count(), 2)
+        r = self.client.post(reverse('apply_group_to_exam', args=[self.exam.id]), {'group_id': g.id})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self.exam.students.count(), 2)
+
+    def test_group_of_other_teacher_not_applicable(self):
+        from exams.models import StudentGroup
+        g = StudentGroup.objects.create(teacher=self.other, name='گروه غریبه')
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('apply_group_to_exam', args=[self.exam.id]), {'group_id': g.id})
+        self.assertEqual(r.status_code, 404)
+
+    def test_announcement_visible_to_student_and_delete_guard(self):
+        from exams.models import Announcement
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('announcement_create'), {
+            'title': 'جلسه رفع اشکال', 'body': 'پنجشنبه ساعت ۱۷', 'back': 'teacher_dashboard'})
+        self.assertEqual(r.status_code, 302)
+        ann = Announcement.objects.get()
+        self.client.logout()
+        self.client.login(username='s1', password='test12345')
+        r = self.client.get(reverse('student_dashboard'))
+        self.assertContains(r, 'جلسه رفع اشکال')
+        # دانش‌آموز نمی‌تواند حذف کند
+        r = self.client.post(reverse('announcement_delete', args=[ann.id]))
+        self.assertEqual(r.status_code, 403)
+        # معلم دیگر هم نمی‌تواند
+        self.client.logout()
+        self.client.login(username='t2', password='test12345')
+        r = self.client.post(reverse('announcement_delete', args=[ann.id]))
+        self.assertEqual(r.status_code, 403)
+        # نویسنده می‌تواند
+        self.client.logout()
+        self.client.login(username='t1', password='test12345')
+        r = self.client.post(reverse('announcement_delete', args=[ann.id]))
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(Announcement.objects.count(), 0)

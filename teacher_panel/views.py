@@ -15,7 +15,8 @@ from django.core.exceptions import PermissionDenied
 # ========== ایمپورت‌های مدل‌ها ==========
 from exams.models import (
     Exam, Question, StudentAnswer, ExamAttempt,
-    ExamSession, CheatAttempt, ExamLog, TeacherAnswer
+    ExamSession, CheatAttempt, ExamLog, TeacherAnswer,
+    QuestionBank, StudentGroup, Announcement
 )
 from accounts.models import User, Grade
 
@@ -66,6 +67,15 @@ def fill_blank_is_correct(answer_text, correct_answer):
         # پاسخ قدیمی/تک‌متنی: مقایسه کلی
         return given[0] == _normalize_fa_text(correct_answer)
     return all(i < len(given) and given[i] == want for i, want in enumerate(expected))
+
+
+def _save_to_bank_if_requested(request, question):
+    """اگر معلم تیک «ذخیره در بانک سوال» را زده باشد، کپی سوال به بانک می‌رود"""
+    if request.POST.get('save_to_bank') and question.question_type in dict(QuestionBank._meta.get_field('question_type').choices):
+        QuestionBank.objects.create(
+            teacher=request.user, text=question.text, question_type=question.question_type,
+            options=list(question.options or []), correct_answer=question.correct_answer,
+            blanks=list(question.blanks or []), max_score=question.max_score)
 
 
 def check_teacher_access(user, exam=None):
@@ -242,6 +252,7 @@ def teacher_dashboard(request):
         'ongoing_exams_count': ongoing_count,
         'inactive_exams_count': inactive_count,
         'total_students': User.objects.filter(role='student').count(),
+        'my_announcements': Announcement.objects.filter(created_by=request.user)[:10],
     })
 
 
@@ -393,6 +404,7 @@ def edit_exam_info(request, exam_id):
         'grades': Grade.objects.all(),
         'all_students': User.objects.filter(role='student'),
         'students': exam.students.all(),
+        'my_groups': StudentGroup.objects.filter(teacher=request.user),
         'selected_student_ids': json.dumps(list(exam.students.values_list('id', flat=True))),
         'success_msg': success_msg,
         'error_msg': error_msg,
@@ -540,6 +552,7 @@ def add_question(request, exam_id):
             question.matching_pairs = pairs
 
         question.save()
+        _save_to_bank_if_requested(request, question)
         return redirect('edit_exam', exam_id=exam.id)
 
     return render(request, 'teacher_panel/add_question.html', {'exam': exam})
@@ -610,6 +623,7 @@ def edit_question(request, exam_id, question_id):
             question.matching_pairs = pairs
 
         question.save()
+        _save_to_bank_if_requested(request, question)
         return redirect('edit_exam', exam_id=exam.id)
 
     return render(request, 'teacher_panel/edit_question.html', {
@@ -1294,3 +1308,139 @@ def question_analysis(exam):
             'avg': round(sum(scores) / len(scores), 2) if scores else 0,
         })
     return out
+
+
+# =====================================================================
+# بانک سوال مشترک
+# =====================================================================
+
+@login_required
+def question_bank(request):
+    """مدیریت بانک سوال معلم + افزودن سوال جدید به بانک"""
+    check_teacher_access(request.user)
+    if request.method == 'POST':
+        qtype = request.POST.get('question_type', '')
+        text = (request.POST.get('text') or '').strip()
+        if not text or qtype not in dict(QuestionBank._meta.get_field('question_type').choices):
+            messages.error(request, 'متن سوال و نوع معتبر الزامی است.')
+            return redirect('question_bank')
+        options = [o.strip() for o in (request.POST.get('options') or '').splitlines() if o.strip()]
+        bank = QuestionBank.objects.create(
+            teacher=request.user,
+            text=text,
+            question_type=qtype,
+            options=options,
+            correct_answer=(request.POST.get('correct_answer') or '').strip() or None,
+            blanks=[b.strip() for b in (request.POST.get('blanks') or '').split(',') if b.strip()],
+            max_score=validate_decimal_score(request.POST.get('max_score', '1'), max_value=None) or 1,
+        )
+        messages.success(request, 'سوال به بانک اضافه شد.')
+        return redirect('question_bank')
+    banks = QuestionBank.objects.filter(teacher=request.user)
+    return render(request, 'teacher_panel/question_bank.html', {
+        'banks': banks,
+        'exams': Exam.objects.filter(teacher=request.user),
+        'type_choices': QuestionBank._meta.get_field('question_type').choices,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def delete_bank_question(request, bank_id):
+    bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
+    bank.delete()
+    messages.success(request, 'سوال بانکی حذف شد.')
+    return redirect('question_bank')
+
+
+@login_required
+@require_http_methods(["POST"])
+def import_bank_question(request, bank_id):
+    """کپی سوال بانکی به انتهای سوالات یک آزمون"""
+    bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
+    exam = get_object_or_404(Exam, id=request.POST.get('exam_id'), teacher=request.user)
+    last = exam.questions.aggregate(m=Max('order'))['m'] or 0
+    Question.objects.create(
+        exam=exam, text=bank.text, question_type=bank.question_type,
+        options=list(bank.options or []), correct_answer=bank.correct_answer,
+        blanks=list(bank.blanks or []), max_score=bank.max_score, order=last + 1)
+    bank.use_count += 1
+    bank.save(update_fields=['use_count'])
+    messages.success(request, f'سوال به آزمون «{exam.title}» اضافه شد.')
+    return redirect('question_bank')
+
+
+# =====================================================================
+# گروه‌های دانش‌آموزی
+# =====================================================================
+
+@login_required
+def groups(request):
+    """مدیریت کلاس/گروه دانش‌آموزی + ویرایش اعضا"""
+    check_teacher_access(request.user)
+    if request.method == 'POST':
+        action = request.POST.get('action', 'create')
+        if action == 'create':
+            name = (request.POST.get('name') or '').strip()
+            if not name:
+                messages.error(request, 'نام گروه الزامی است.')
+            else:
+                g = StudentGroup.objects.create(teacher=request.user, name=name)
+                g.students.set(User.objects.filter(id__in=request.POST.getlist('students'), role='student'))
+                messages.success(request, 'گروه ساخته شد.')
+        elif action == 'save':
+            g = get_object_or_404(StudentGroup, id=request.POST.get('group_id'), teacher=request.user)
+            g.students.set(User.objects.filter(id__in=request.POST.getlist('students'), role='student'))
+            messages.success(request, 'اعضای گروه به‌روزرسانی شد.')
+        elif action == 'delete':
+            g = get_object_or_404(StudentGroup, id=request.POST.get('group_id'), teacher=request.user)
+            g.delete()
+            messages.success(request, 'گروه حذف شد.')
+        return redirect('groups')
+    my_groups = StudentGroup.objects.filter(teacher=request.user).prefetch_related('students')
+    return render(request, 'teacher_panel/groups.html', {
+        'groups': my_groups,
+        'students': User.objects.filter(role='student').order_by('username'),
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def apply_group_to_exam(request, exam_id):
+    """افزودن همه دانش‌آموزان یک گروه به آزمون"""
+    exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
+    group = get_object_or_404(StudentGroup, id=request.POST.get('group_id'), teacher=request.user)
+    exam.students.add(*group.students.all())
+    messages.success(request, f'گروه «{group.name}» به آزمون اضافه شد.')
+    return redirect('edit_exam_info', exam_id=exam.id)
+
+
+# =====================================================================
+# اطلاعیه‌ها
+# =====================================================================
+
+@login_required
+@require_http_methods(["POST"])
+def announcement_create(request):
+    title = (request.POST.get('title') or '').strip()
+    if not title:
+        messages.error(request, 'عنوان اطلاعیه الزامی است.')
+        return redirect(request.POST.get('back') or 'teacher_dashboard')
+    grade_id = request.POST.get('grade') or None
+    Announcement.objects.create(
+        created_by=request.user, title=title,
+        body=(request.POST.get('body') or '').strip(),
+        grade_id=grade_id if str(grade_id).isdigit() else None)
+    messages.success(request, 'اطلاعیه منتشر شد.')
+    return redirect(request.POST.get('back') or 'teacher_dashboard')
+
+
+@login_required
+@require_http_methods(["POST"])
+def announcement_delete(request, ann_id):
+    ann = get_object_or_404(Announcement, id=ann_id)
+    if ann.created_by_id != request.user.id and request.user.role != 'admin':
+        raise PermissionDenied('فقط نویسنده یا مدیر می‌تواند اطلاعیه را حذف کند')
+    ann.delete()
+    messages.success(request, 'اطلاعیه حذف شد.')
+    return redirect(request.POST.get('back') or 'teacher_dashboard')

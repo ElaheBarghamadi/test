@@ -30,6 +30,13 @@ urlpatterns = [
     path('exam/<int:exam_id>/duplicate/', views.duplicate_exam, name='duplicate_exam'),
     path('exam/<int:exam_id>/student-answers/', views.view_student_answers, name='view_student_answers'),
     path('exam/<int:exam_id>/cheats-report/', views.exam_cheats_report, name='exam_cheats_report'),
+    path('bank/', views.question_bank, name='question_bank'),
+    path('bank/<int:bank_id>/delete/', views.delete_bank_question, name='delete_bank_question'),
+    path('bank/<int:bank_id>/import/', views.import_bank_question, name='import_bank_question'),
+    path('groups/', views.groups, name='groups'),
+    path('exam/<int:exam_id>/apply-group/', views.apply_group_to_exam, name='apply_group_to_exam'),
+    path('announce/', views.announcement_create, name='announcement_create'),
+    path('announce/<int:ann_id>/delete/', views.announcement_delete, name='announcement_delete'),
     path('save-score/', views.save_score, name='save_score'),
 
     # چاپ

@@ -202,3 +202,59 @@ class TeacherAnswer(models.Model):
 
     def __str__(self):
         return f"پاسخ معلم - {self.question}"
+
+
+class QuestionBank(models.Model):
+    """بانک سوال مشترک معلم — سوال‌هایی که بین چند آزمون قابل استفاده‌اند"""
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name='bank_questions',
+                                limit_choices_to={'role': 'teacher'})
+    text = models.TextField()
+    question_type = models.CharField(max_length=20, choices=[c for c in Question.QUESTION_TYPES
+                                                              if c[0] not in ('matching', 'image_answer')])
+    options = models.JSONField(default=list, blank=True)
+    correct_answer = models.TextField(blank=True, null=True)
+    blanks = models.JSONField(default=list, blank=True)
+    max_score = models.DecimalField(max_digits=10, decimal_places=2, default=1.0)
+    use_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'سوال بانکی: {self.text[:40]}'
+
+
+class StudentGroup(models.Model):
+    """گروه/کلاس دانش‌آموزی برای انتخاب سریع دانش‌آموزان آزمون"""
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name='owned_groups',
+                                limit_choices_to={'role': 'teacher'})
+    name = models.CharField(max_length=100)
+    students = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='student_groups', blank=True,
+                                      limit_choices_to={'role': 'student'})
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.name
+
+
+class Announcement(models.Model):
+    """اطلاعیه معلم/مدیر به دانش‌آموزان (پایه مشخص یا همه)"""
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                                   null=True, blank=True, related_name='announcements')
+    title = models.CharField(max_length=200)
+    body = models.TextField(blank=True)
+    grade = models.ForeignKey('accounts.Grade', on_delete=models.SET_NULL, null=True, blank=True,
+                              verbose_name='فقط پایه مشخص')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title

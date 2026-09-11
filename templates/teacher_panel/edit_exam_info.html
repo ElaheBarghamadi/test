@@ -304,6 +304,19 @@
                 <span class="selected-count" id="selectedCount">0 نفر</span>
             </div>
 
+            {% if my_groups %}
+            <div class="group-chips">
+                <span class="group-chips-label">افزودن سریع گروه:</span>
+                {% for g in my_groups %}
+                <form method="post" action="{% url 'apply_group_to_exam' exam.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="group_id" value="{{ g.id }}">
+                    <button type="submit" class="group-chip" title="افزودن همه اعضای گروه به این آزمون">👥 {{ g.name }} ({{ g.students.count }} نفر) ➕</button>
+                </form>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="filter-box">
                 <div class="filter-row">
                     <div class="filter-item">

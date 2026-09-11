@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}بانک سوال مشترک{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bank-hero { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .bank-form { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 12px; }
+    .bank-form .full { grid-column: 1 / -1; }
+    .bank-form textarea, .bank-form input, .bank-form select {
+        width: 100%; background: #fff; border: 1.5px solid var(--line); border-radius: 12px;
+        padding: 9px 12px; font-family: inherit; font-size: .86rem; color: var(--ink);
+    }
+    .bank-form textarea { min-height: 64px; resize: vertical; }
+    .bank-form label { font-size: .76rem; font-weight: 700; color: var(--ink2); display: block; margin-bottom: 4px; }
+    .bank-list { display: grid; gap: 10px; }
+    .bank-item { background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 12px; border-right: 4px solid var(--gold); }
+    .bank-q { font-size: .88rem; color: var(--ink); font-weight: 600; margin-bottom: 6px; }
+    .bank-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .bank-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .bank-actions select { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 7px 10px; font-family: inherit; font-size: .8rem; }
+    @media (max-width: 640px) {
+        .bank-form { grid-template-columns: 1fr; }
+        .bank-actions select, .bank-actions button, .bank-actions .btn { width: 100%; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="exam-hero bank-hero">
+        <div>
+            <h1><span>📚</span> بانک سوال مشترک</h1>
+            <div class="exam-meta">
+                <span>{{ banks|length }} سوال در بانک</span>
+                <span>قابل استفاده در همه آزمون‌ها</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 8px;">➕ افزودن سوال به بانک</h3>
+        <form method="post" class="bank-form">
+            {% csrf_token %}
+            <div class="full">
+                <label>متن سوال *</label>
+                <textarea name="text" required placeholder="صورت سوال را بنویسید..."></textarea>
+            </div>
+            <div>
+                <label>نوع سوال</label>
+                <select name="question_type">
+                    {% for value, label in type_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>بارم</label>
+                <input type="number" name="max_score" value="1" step="0.25" min="0.25">
+            </div>
+            <div class="full">
+                <label>گزینه‌ها (هر خط یک گزینه — فقط برای تستی)</label>
+                <textarea name="options" placeholder="گزینه ۱&#10;گزینه ۲&#10;گزینه ۳&#10;گزینه ۴"></textarea>
+            </div>
+            <div class="full">
+                <label>پاسخ صحیح (شماره گزینه برای تستی / true یا false برای صحیح‌غلط / متن برای جاخالی و کوتاه)</label>
+                <input type="text" name="correct_answer" placeholder="مثلاً 2 یا true یا تهران">
+            </div>
+            <div class="full">
+                <label>برچسب جاهای خالی (اختیاری، با ویرگول)</label>
+                <input type="text" name="blanks" placeholder="جای خالی ۱, جای خالی ۲">
+            </div>
+            <div class="full">
+                <button type="submit" class="btn btn-gold">💾 ذخیره در بانک</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 10px;">📚 سوال‌های بانک من</h3>
+        {% if banks %}
+        <div class="bank-list">
+            {% for b in banks %}
+            <div class="bank-item">
+                <div class="bank-q">{{ b.text|truncatewords:40 }}</div>
+                <div class="bank-meta">
+                    <span class="info-stat">{{ b.get_question_type_display }}</span>
+                    <span class="info-stat">⭐ {{ b.max_score }}</span>
+                    <span class="info-stat">🔁 {{ b.use_count }} بار استفاده</span>
+                    {% if b.correct_answer %}<span class="info-stat">✅ پاسخ: {{ b.correct_answer|truncatewords:6 }}</span>{% endif %}
+                </div>
+                <div class="bank-actions">
+                    <form method="post" action="{% url 'import_bank_question' b.id %}" style="display:flex; gap:6px; flex-wrap:wrap; flex:1;">
+                        {% csrf_token %}
+                        <select name="exam_id" required>
+                            <option value="">افزودن به آزمون...</option>
+                            {% for e in exams %}
+                            <option value="{{ e.id }}">{{ e.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-gold">📥 افزودن به آزمون</button>
+                    </form>
+                    <form method="post" action="{% url 'delete_bank_question' b.id %}" onsubmit="return confirm('حذف سوال از بانک؟');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">🗑️ حذف</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">📭 بانک سوال خالی است. بالا سوال اضافه کنید یا هنگام ساخت سوال، تیک «ذخیره در بانک سوال مشترک» را بزنید.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

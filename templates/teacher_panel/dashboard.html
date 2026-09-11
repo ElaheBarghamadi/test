@@ -72,6 +72,47 @@
         </div>
     </div>
 
+    <!-- اطلاعیه‌ها -->
+    <div class="card announce-card">
+        <div class="announce-head">
+            <h3>📣 اطلاعیه به دانش‌آموزان</h3>
+            <span class="info-stat">{{ my_announcements|length }} اطلاعیه شما</span>
+        </div>
+        <form method="post" action="{% url 'announcement_create' %}" class="announce-form">
+            {% csrf_token %}
+            <input type="hidden" name="back" value="teacher_dashboard">
+            <input type="text" name="title" required placeholder="عنوان اطلاعیه (مثلاً: جلسه رفع اشکال پنجشنبه)">
+            <textarea name="body" placeholder="متن اطلاعیه (اختیاری)"></textarea>
+            <div class="announce-row">
+                <select name="grade">
+                    <option value="">همه پایه‌ها</option>
+                    {% for g in grades %}
+                    <option value="{{ g.id }}">{{ g.get_name_display }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-gold">📣 انتشار اطلاعیه</button>
+            </div>
+        </form>
+        {% if my_announcements %}
+        <div class="announce-list">
+            {% for a in my_announcements %}
+            <div class="announce-item">
+                <div>
+                    <b>{{ a.title }}</b>
+                    {% if a.body %}<div class="announce-body">{{ a.body|truncatewords:20 }}</div>{% endif %}
+                    <div class="announce-time">{{ a.created_at|date:"Y/m/d H:i" }} · {% if a.grade %}{{ a.grade.get_name_display }}{% else %}همه پایه‌ها{% endif %}</div>
+                </div>
+                <form method="post" action="{% url 'announcement_delete' a.id %}" onsubmit="return confirm('حذف اطلاعیه؟');">
+                    {% csrf_token %}
+                    <input type="hidden" name="back" value="teacher_dashboard">
+                    <button type="submit" class="btn btn-danger" style="padding: 4px 10px;">🗑️</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
     <!-- لیست آزمون‌ها -->
     <div class="exams-grid" id="examsContainer">
         {% for exam in exams %}

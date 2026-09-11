@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}گروه‌های دانش‌آموزی{% endblock %}
+
+{% block extra_css %}
+<style>
+    .group-card { border-right: 4px solid var(--gold); }
+    .group-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .group-name { font-weight: 800; font-size: .95rem; color: var(--ink); }
+    .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; margin: 10px 0; }
+    .member-item { background: var(--card2); border: 1px solid var(--line2); border-radius: 10px; padding: 6px 8px; }
+    .member-item label { display: flex; gap: 6px; align-items: center; font-size: .8rem; color: var(--ink); cursor: pointer; margin: 0; }
+    .member-item input { width: 16px; height: 16px; accent-color: #a67c1e; }
+    .group-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .group-form-row input[type=text] { flex: 1 1 200px; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: .86rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="exam-hero">
+        <h1><span>👥</span> گروه‌های دانش‌آموزی</h1>
+        <div class="exam-meta">
+            <span>{{ groups|length }} گروه</span>
+            <span>انتخاب سریع دانش‌آموزان هنگام ساخت آزمون</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 10px;">➕ ساخت گروه جدید</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="group-form-row" style="margin-bottom: 10px;">
+                <input type="text" name="name" required placeholder="نام گروه (مثلاً کلاس ۹ الف)">
+                <button type="submit" class="btn btn-gold">💾 ساخت گروه</button>
+            </div>
+            <div class="member-grid">
+                {% for s in students %}
+                <div class="member-item">
+                    <label><input type="checkbox" name="students" value="{{ s.id }}">
+                        {{ s.get_full_name|default:s.username }} <span style="color: var(--ink3); font-size: .7rem;">({{ s.username }})</span>
+                    </label>
+                </div>
+                {% empty %}
+                <div class="empty-state">📭 دانش‌آموزی ثبت نشده است.</div>
+                {% endfor %}
+            </div>
+        </form>
+    </div>
+
+    {% for g in groups %}
+    <div class="card group-card">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="group_id" value="{{ g.id }}">
+            <div class="group-head">
+                <span class="group-name">👥 {{ g.name }} <span class="info-stat">{{ g.students.count }} نفر</span></span>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn-green">💾 ذخیره اعضا</button>
+                </div>
+            </div>
+            <div class="member-grid">
+                {% for s in students %}
+                <div class="member-item">
+                    <label><input type="checkbox" name="students" value="{{ s.id }}"
+                        {% if s in g.students.all %}checked{% endif %}>
+                        {{ s.get_full_name|default:s.username }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+        <form method="post" onsubmit="return confirm('حذف گروه «{{ g.name }}»؟');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="group_id" value="{{ g.id }}">
+            <button type="submit" class="btn btn-danger">🗑️ حذف گروه</button>
+        </form>
+    </div>
+    {% empty %}
+    {% endfor %}
+</div>
+{% endblock %}

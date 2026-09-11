@@ -38,6 +38,23 @@
         </div>
     </div>
 
+    {% if bell_announcements %}
+    <div class="card announce-card student-announce">
+        <h3 style="margin-bottom: 8px;">📣 اطلاعیه‌های معلم</h3>
+        <div class="announce-list">
+            {% for a in bell_announcements %}
+            <div class="announce-item">
+                <div>
+                    <b>{{ a.title }}</b>
+                    {% if a.body %}<div class="announce-body">{{ a.body|truncatewords:24 }}</div>{% endif %}
+                    <div class="announce-time">{{ a.created_at|date:"Y/m/d H:i" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- بخش 1: لیست آزمون‌ها -->
     <div class="section-title">📋 آزمون‌های من</div>
     <div class="exams-grid">
