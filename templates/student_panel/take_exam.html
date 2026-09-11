@@ -393,6 +393,130 @@
             .ab-btn{padding:9px 13px}
         }
 
+        /* ================== پرداخت بصری نهایی (v2) ================== */
+        ::selection{background:rgba(196,154,43,.35);color:var(--ink)}
+
+        /* پس‌زمینه: بافت نقطه‌ای بسیار ملایم روی گرادیان */
+        body{
+            background-image:
+                radial-gradient(rgba(140,105,20,.055) 1px, transparent 1.4px),
+                linear-gradient(150deg,var(--bg1) 0%,var(--bg2) 100%);
+            background-size:22px 22px, auto;
+        }
+
+        /* نوار بالا: هاله نور + نشان عنوان + بافت راه‌راه متحرک نوار پیشرفت */
+        .topbar{
+            background-image:
+                radial-gradient(circle at 92% -20%, rgba(255,255,255,.26), transparent 46%),
+                linear-gradient(135deg,#6f5210,#a67c1e 55%,#c49a2b);
+        }
+        .tb-title::before{
+            content:'📝';display:inline-grid;place-items:center;width:1.55em;height:1.55em;
+            background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:10px;
+            margin-inline-end:8px;font-size:.82em;vertical-align:-4px;
+        }
+        .timer::before{content:'⏳';margin-inline-end:8px;font-family:inherit;font-size:.78em;vertical-align:1px;opacity:.9}
+        .tb-tag{backdrop-filter:blur(3px);background:rgba(255,255,255,.15);letter-spacing:.2px}
+        .tb-progress{height:7px}
+        .tb-bar{
+            background:repeating-linear-gradient(45deg,#fff3cd 0 8px,#ffd977 8px 16px);
+            animation:stripes 1.15s linear infinite;
+        }
+        @keyframes stripes{to{background-position:22.63px 0}}
+
+        /* کارت سوال: نوار تأکیدی رنگی در لبه شروع */
+        .q-card{position:relative;overflow:hidden}
+        .q-card::before{
+            content:'';position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;
+            background:linear-gradient(180deg,var(--gold),var(--gold2));opacity:.9;
+        }
+        .q-card.is-answered::before{background:linear-gradient(180deg,#35b569,var(--ok))}
+        .q-card.has-error::before{background:linear-gradient(180deg,#e06060,var(--err))}
+        .q-num{box-shadow:0 3px 9px rgba(140,105,20,.35);letter-spacing:.2px}
+        .q-chip{background:#fff;border-color:var(--line)}
+
+        /* راهنمای بزرگ‌نمایی روی تصویر سوال */
+        .q-img-wrap{position:relative}
+        .q-img-wrap::after{
+            content:'🔍 برای بزرگ‌نمایی روی تصویر کلیک کنید';
+            position:absolute;bottom:14px;inset-inline:0;margin-inline:auto;width:max-content;max-width:92%;
+            background:rgba(40,26,10,.58);color:#fff;font-size:.68rem;padding:2px 12px;border-radius:999px;
+            backdrop-filter:blur(2px);pointer-events:none;opacity:0;transition:opacity .2s;
+        }
+        .q-img-wrap:hover::after,.q-img-wrap:focus-within::after{opacity:1}
+
+        /* گزینه‌ها: بلندشدن ملایم و تأکید حالت انتخاب */
+        .opt:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(80,55,30,.09)}
+        .opt.is-on{box-shadow:0 0 0 1px var(--gold) inset,0 5px 16px rgba(140,105,20,.13)}
+        .opt.is-on .opt-text{font-weight:700}
+
+        /* آیکن آپلود داخل نشان دایره‌ای */
+        .drop-ico{
+            width:54px;height:54px;border-radius:50%;background:var(--goldsoft);
+            border:1px solid #f0e0b8;display:grid;place-items:center;font-size:1.5rem;margin-bottom:2px;
+            box-shadow:0 4px 10px rgba(140,105,20,.12);
+        }
+
+        /* اعلان‌ها: آیکن داخل نشان دایره‌ای */
+        .notice .ico{
+            flex:0 0 34px;width:34px;height:34px;border-radius:50%;background:#fff;
+            display:grid;place-items:center;border:1px solid var(--line);font-size:1rem;
+        }
+
+        /* پنل کناری: عنوان با خط تأکیدی + آمار به‌صورت کاشی */
+        .side-title{width:100%;border-bottom:2px solid var(--goldsoft);padding-bottom:7px}
+        .sum-rows{grid-template-columns:1fr 1fr;gap:8px}
+        .sum-row{
+            flex-direction:column;align-items:center;gap:1px;text-align:center;
+            background:var(--card2);border:1px solid var(--line2);border-radius:var(--r-md);padding:8px 6px;
+        }
+        .sum-row b{font-size:1.08rem;color:var(--gold3)}
+        .btn-green:hover:not(:disabled){transform:translateY(-1px)}
+
+        /* نوار پایین: خط طلایی بالا + درصد پیشرفت داخل چیپ */
+        .actionbar{box-shadow:0 -10px 28px rgba(60,40,20,.10)}
+        .actionbar::before{
+            content:'';position:absolute;inset-inline:0;top:0;height:2px;
+            background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.55;
+        }
+        .ab-btn:hover:not(:disabled){transform:translateY(-1px)}
+        .ab-mini{max-width:160px;height:6px}
+        .ab-pct{
+            font-size:.72rem;background:#fff;border:1px solid #f0e0b8;border-radius:999px;
+            padding:0 8px;color:var(--gold3);font-variant-numeric:tabular-nums;white-space:nowrap;
+        }
+
+        /* اسکرول‌بار باریک طلایی برای پنل و مودال‌ها */
+        .side::-webkit-scrollbar,.modal-card::-webkit-scrollbar,.unanswered .nums::-webkit-scrollbar{width:8px}
+        .side::-webkit-scrollbar-thumb,.modal-card::-webkit-scrollbar-thumb,.unanswered .nums::-webkit-scrollbar-thumb{
+            background:#d9c69a;border-radius:99px;
+        }
+        .side::-webkit-scrollbar-track,.modal-card::-webkit-scrollbar-track{background:transparent}
+
+        /* حالت صفحه‌به‌صفحه: کارت در میانه صفحه وقتی محتوا کوتاه است (فقط دسکتاپ) */
+        @media (min-width:1024px){
+            body.mode-one_by_one .main{
+                display:flex;flex-direction:column;justify-content:center;
+                min-height:calc(100vh - var(--bar-h) - 200px);
+            }
+        }
+
+        /* موبایل: چیپ‌های متا به‌جای حذف، افقی اسکرول شوند + سربرگ فشرده */
+        @media (max-width:520px){
+            .tb-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px}
+            .tb-main{min-width:0}
+            .tb-sub{
+                display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+                margin-top:6px;padding-bottom:2px;
+                -webkit-mask-image:linear-gradient(to left,#000 82%,transparent);
+                mask-image:linear-gradient(to left,#000 82%,transparent);
+            }
+            .tb-sub::-webkit-scrollbar{display:none}
+            .tb-tag{flex:0 0 auto}
+            .tb-timer{align-self:start}
+            .timer{font-size:1.02rem;padding:2px 10px}
+        }
+
         @media (prefers-reduced-motion:reduce){
             *{animation-duration:.001s !important;transition-duration:.001s !important}
         }
@@ -556,6 +680,7 @@
         <button type="button" class="ab-chip" id="btnPalette" aria-expanded="false" aria-controls="examSide">
             <span id="abCounter">سوال ۱ از ۱</span>
             <span class="ab-mini"><i id="abMiniFill"></i></span>
+            <span class="ab-pct" id="abPct" aria-hidden="true"></span>
         </button>
 
         <button type="button" class="ab-btn" id="btnNext">
@@ -1515,6 +1640,8 @@
         if (wrap) wrap.setAttribute('aria-valuenow', String(pct));
         const mini = el('abMiniFill');
         if (mini) mini.style.width = pct + '%';
+        const pctNode = el('abPct');
+        if (pctNode) pctNode.textContent = fa(pct) + '٪';
         const sa = el('sumAnswered'); if (sa) sa.textContent = fa(answered);
         const su = el('sumUnanswered'); if (su) su.textContent = fa(TOTAL - answered);
         const stt = el('sumTotal'); if (stt) stt.textContent = fa(TOTAL);
