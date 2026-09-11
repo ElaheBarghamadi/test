@@ -69,6 +69,7 @@ def admin_dashboard(request):
         'total_students': User.objects.filter(role='student').count(),
         'total_teachers': User.objects.filter(role='teacher').count(),
         'total_admins': User.objects.filter(role='admin').count(),
+        'total_all': User.objects.count(),
         'total_exams': Exam.objects.count(),
         'total_questions': Question.objects.count(),
         'active_exams': Exam.objects.filter(is_active=True).count(),
@@ -178,6 +179,7 @@ def manage_users(request):
         'total_students': User.objects.filter(role='student').count(),
         'total_teachers': User.objects.filter(role='teacher').count(),
         'total_admins': User.objects.filter(role='admin').count(),
+        'total_all': User.objects.count(),
     }
 
     return render(request, 'admin_panel/manage_users.html', {

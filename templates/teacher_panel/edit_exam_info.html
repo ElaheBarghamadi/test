@@ -5,447 +5,107 @@
 
 {% block extra_css %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
 
-    body {
-        background: #1a1612;
-        font-family: 'Vazirmatn', 'Segoe UI', system-ui, sans-serif;
-        min-height: 100vh;
-    }
-
-    .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 16px;
-    }
-
-    /* انیمیشن‌ها */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* تب‌ها */
-    .tabs {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 24px;
-        background: rgba(30, 24, 18, 0.8);
-        backdrop-filter: blur(8px);
-        padding: 6px;
-        border-radius: 50px;
-        border: 1px solid rgba(160, 120, 80, 0.3);
-        flex-wrap: wrap;
-    }
-
-    .tab-btn {
-        padding: 10px 24px;
-        border: none;
-        background: transparent;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        font-weight: 600;
-        transition: all 0.2s;
-        color: #b89a6a;
-    }
-
-    .tab-btn:hover {
-        background: rgba(160, 120, 80, 0.2);
-        color: #e8c890;
-    }
-
-    .tab-btn.active {
-        background: linear-gradient(135deg, #a07830, #8b6914);
-        color: #f5e6c8;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .tab-content {
-        display: none;
-        animation: fadeIn 0.25s ease;
-    }
-
-    .tab-content.active {
-        display: block;
-    }
-
-    /* کارت‌ها */
+    /* تم روشن طلایی — هم‌سان با سیستم یکپارچه سایت */
+    .container { max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px; }
     .card {
-        background: rgba(25, 20, 16, 0.9);
-        backdrop-filter: blur(10px);
-        border-radius: 24px;
-        padding: 24px;
-        margin-bottom: 24px;
-        border: 1px solid rgba(160, 120, 80, 0.3);
-        transition: all 0.2s;
+        background: #fffdfa; border: 1px solid #e9dcc4; border-radius: 20px; padding: 16px;
+        margin-bottom: 14px; box-shadow: 0 1px 2px rgba(80,55,30,.05), 0 6px 18px rgba(80,55,30,.06);
     }
+    .card:hover { box-shadow: 0 6px 20px rgba(140,105,20,.10); }
+    .card-title { font-size: 1.05rem; font-weight: 800; color: #3d2c1c; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+    .info-note { background: #fdf4de; border: 1px dashed #f0e0b8; color: #6d543a; border-radius: 12px; padding: 10px 12px; font-size: .8rem; margin-bottom: 12px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .stat-card { background: #fdf7ec; border: 1px solid #f3ead9; border-radius: 14px; padding: 10px; text-align: center; }
+    .stat-card:hover { border-color: #f0e0b8; }
+    .stat-number { font-size: 1.3rem; font-weight: 800; color: #7d5d10; }
+    .stat-label { font-size: .74rem; color: #6d543a; font-weight: 600; }
 
-    .card:hover {
-        border-color: rgba(160, 120, 80, 0.5);
+    .tabs {
+        display: flex; gap: 6px; background: #fdf7ec; border: 1px solid #f3ead9;
+        padding: 6px; border-radius: 14px; margin-bottom: 12px; overflow-x: auto;
     }
-
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #e8c890;
-        margin-bottom: 20px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid #a07830;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: space-between;
+    .tab-btn {
+        flex: 1 1 auto; border: none; background: transparent; color: #6d543a;
+        font-weight: 700; font-size: .82rem; padding: 9px 12px; border-radius: 10px;
+        cursor: pointer; white-space: nowrap;
     }
+    .tab-btn:hover { background: #fdf4de; color: #7d5d10; }
+    .tab-btn.active { background: linear-gradient(135deg, #c49a2b, #7d5d10); color: #fff; box-shadow: 0 4px 12px rgba(140,105,20,.25); }
+    .tab-btn.active::after { content: none; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-    /* فرم */
-    .form-row {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .form-group { flex: 1 1 210px; margin-bottom: 12px; min-width: 0; }
+    .form-group label { display: block; font-size: .8rem; font-weight: 700; color: #6d543a; margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%; background: #fff; border: 1.5px solid #e9dcc4; border-radius: 12px;
+        padding: 10px 12px; font-family: inherit; font-size: .88rem; color: #3d2c1c;
     }
-
-    .form-group {
-        flex: 1;
-        min-width: 180px;
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        outline: none; border-color: #c49a2b; box-shadow: 0 0 0 3px rgba(196,154,43,.18);
     }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: 600;
-        color: #d4b88c;
-        font-size: 0.7rem;
-    }
-
-    .form-group input, .form-group select {
-        width: 100%;
-        padding: 10px 14px;
-        background: rgba(35, 28, 22, 0.8);
-        border: 1px solid rgba(160, 120, 80, 0.4);
-        border-radius: 14px;
-        font-size: 0.8rem;
-        color: #e8dcc8;
-        transition: all 0.2s;
-    }
-
-    .form-group input:focus, .form-group select:focus {
-        outline: none;
-        border-color: #d4a017;
-        box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1);
-    }
-
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 14px 0;
-        padding: 10px 14px;
-        background: rgba(35, 28, 22, 0.5);
-        border-radius: 16px;
-        border: 1px solid rgba(160, 120, 80, 0.2);
-    }
-
-    .checkbox-group input {
-        width: 18px;
-        height: 18px;
-        accent-color: #d4a017;
-        cursor: pointer;
-    }
-
-    .checkbox-group label {
-        cursor: pointer;
-        flex: 1;
-        color: #d4c4a8;
-        font-size: 0.8rem;
-    }
-
-    .help-text {
-        font-size: 0.65rem;
-        color: #b89a6a;
-        margin-top: 6px;
-        margin-right: 30px;
-        line-height: 1.5;
-    }
-
-    .btn-save {
-        background: linear-gradient(135deg, #8b6914, #a07830);
-        color: #f5e6c8;
-        padding: 10px 28px;
-        border: none;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(139, 105, 20, 0.3);
-    }
-
-    .btn-danger {
-        background: rgba(100, 50, 40, 0.8);
-        color: #f5c6b0;
-        padding: 10px 28px;
-        border: 1px solid rgba(200, 80, 60, 0.4);
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.2s;
-    }
-
-    .btn-danger:hover {
-        background: rgba(150, 60, 40, 0.9);
-        transform: translateY(-2px);
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 15px;
-        margin-top: 24px;
-        flex-wrap: wrap;
-    }
-
-    /* تاریخ شمسی */
-    .jalali-date {
-        font-size: 0.65rem;
-        color: #b89a6a;
-        margin-top: 6px;
-        padding: 6px 10px;
-        background: rgba(35, 28, 22, 0.5);
-        border-radius: 12px;
-        border-right: 2px solid #d4a017;
-    }
-
-    .jalali-date span {
-        color: #e8c890;
-        font-weight: 600;
-    }
-
-    /* استاتوس تخلفات */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .stat-card {
-        background: rgba(35, 28, 22, 0.6);
-        border-radius: 20px;
-        padding: 16px;
-        text-align: center;
-        border: 1px solid rgba(160, 120, 80, 0.3);
-        transition: all 0.2s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(212, 160, 23, 0.5);
-    }
-
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #f87171;
-    }
-
-    .stat-label {
-        font-size: 0.65rem;
-        color: #b89a6a;
-        margin-top: 6px;
-    }
-
-    .cheat-list {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .cheat-item {
-        background: rgba(35, 28, 22, 0.5);
-        border-radius: 16px;
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        border-right: 3px solid #f87171;
-        transition: all 0.2s;
-    }
-
-    .cheat-item:hover {
-        background: rgba(50, 40, 30, 0.7);
-    }
-
-    /* دانش‌آموزان */
-    .filter-box {
-        background: rgba(35, 28, 22, 0.5);
-        padding: 16px;
-        border-radius: 20px;
-        margin-bottom: 20px;
-    }
-
-    .filter-row {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .filter-item {
-        flex: 1;
-        min-width: 140px;
-    }
-
-    .filter-item label {
-        display: block;
-        font-size: 0.65rem;
-        color: #b89a6a;
-        margin-bottom: 5px;
-    }
-
+    .help-text { font-size: .74rem; color: #9c8568; margin-top: 4px; }
+    .jalali-date { background: #fdf4de; border: 1px solid #f0e0b8; color: #7d5d10; border-radius: 10px; padding: 5px 10px; font-size: .76rem; margin-top: 6px; display: inline-block; font-weight: 700; }
+    .jalali-date span { color: #6d543a; font-weight: 600; }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .checkbox-group label { font-size: .84rem; color: #3d2c1c; cursor: pointer; margin: 0; font-weight: 600; }
+    .checkbox-group input { width: 17px; height: 17px; accent-color: #a67c1e; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .filter-item { flex: 1 1 150px; min-width: 0; }
+    .filter-item label { display: block; font-size: .76rem; font-weight: 700; color: #6d543a; margin-bottom: 4px; }
     .filter-item select, .filter-item input {
-        width: 100%;
-        padding: 8px 12px;
-        background: rgba(20, 16, 12, 0.8);
-        border: 1px solid rgba(160, 120, 80, 0.4);
-        border-radius: 12px;
-        color: #e8dcc8;
-        font-size: 0.75rem;
+        width: 100%; background: #fff; border: 1.5px solid #e9dcc4; border-radius: 12px;
+        padding: 9px 12px; font-family: inherit; font-size: .86rem; color: #3d2c1c;
     }
+    .filter-item button { height: 40px; }
+    .students-list { display: grid; gap: 6px; max-height: 340px; overflow: auto; padding: 4px; }
+    .student-item { background: #fdf7ec; border: 1px solid #f3ead9; border-radius: 12px; padding: 8px 10px; }
+    .student-item:hover { border-color: #c49a2b; background: #fdf4de; }
+    .student-item label { display: flex; gap: 8px; align-items: center; font-size: .84rem; color: #3d2c1c; cursor: pointer; flex-wrap: wrap; }
+    .student-item input { width: 17px; height: 17px; accent-color: #a67c1e; }
+    .student-name { font-weight: 700; }
+    .selected-badge { background: #e7f6ec; color: #157a3b; border: 1px solid #b9e2c6; border-radius: 999px; font-size: .7rem; font-weight: 700; padding: 2px 10px; }
+    .selected-count { background: #fdf4de; color: #7d5d10; border: 1px solid #f0e0b8; border-radius: 999px; font-size: .74rem; font-weight: 700; padding: 3px 12px; }
+    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 
-    .filter-item button {
-        background: linear-gradient(135deg, #a07830, #8b6914);
-        color: #f5e6c8;
-        padding: 8px 20px;
-        border: none;
-        border-radius: 40px;
-        cursor: pointer;
-        width: 100%;
-        font-weight: 600;
-        transition: all 0.2s;
-        margin-top: 22px;
+    a, button { font-family: inherit; }
+    .btn-primary, .btn-secondary, .btn-settings, .btn-cheats, .btn-answers,
+    .btn-edit, .btn-delete, .btn-teacher-ans, .btn-save, .btn-danger,
+    .btn-home, .btn-dashboard, .btn-yes, .btn-no, .btn-only {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        border-radius: 999px; padding: 9px 18px; font-size: .82rem; font-weight: 700;
+        text-decoration: none; cursor: pointer; border: 1.5px solid transparent; transition: .15s;
     }
+    .btn-primary, .btn-save, .btn-yes, .btn-home, .btn-dashboard {
+        background: linear-gradient(135deg, #c49a2b, #7d5d10); color: #fff;
+        box-shadow: 0 5px 14px rgba(140, 105, 20, .25);
+    }
+    .btn-primary:hover, .btn-save:hover, .btn-yes:hover { filter: brightness(1.06); transform: translateY(-1px); }
+    .btn-secondary, .btn-no { background: #fdf7ec; color: #6d543a; border-color: #e9dcc4; }
+    .btn-secondary:hover, .btn-no:hover { border-color: #c49a2b; color: #7d5d10; background: #fdf4de; }
+    .btn-settings { background: #e7f6ec; color: #157a3b; border-color: #b9e2c6; }
+    .btn-cheats { background: #fff3e0; color: #b96c07; border-color: #f3d3a4; }
+    .btn-answers, .btn-edit, .btn-teacher-ans { background: #fdf4de; color: #7d5d10; border-color: #f0e0b8; }
+    .btn-delete, .btn-danger { background: #fdecec; color: #bd2222; border-color: #f2c4c4; }
+    .btn-edit, .btn-delete, .btn-teacher-ans { padding: 5px 11px; font-size: .78rem; }
 
-    .filter-item button:hover {
-        transform: translateY(-1px);
+    .error-msg { background: #fdecec; border: 1px solid #f2c4c4; color: #bd2222; border-radius: 12px; padding: 10px 12px; font-size: .82rem; margin-bottom: 12px; }
+    .success-msg { background: #e7f6ec; border: 1px solid #b9e2c6; color: #157a3b; border-radius: 12px; padding: 10px 12px; font-size: .82rem; margin-bottom: 12px; }
+    .cheat-list { display: grid; gap: 8px; }
+    .cheat-item { background: #fff3e0; border: 1px solid #f3d3a4; border-radius: 12px; padding: 10px 12px; font-size: .82rem; color: #6d543a; }
+    .cheat-item:hover { border-color: #e8b06a; }
+    @media (max-width: 640px) {
+        .container { padding: 10px 8px 44px; }
+        .card { padding: 12px; border-radius: 16px; }
+        .form-row { flex-direction: column; gap: 0; }
+        .filter-row { flex-direction: column; align-items: stretch; }
+        .filter-item button { width: 100%; }
+        .form-actions a, .form-actions button { flex: 1 1 auto; }
     }
-
-    .students-list {
-        max-height: 400px;
-        overflow-y: auto;
-        border: 1px solid rgba(160, 120, 80, 0.3);
-        border-radius: 20px;
-    }
-
-    .student-item {
-        display: flex;
-        align-items: center;
-        padding: 12px 16px;
-        border-bottom: 1px solid rgba(160, 120, 80, 0.2);
-        transition: background 0.2s;
-    }
-
-    .student-item:hover {
-        background: rgba(160, 120, 80, 0.1);
-    }
-
-    .student-item input {
-        width: 18px;
-        height: 18px;
-        margin-left: 14px;
-        cursor: pointer;
-        accent-color: #d4a017;
-    }
-
-    .student-item label {
-        flex: 1;
-        cursor: pointer;
-    }
-
-    .student-name {
-        font-weight: 600;
-        color: #e8dcc8;
-        font-size: 0.8rem;
-    }
-
-    .selected-badge {
-        background: #8b6914;
-        color: #f5e6c8;
-        padding: 2px 10px;
-        border-radius: 30px;
-        font-size: 0.6rem;
-        margin-right: 10px;
-    }
-
-    .selected-count {
-        background: linear-gradient(135deg, #a07830, #8b6914);
-        color: #f5e6c8;
-        padding: 4px 14px;
-        border-radius: 40px;
-        font-size: 0.75rem;
-    }
-
-    .success-msg {
-        background: rgba(16, 185, 129, 0.15);
-        color: #6ee7b7;
-        padding: 14px 18px;
-        border-radius: 20px;
-        margin-bottom: 20px;
-        border-right: 3px solid #10b981;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .error-msg {
-        background: rgba(220, 134, 134, 0.15);
-        color: #b5533a;
-        padding: 14px 18px;
-        border-radius: 20px;
-        margin-bottom: 20px;
-        border-right: 3px solid #dc8686;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .info-note {
-        background: rgba(59, 130, 246, 0.1);
-        padding: 12px 16px;
-        border-radius: 16px;
-        font-size: 0.7rem;
-        color: #90caf9;
-        margin-top: 16px;
-        border-right: 2px solid #3b82f6;
-    }
-
-    /* ریسپانسیو */
-    @media (max-width: 768px) {
-        .container { padding: 10px; }
-        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .tabs { border-radius: 30px; justify-content: center; }
-        .tab-btn { padding: 7px 16px; font-size: 0.7rem; }
-        .form-row { flex-direction: column; gap: 14px; }
-        .filter-row { flex-direction: column; }
-        .filter-item button { margin-top: 0; }
-        .student-item { flex-wrap: wrap; }
-        .card { padding: 16px; }
-    }
-
-    @media (max-width: 480px) {
-        .stats-grid { grid-template-columns: 1fr; }
-        .form-actions { flex-direction: column; }
-        .btn-save, .btn-danger { text-align: center; }
-    }
-</style>
+    </style>
 {% endblock %}
 
 {% block content %}

@@ -226,6 +226,33 @@
     .filter-group input, .filter-group select { width: 100%; }
     .filters .btn { height: 41px; }
 
+    /* ================== فیلترها: ظاهر یکسان و مرتب در کل سایت ================== */
+    .filters, .filter-bar, .filter-row, .filters-row {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+        gap: 10px; align-items: end;
+        background: var(--card2); border: 1px solid var(--line); border-radius: var(--r-md);
+        padding: 12px; margin-bottom: 14px;
+        box-shadow: none; backdrop-filter: none;
+    }
+    .filter-group, .filter-item { display: grid; gap: 5px; min-width: 0; }
+    .filter-group label, .filter-item label {
+        display: block; font-size: .76rem; font-weight: 700; color: var(--ink2); margin-bottom: 0;
+    }
+    .filter-group select, .filter-group input, .filter-item select, .filter-item input {
+        width: 100%; background: #fff; border: 1.5px solid var(--line); border-radius: 12px;
+        padding: 9px 12px; font-size: .86rem; color: var(--ink); font-family: inherit;
+    }
+    .filter-group select:focus, .filter-group input:focus,
+    .filter-item select:focus, .filter-item input:focus {
+        outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(196, 154, 43, .18);
+    }
+    .filters button, .filter-bar button, .filters-row > button, .filter-row > button,
+    .filters .btn, .filter-bar .btn {
+        width: 100%; height: 40px; border-radius: 12px; padding: 8px 12px;
+    }
+    .filter-row .form-group { margin-bottom: 0; min-width: 0; }
+    .apply-filter-btn, .reset-filter-btn { border-radius: 12px !important; width: 100%; height: 40px; }
+
     /* ================== کارت‌های آزمون ================== */
     .exams-grid {
         display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -438,8 +465,9 @@
         .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .stat-card, .stat-tile { padding: 10px 8px; border-radius: 14px; }
         .exams-grid { grid-template-columns: 1fr; gap: 10px; }
-        .filters { grid-template-columns: 1fr 1fr; gap: 8px; }
-        .filters .filter-group:last-of-type, .filters .btn { grid-column: 1 / -1; }
+        .filters, .filter-bar, .filter-row, .filters-row { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
+        .filters .filter-group:last-of-type, .filters .btn, .filters button,
+        .filter-bar button, .filters-row > button, .filter-row > button { grid-column: 1 / -1; }
         .info-stats { gap: 6px; }
         .info-two-columns { gap: 6px; }
         .info-badge { padding: 7px 8px; }
@@ -461,6 +489,8 @@
         /* ---- ریتم عمودی: فرم‌ها فشرده ولی خوانا ---- */
         .form-group { margin-bottom: 12px; }
         .form-group label { margin-bottom: 5px; }
+        .form-row { flex-direction: column; align-items: stretch; gap: 0; }
+        .form-row .form-group { flex: 0 0 auto; min-width: 0; }
         h2 { margin-bottom: 14px; font-size: 1.12rem; }
         .glass-card { padding: 14px 12px; border-radius: 16px; }
         .settings-section { margin-bottom: 14px; padding: 12px; border-radius: 14px; }
@@ -477,10 +507,7 @@
         }
 
         /* ---- فیلتر صفحه تصحیح: تمام‌عرض و مرتب ---- */
-        .filters-row { flex-direction: column !important; gap: 8px !important; }
-        .filter-item { min-width: 0 !important; width: 100%; }
-        .filter-item select, .filter-item input { width: 100% !important; }
-        .apply-filter-btn, .reset-filter-btn { width: 100%; }
+        .filter-item { min-width: 0 !important; }
     }
 
     /* ---- گوشی‌های خیلی باریک (≤400px) ---- */
@@ -488,7 +515,7 @@
         .container, .container-custom, .container-dashboard { padding: 8px 6px 40px; }
         .card, .welcome-card, .filter-card, .report-card, .panel, .box { padding: 10px; border-radius: 14px; }
         .exam-actions { grid-template-columns: 1fr 1fr; }
-        .filters { grid-template-columns: 1fr; }
+        .filters, .filter-bar, .filter-row, .filters-row { grid-template-columns: 1fr; }
         .stats { gap: 6px; }
         .stat-number, .info-stat .value, .stat-card b { font-size: 1.2rem; }
         .nav-link, .dropdown-btn { font-size: .75rem; padding: 4px 10px; }

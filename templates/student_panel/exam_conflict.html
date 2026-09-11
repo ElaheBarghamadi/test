@@ -2,18 +2,17 @@
 {% block title %}تداخل ورود{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 500px; margin: 100px auto; text-align: center;">
-    <div class="card" style="background: white; border-radius: 20px; padding: 40px;">
+<div class="container" style="max-width: 520px; text-align: center;">
+    <div class="card" style="text-align: center; padding: 26px 18px; margin-top: 30px;">
         <div class="icon" style="font-size: 60px;">⚠️</div>
-        <h2 style="color: #dc2626;">تداخل در ورود!</h2>
-        <p style="margin: 20px 0; color: #475569;">
+        <h2 style="color: #bd2222;">تداخل در ورود!</h2>
+        <p style="margin: 14px 0; color: #6d543a; font-size: .88rem;">
             شما در جای دیگری با همین حساب کاربری وارد شده‌اید.<br>
             برای ادامه، لطفاً از مرورگر دیگر خارج شوید.
         </p>
         <form method="post" action="{% url 'logout_view' %}" style="display:inline">
             {% csrf_token %}
-            <button type="submit" class="btn"
-                    style="background: #dc2626; color: white; padding: 10px 25px; border-radius: 30px; border: none; cursor: pointer;">خروج
+            <button type="submit" class="btn btn-danger">خروج
                 از حساب</button>
         </form>
     </div>
