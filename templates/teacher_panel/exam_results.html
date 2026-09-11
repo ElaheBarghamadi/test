@@ -260,20 +260,18 @@
 {% block content %}
 <div class="container">
     <!-- Header -->
-    <div class="glass-card" style="background: linear-gradient(135deg, rgba(30, 60, 50, 0.95), rgba(45, 90, 60, 0.95)); backdrop-filter: blur(12px); border-radius: 28px; padding: 24px 28px; margin-bottom: 24px; color: white;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <div class="exam-hero">
+        <div class="exam-hero-row">
             <div>
-                <h1 style="font-size: 1.3rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                    <span>📊</span> {{ exam.title }}
-                </h1>
-                <div style="display: flex; gap: 24px; font-size: 0.7rem; opacity: 0.85; margin-top: 12px; flex-wrap: wrap;">
+                <h1><span>📊</span> {{ exam.title }}</h1>
+                <div class="exam-meta">
                     <span>📚 {{ exam.grade.get_name_display }}</span>
                     <span>👥 {{ stats.total_students }} دانش‌آموز</span>
                     <span>📋 {{ exam.questions.count }} سوال</span>
                     <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
                 </div>
             </div>
-            <a href="{% url 'teacher_dashboard' %}" style="background: rgba(255,255,255,0.15); padding: 8px 24px; border-radius: 40px; color: white; text-decoration: none; font-size: 0.8rem; backdrop-filter: blur(4px);">← بازگشت به داشبورد</a>
+            <a href="{% url 'teacher_dashboard' %}" class="btn-ghost-light">← بازگشت به داشبورد</a>
         </div>
     </div>
 

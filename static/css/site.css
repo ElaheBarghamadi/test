@@ -331,6 +331,15 @@
     }
 
     /* ================== یکسان‌سازی تم‌های قدیمی (تخته‌سبز/شیشه تیره) ================== */
+    .exam-hero-row {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 12px;
+    }
+    .btn-ghost-light, .exam-hero .btn-ghost-light, .glass-header .btn-ghost-light {
+        background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .3);
+        color: #fff !important; border-radius: 999px; padding: 8px 20px;
+        font-size: .8rem; font-weight: 700; text-decoration: none; white-space: nowrap;
+    }
     .exam-hero, .glass-header {
         background: linear-gradient(135deg, #6f5210, #a67c1e 55%, #c49a2b) !important;
         border: none !important; backdrop-filter: none !important;
@@ -383,12 +392,58 @@
         max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px;
     }
 
-    /* ================== ریسپانسیو عمومی ================== */
+    /* =====================================================================
+       حالت موبایل: بدون حاشیه اضافه + تایپوگرافی خوانا
+       ===================================================================== */
     @media (max-width: 640px) {
-        .stats { grid-template-columns: 1fr 1fr; gap: 9px; }
-        .stat-number, .info-stat .value { font-size: 1.25rem; }
-        .exams-grid { grid-template-columns: 1fr; }
-        .nav-container { padding: 8px 12px; flex-wrap: wrap; }
+
+        /* ---- تایپوگرافی: کفِ سایز خوانا، سلسله‌مرتب واضح ---- */
+        body { font-size: .9rem; line-height: 1.8; }
+        h1 { font-size: 1.28rem; }
+        h2 { font-size: 1.12rem; }
+        h3 { font-size: 1rem; }
+        h4 { font-size: .92rem; }
+        label, .filter-group label, .filter-item label { font-size: .8rem; }
+        input, select, textarea { font-size: .88rem; }
+        table { font-size: .85rem; }
+        thead th { font-size: .77rem; padding: 9px 10px; }
+        tbody td { padding: 9px 10px; }
+        .btn { font-size: .82rem; padding: 9px 14px; }
+        .nav-link, .dropdown-btn { font-size: .78rem; padding: 5px 12px; }
+        .stat-label, .info-stat .label { font-size: .76rem; }
+        .stat-number, .info-stat .value, .stat-card b { font-size: 1.3rem; }
+        .info-badge .label { font-size: .72rem; }
+        .info-badge .value { font-size: .88rem; }
+        .info-stat { font-size: .78rem; }
+        .exam-title { font-size: .98rem; }
+        .exam-details, .exam-meta { font-size: .79rem; gap: 5px 12px; }
+        .welcome-title { font-size: 1.12rem; }
+        .welcome-subtitle { font-size: .85rem; }
+        .empty-state { font-size: .87rem; padding: 24px 14px; }
+        .footer, .footer-content { font-size: .78rem; }
+
+        /* ---- حاشیه‌ها: محتوا نزدیک لبه صفحه، بدون فضای مرده ---- */
+        .container, .container-custom, .container-dashboard { padding: 10px 8px 44px; }
+        .card, .welcome-card, .filter-card, .report-card, .panel, .box {
+            padding: 12px; border-radius: 16px;
+        }
+        .exam-hero, .glass-header {
+            padding: 14px !important; margin: 0 0 12px !important; border-radius: 16px !important;
+        }
+        .exam-hero h1, .glass-header h1, .exam-hero h2, .glass-header h2 {
+            font-size: 1.14rem !important; line-height: 1.7 !important;
+        }
+        .btn-ghost-light { padding: 7px 16px; font-size: .78rem; }
+        .exam-hero-row { gap: 10px; }
+        .stats { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .stat-card, .stat-tile { padding: 10px 8px; border-radius: 14px; }
+        .exams-grid { grid-template-columns: 1fr; gap: 10px; }
+        .filters { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .filters .filter-group:last-of-type, .filters .btn { grid-column: 1 / -1; }
+        .info-stats { gap: 6px; }
+        .info-two-columns { gap: 6px; }
+        .info-badge { padding: 7px 8px; }
+        .nav-container { padding: 8px 10px; flex-wrap: wrap; }
         .nav-links {
             order: 3; width: 100%; display: flex; flex-wrap: nowrap; overflow-x: auto;
             scrollbar-width: none; padding-bottom: 2px;
@@ -396,12 +451,49 @@
             mask-image: linear-gradient(to left, #000 88%, transparent);
         }
         .nav-links::-webkit-scrollbar { display: none; }
-        .nav-link, .dropdown-btn { font-size: .72rem; padding: 4px 11px; flex: 0 0 auto; }
-        .filters { grid-template-columns: 1fr 1fr; }
-        .filters .filter-group:last-of-type, .filters .btn { grid-column: 1 / -1; }
-        .welcome-card, .card, .report-card { padding: 13px; }
-        .container, .container-custom, .container-dashboard { padding: 12px 10px 60px; }
-        .exam-actions .btn, .exam-actions a { flex: 1 1 auto; justify-content: center; }
+        .login-wrapper { padding: 14px 0 28px; }
+        .login-card { padding: 22px 16px; border-radius: 20px; }
+        .login-header { margin-bottom: 16px; }
+        .login-icon { width: 60px; height: 60px; font-size: 1.7rem; margin: 0 auto 10px; }
+        .login-title { font-size: 1.18rem; }
+        .login-sub { font-size: .82rem; }
+
+        /* ---- ریتم عمودی: فرم‌ها فشرده ولی خوانا ---- */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { margin-bottom: 5px; }
+        h2 { margin-bottom: 14px; font-size: 1.12rem; }
+        .glass-card { padding: 14px 12px; border-radius: 16px; }
+        .settings-section { margin-bottom: 14px; padding: 12px; border-radius: 14px; }
+        .settings-section h3 { font-size: .95rem; margin-bottom: 8px; }
+        .setting-item { padding: 8px 10px; }
+        .help-text, .date-note { font-size: .76rem; }
+        .filter-section { padding: 12px; margin-bottom: 12px; border-radius: 16px; }
+        .form-errors, .form-success { padding: 10px 12px; margin-bottom: 12px; font-size: .8rem; }
+
+        /* ---- دکمه‌های عملیات کارت آزمون: گرید منظم سه‌ستونه ---- */
+        .exam-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .exam-actions .btn, .exam-actions a, .exam-actions button {
+            padding: 7px 4px; font-size: .74rem; justify-content: center; white-space: nowrap;
+        }
+
+        /* ---- فیلتر صفحه تصحیح: تمام‌عرض و مرتب ---- */
+        .filters-row { flex-direction: column !important; gap: 8px !important; }
+        .filter-item { min-width: 0 !important; width: 100%; }
+        .filter-item select, .filter-item input { width: 100% !important; }
+        .apply-filter-btn, .reset-filter-btn { width: 100%; }
+    }
+
+    /* ---- گوشی‌های خیلی باریک (≤400px) ---- */
+    @media (max-width: 400px) {
+        .container, .container-custom, .container-dashboard { padding: 8px 6px 40px; }
+        .card, .welcome-card, .filter-card, .report-card, .panel, .box { padding: 10px; border-radius: 14px; }
+        .exam-actions { grid-template-columns: 1fr 1fr; }
+        .filters { grid-template-columns: 1fr; }
+        .stats { gap: 6px; }
+        .stat-number, .info-stat .value, .stat-card b { font-size: 1.2rem; }
+        .nav-link, .dropdown-btn { font-size: .75rem; padding: 4px 10px; }
+        .exam-hero h1, .glass-header h1, .exam-hero h2, .glass-header h2 { font-size: 1.06rem !important; }
+        .btn { font-size: .8rem; padding: 8px 12px; }
     }
 
     /* اسکرول‌بار باریک طلایی */
