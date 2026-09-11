@@ -10,9 +10,12 @@
             شما در جای دیگری با همین حساب کاربری وارد شده‌اید.<br>
             برای ادامه، لطفاً از مرورگر دیگر خارج شوید.
         </p>
-        <a href="{% url 'logout_view' %}" class="btn"
-           style="background: #dc2626; color: white; padding: 10px 25px; border-radius: 30px; text-decoration: none;">خروج
-            از حساب</a>
+        <form method="post" action="{% url 'logout_view' %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit" class="btn"
+                    style="background: #dc2626; color: white; padding: 10px 25px; border-radius: 30px; border: none; cursor: pointer;">خروج
+                از حساب</button>
+        </form>
     </div>
 </div>
 {% endblock %}

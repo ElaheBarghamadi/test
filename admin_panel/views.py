@@ -1,6 +1,7 @@
 # panel_admin/views.py
 
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
@@ -59,7 +60,7 @@ def clean_numeric_text(value):
 def admin_dashboard(request):
     """داشبورد اصلی ادمین - آمار کامل"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     now = timezone.now()
 
@@ -162,7 +163,7 @@ def admin_dashboard(request):
 def manage_users(request):
     """مدیریت کاربران"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     users = User.objects.all().order_by('-date_joined')
     grades = Grade.objects.all()
@@ -540,7 +541,7 @@ def delete_user(request, user_id):
 def manage_exams(request):
     """مدیریت آزمون‌ها"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     exams = Exam.objects.all().order_by('-created_at').annotate(
         students_count=Count('students'),
@@ -566,7 +567,7 @@ def manage_exams(request):
 def view_exam_detail(request, exam_id):
     """مشاهده جزئیات یک آزمون"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     exam = get_object_or_404(Exam, id=exam_id)
     questions = exam.questions.all().order_by('order')
@@ -615,7 +616,7 @@ def delete_exam(request, exam_id):
 def exam_analytics(request):
     """تحلیل و گزارش‌گیری پیشرفته از آزمون‌ها"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     # فیلترها
     grade_id = request.GET.get('grade')
@@ -658,7 +659,7 @@ def exam_analytics(request):
 def student_analytics(request):
     """تحلیل عملکرد دانش‌آموزان"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     # فیلترها
     grade_id = request.GET.get('grade')
@@ -718,7 +719,7 @@ def student_analytics(request):
 def system_settings(request):
     """تنظیمات سیستم - فقط ادمین"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -808,7 +809,7 @@ from accounts.models import User, Grade
 def system_logs(request):
     """مشاهده لاگ‌های سیستم و تقلب‌ها"""
     if request.user.role != 'admin':
-        return redirect('/')
+        raise PermissionDenied('دسترسی غیرمجاز')
 
     # دریافت تقلب‌ها با اطلاعات کامل
     cheats = CheatAttempt.objects.all().select_related(

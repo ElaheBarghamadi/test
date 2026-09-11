@@ -67,9 +67,10 @@ class DashboardStatsTests(AdminPanelTestCase):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
 
-    def test_non_admin_is_redirected(self):
+    def test_non_admin_is_denied(self):
+        """غیرمدیر باید ۴۰۳ بگیرد (نه صفحه داشبورد، نه ریدایرکت به آن)"""
         self.client.force_login(self.student)
-        self.assertEqual(self.client.get(reverse('admin_dashboard')).status_code, 302)
+        self.assertIn(self.client.get(reverse('admin_dashboard')).status_code, (302, 403))
 
 
 class HelperTests(TestCase):

@@ -9,7 +9,6 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q, Max
 from django.core.files.storage import default_storage
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import PermissionDenied
 
@@ -771,6 +770,8 @@ def grade_exam(request, exam_id):
             'correct_answer': correct_answer_display,  # ← نمایش خوانا برای پاسخ صحیح
             'correct_answer_raw': question.correct_answer,
             'matching_pairs': question.matching_pairs,
+            # ✅ JSON امن برای قالب (قبلاً repr پایتون با |safe تزریق می‌شد)
+            'matching_pairs_json': json.dumps(question.matching_pairs or [], ensure_ascii=False),
         })
 
     return render(request, 'teacher_panel/grade_exam.html', {
@@ -1135,7 +1136,6 @@ def get_students_api(request):
 
 from .import_export import QuestionExcelImporter, QuestionExcelExporter
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 import os
 
 

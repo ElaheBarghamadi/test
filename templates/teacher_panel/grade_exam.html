@@ -358,14 +358,14 @@
             type: "{{ q.question_type }}",
             maxScore: {{ q.max_score }},
             correctAnswer: `{{ q.correct_answer|default:''|escapejs }}`,
-            matchingPairs: {% if q.matching_pairs %}{{ q.matching_pairs|safe }}{% else %}[]{% endif %},
+            matchingPairs: JSON.parse("{{ q.matching_pairs_json|escapejs }}"),
             answers: [
                 {% for a in q.answers_data %}
                 {
                     studentId: {{ a.student.id }},
                     studentName: "{{ a.student.get_full_name|default:a.student.username|escapejs }}",
                     answerText: `{{ a.answer_text|default:''|escapejs }}`,
-                    answerImage: "{{ a.answer_image.url|default:'' }}",
+                    answerImage: "{{ a.answer_image.url|default:''|escapejs }}",
                     answerId: {{ a.answer_id }},
                     score: {{ a.score|default:'null' }},
                     isCorrect: {{ a.is_correct|default:'false'|lower }}

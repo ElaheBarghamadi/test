@@ -287,6 +287,19 @@
             transition: all 0.2s;
         }
 
+        /* فرم خروج (POST) — هم‌شکل لینک‌ها */
+        .logout-form { margin: 0; }
+        .dropdown-content .logout-dropdown-btn {
+            width: 100%; background: none; border: none; cursor: pointer;
+            padding: 12px 20px; font-size: 0.75rem; font-weight: 500; color: #c97a5a;
+            display: flex; align-items: center; gap: 10px; text-align: right;
+            font-family: inherit; transition: all 0.2s;
+        }
+        .dropdown-content .logout-dropdown-btn:hover {
+            background: rgba(200, 180, 140, 0.1); padding-right: 28px;
+        }
+        button.sidebar-link { width: 100%; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 0.85rem; text-align: right; }
+
         .sidebar-close:hover {
             background: rgba(200, 180, 140, 0.4);
             transform: rotate(90deg);
@@ -481,7 +494,10 @@
                         {% elif user.role == 'student' %}
                             <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
                         {% endif %}
-                        <a href="{% url 'logout_view' %}" style="color: #c97a5a;">🚪 خروج</a>
+                        <form method="post" action="{% url 'logout_view' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-dropdown-btn">🚪 خروج</button>
+                        </form>
                     </div>
                 </div>
             {% else %}
@@ -537,7 +553,10 @@
                 <a href="{% url 'student_dashboard' %}#results" class="sidebar-link">📊 نتایج من</a>
             {% endif %}
             <a href="#" class="sidebar-link">👤 پروفایل</a>
-            <a href="{% url 'logout_view' %}" class="sidebar-link logout">🚪 خروج از حساب</a>
+            <form method="post" action="{% url 'logout_view' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="sidebar-link logout">🚪 خروج از حساب</button>
+            </form>
         {% else %}
             <a href="{% url 'login' %}" class="sidebar-link">🔐 ورود به سامانه</a>
         {% endif %}

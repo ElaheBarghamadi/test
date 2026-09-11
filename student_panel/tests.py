@@ -164,6 +164,7 @@ class SaveAnswerTests(StudentPanelTestCase):
         self.question = Question.objects.create(exam=self.exam, text='q', question_type='short_answer',
                                                 max_score=Decimal('2'), order=1)
         self.client.force_login(self.student)
+        self.client.get(self.exam_url(self.exam))  # شروع آزمون (ساخت attempt)
 
     def post_answer(self, payload):
         return self.client.post(reverse('save_answer'), data=json.dumps(payload),
@@ -188,8 +189,10 @@ class SaveAnswerTests(StudentPanelTestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_cannot_answer_after_submit(self):
-        ExamAttempt.objects.create(student=self.student, exam=self.exam, status='submitted',
-                                   started_at=self.now, submitted_at=self.now)
+        attempt = ExamAttempt.objects.get(student=self.student, exam=self.exam)
+        attempt.status = 'submitted'
+        attempt.submitted_at = self.now
+        attempt.save()
         response = self.post_answer({'question_id': self.question.id, 'answer_text': 'late'})
         self.assertEqual(response.status_code, 403)
 
@@ -366,6 +369,7 @@ class SaveAnswerV2Tests(StudentPanelTestCase):
         super().setUp()
         self.exam = self.make_exam()
         self.client.force_login(self.student)
+        self.client.get(self.exam_url(self.exam))  # شروع آزمون (ساخت attempt)
 
     def post(self, payload):
         return self.client.post(reverse('save_answer'), data=json.dumps(payload),
@@ -435,6 +439,7 @@ class SaveAllAnswersTests(StudentPanelTestCase):
         self.q2 = Question.objects.create(exam=self.exam, text='q2', question_type='fill_blank',
                                           blanks=['a', 'b'], max_score=Decimal('2'), order=2)
         self.client.force_login(self.student)
+        self.client.get(self.exam_url(self.exam))  # شروع آزمون (ساخت attempt)
 
     def post(self, payload):
         return self.client.post(reverse('save_all_answers'), data=json.dumps(payload),

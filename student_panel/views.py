@@ -18,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, Http404
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import PermissionDenied
 from django.core.files.images import get_image_dimensions
@@ -605,14 +606,39 @@ def _resolve_question(question_id):
     return Question.objects.filter(id=question_id).first() if question_id else None
 
 
-def _apply_answer_payload(user, question, data):
-    """اعمال یک پاسخ روی StudentAnswer — پاسخ ۴۰۰/۴۰۳ یا شیء ذخیره‌شده"""
-    attempt = ExamAttempt.objects.filter(student=user, exam=question.exam).first()
+def answer_guard(user, question):
+    """بررسی‌های مشترک مجوز پاسخ‌دهی
+
+    برگشت: شیء ExamAttempt (یا None) در حالت مجاز، وگرنه JsonResponse خطا.
+    - آزمون ثبت‌نهایی‌شده باشد → ۴۰۳
+    - آزمون هنوز شروع نشده باشد → ۴۰۳ (جلوگیری از پاسخ دادن پیش از شروع)
+    - تایمر شناور بدون نشست شروع‌شده → ۴۰۳
+    - مهلت آزمون تمام شده باشد → ۴۰۳
+    """
+    exam = question.exam
+    attempt = ExamAttempt.objects.filter(student=user, exam=exam).first()
+
     if attempt and attempt.status in ['submitted', 'timeout']:
         return JsonResponse({'error': 'آزمون ثبت نهایی شده است'}, status=403)
 
-    if not exam_window_open(question.exam, attempt):
+    now = timezone.now()
+    if exam.start_time and now < exam.start_time:
+        return JsonResponse({'error': 'آزمون هنوز شروع نشده است'}, status=403)
+
+    if exam.timer_type == 'floating' and (not attempt or not attempt.started_at):
+        return JsonResponse({'error': 'آزمون هنوز شروع نشده است'}, status=403)
+
+    if not exam_window_open(exam, attempt):
         return JsonResponse({'error': 'زمان آزمون به پایان رسیده است'}, status=403)
+
+    return attempt
+
+
+def _apply_answer_payload(user, question, data):
+    """اعمال یک پاسخ روی StudentAnswer — پاسخ ۴۰۰/۴۰۳ یا شیء ذخیره‌شده"""
+    guard = answer_guard(user, question)
+    if isinstance(guard, JsonResponse):
+        return guard
 
     raw_text = data.get('answer_text', None)
     blanks = data.get('blanks', None)
@@ -762,9 +788,9 @@ def save_answer_image(request):
         if request.user not in question.exam.students.all():
             return JsonResponse({'error': 'شما مجاز به پاسخ دادن نیستید'}, status=403)
 
-        attempt = ExamAttempt.objects.filter(student=request.user, exam=question.exam).first()
-        if attempt and attempt.status in ['submitted', 'timeout']:
-            return JsonResponse({'error': 'زمان آزمون به اتمام رسیده'}, status=403)
+        guard = answer_guard(request.user, question)
+        if isinstance(guard, JsonResponse):
+            return guard
 
         ext = os.path.splitext(answer_image.name)[1].lower()
         safe_filename = f"answer_{request.user.id}_{uuid.uuid4().hex}{ext}"
@@ -802,6 +828,10 @@ def remove_answer_image(request):
 
         answer = StudentAnswer.objects.filter(student=request.user, question_id=question_id).first()
         if answer and answer.answer_image:
+            guard = answer_guard(request.user, answer.question)
+            if isinstance(guard, JsonResponse):
+                return guard
+
             answer.answer_image.delete(save=False)
             answer.answer_image = None
             answer.save()
@@ -977,6 +1007,17 @@ def log_cheat(request):
 
         if request.user not in exam.students.all():
             return JsonResponse({'success': False, 'error': 'شما به این آزمون دسترسی ندارید'})
+
+        # ⚠️ محدودیت نرخ ثبت تخلف (جلوگیری از اسپم/DoS روی جدول تخلف‌ها)
+        throttle_key = f'cheat-throttle:{request.user.id}:{exam.id}'
+        count = cache.get(throttle_key, 0)
+        if count >= 120:
+            return JsonResponse({'success': False, 'error': 'تعداد درخواست زیاد'})
+        cache.add(throttle_key, 0, 3600)
+        try:
+            cache.incr(throttle_key)
+        except ValueError:
+            pass
 
         session, _ = ExamSession.objects.get_or_create(
             student=request.user,

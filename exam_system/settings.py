@@ -13,6 +13,26 @@ SECRET_KEY = os.getenv(
 # ⚠️ Production mode
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
+# 🔒 کوکی‌ها و نشست‌ها
+SESSION_COOKIE_HTTPONLY = True          # جاوااسکریپت به کوکی نشست دسترسی ندارد
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False            # اسکریپت‌های سامانه توکن CSRF را می‌خوانند
+SESSION_COOKIE_AGE = 60 * 60 * 12       # ۱۲ ساعت
+SESSION_SAVE_EVERY_REQUEST = True       # انقضای لغزنده برای خروج خودکار در عدم فعالیت
+X_FRAME_OPTIONS = 'DENY'                # جلوگیری از قرارگیری در iframe (کلیک‌ربایی)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+if not DEBUG:
+    # فقط در حالت تولید: اجبار HTTPS و کوکی‌های امن
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
@@ -43,6 +63,7 @@ INSTALLED_APPS = [
 # 🧱 Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'exam_system.middleware.SecurityHeadersMiddleware',
 
     # static files (IMPORTANT for Render)
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -114,8 +135,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # 🔑 Default auto field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# 🌐 CORS (برای API و فرانت جدا)
-CORS_ALLOW_ALL_ORIGINS = True
+# 🌐 CORS — فقط میزبان‌های مجاز (پیش‌فرض: هیچ‌کس؛ متغیر محیطی CORS_ALLOWED_ORIGINS)
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [o.strip() for o in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()]
+CORS_ALLOW_CREDENTIALS = False
 
 # ⚙️ Session
 SESSION_CACHE_ALIAS = 'default'
