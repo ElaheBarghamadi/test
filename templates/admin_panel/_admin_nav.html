@@ -1,0 +1,17 @@
+{% comment %}ناوبری یکپارچهٔ پنل ادمین — در همهٔ صفحات ادمین include می‌شود{% endcomment %}
+{% url 'admin_dashboard' as u_dash %}
+{% url 'manage_users' as u_users %}
+{% url 'manage_exams' as u_exams %}
+{% url 'exam_analytics' as u_ana_e %}
+{% url 'student_analytics' as u_ana_s %}
+{% url 'system_logs' as u_logs %}
+{% url 'system_settings' as u_set %}
+<div class="admin-nav">
+    <a href="{{ u_dash }}" class="{% if request.path == u_dash %}on{% endif %}">🏠 داشبورد</a>
+    <a href="{{ u_users }}" class="{% if request.path == u_users %}on{% endif %}">👥 کاربران</a>
+    <a href="{{ u_exams }}" class="{% if request.path == u_exams %}on{% endif %}">📝 آزمون‌ها</a>
+    <a href="{{ u_ana_e }}" class="{% if request.path == u_ana_e %}on{% endif %}">📊 تحلیل آزمون‌ها</a>
+    <a href="{{ u_ana_s }}" class="{% if request.path == u_ana_s %}on{% endif %}">🎓 تحلیل دانش‌آموزان</a>
+    <a href="{{ u_logs }}" class="{% if request.path == u_logs %}on{% endif %}">🛡️ لاگ‌ها و تقلب</a>
+    <a href="{{ u_set }}" class="{% if request.path == u_set %}on{% endif %}">⚙️ تنظیمات</a>
+</div>

@@ -142,8 +142,15 @@ def admin_dashboard(request):
         exams_count = Exam.objects.filter(created_at__range=[month_start, month_end]).count()
         attempts_count = ExamAttempt.objects.filter(submitted_at__range=[month_start, month_end]).count()
 
+        try:
+            import jdatetime
+            _FA_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+                          'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+            month_label = _FA_MONTHS[jdatetime.datetime.fromgregorian(datetime=month_start).month - 1]
+        except Exception:
+            month_label = month_start.strftime('%B')
         monthly_stats.append({
-            'month': month_start.strftime('%B'),
+            'month': month_label,
             'exams': exams_count,
             'attempts': attempts_count,
         })
@@ -169,6 +176,20 @@ def manage_users(request):
     users = User.objects.all().order_by('-date_joined')
     grades = Grade.objects.all()
 
+    # فیلتر و جستجو
+    q = request.GET.get('q', '').strip()
+    role_f = request.GET.get('role', '').strip()
+    grade_f = request.GET.get('grade', '').strip()
+    if q:
+        users = users.filter(
+            Q(first_name__icontains=q) | Q(last_name__icontains=q) |
+            Q(username__icontains=q) | Q(student_code__icontains=q)
+        )
+    if role_f in ('student', 'teacher', 'admin'):
+        users = users.filter(role=role_f)
+    if grade_f.isdigit():
+        users = users.filter(grade_id=int(grade_f))
+
     # pagination
     paginator = Paginator(users, 20)
     page_number = request.GET.get('page')
@@ -186,6 +207,9 @@ def manage_users(request):
         'users': page_obj,
         'grades': grades,
         'stats': stats,
+        'q': q,
+        'role_f': role_f,
+        'grade_f': grade_f,
     })
 
 
@@ -545,7 +569,23 @@ def manage_exams(request):
     if request.user.role != 'admin':
         raise PermissionDenied('دسترسی غیرمجاز')
 
-    exams = Exam.objects.all().order_by('-created_at').annotate(
+    exams = Exam.objects.all().order_by('-created_at')
+
+    # فیلتر و جستجو
+    q = request.GET.get('q', '').strip()
+    grade_f = request.GET.get('grade', '').strip()
+    status_f = request.GET.get('status', '').strip()
+    if q:
+        exams = exams.filter(Q(title__icontains=q) | Q(teacher__username__icontains=q) |
+                             Q(teacher__first_name__icontains=q) | Q(teacher__last_name__icontains=q))
+    if grade_f.isdigit():
+        exams = exams.filter(grade_id=int(grade_f))
+    if status_f == 'active':
+        exams = exams.filter(is_active=True)
+    elif status_f == 'inactive':
+        exams = exams.filter(is_active=False)
+
+    exams = exams.annotate(
         students_count=Count('students'),
         questions_count=Count('questions')
     )
@@ -562,6 +602,9 @@ def manage_exams(request):
         'total_exams': total_exams,
         'active_exams': active_exams,
         'total_questions': total_questions,
+        'q': q,
+        'grade_f': grade_f,
+        'status_f': status_f,
     })
 
 

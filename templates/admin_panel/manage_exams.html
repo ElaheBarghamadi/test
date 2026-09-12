@@ -1,467 +1,97 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load jalali_tags %}
 
 {% block title %}مدیریت آزمون‌ها{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root {
-        --primary: #a07830;
-        --primary-light: #c49a2b;
-        --primary-dark: #8b6914;
-        --success: #7a9c3e;
-        --warning: #f5a623;
-        --danger: #dc8686;
-        --info: #8b6b4a;
-        --gray-50: #faf8f3;
-        --gray-100: #f5f0e6;
-        --gray-200: #e8e0d0;
-        --gray-300: #d4c4a8;
-        --gray-400: #b89a6a;
-        --gray-500: #a08060;
-        --gray-600: #8b6b4a;
-        --gray-700: #6b4c3a;
-        --gray-800: #5a3e2b;
-    }
-
-    .container-custom {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    /* Glassmorphism Header */
-    .glass-header {
-        background: linear-gradient(135deg, rgba(30, 60, 50, 0.95), rgba(45, 90, 60, 0.95));
-        backdrop-filter: blur(16px);
-        border-radius: 28px;
-        padding: 24px 28px;
-        margin-bottom: 24px;
-        border: 1px solid rgba(200, 180, 140, 0.3);
-    }
-
-    .glass-header h1 {
-        color: white;
-        font-size: 1.3rem;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* Stats */
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .stat-box {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        padding: 18px;
-        text-align: center;
-        border: 1px solid rgba(200, 180, 140, 0.35);
-        transition: all 0.25s;
-    }
-
-    .stat-box:hover {
-        transform: translateY(-3px);
-        border-color: rgba(200, 180, 140, 0.6);
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--primary);
-    }
-
-    .stat-label {
-        font-size: 0.7rem;
-        color: var(--gray-600);
-        margin-top: 6px;
-    }
-
-    /* Filter Bar */
-    .filter-bar {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        padding: 20px;
-        margin-bottom: 24px;
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        border: 1px solid rgba(200, 180, 140, 0.35);
-    }
-
-    .filter-group {
-        flex: 1;
-        min-width: 150px;
-    }
-
-    .filter-group label {
-        display: block;
-        font-size: 0.7rem;
-        color: var(--gray-600);
-        margin-bottom: 6px;
-        font-weight: 600;
-    }
-
-    .filter-group select, .filter-group input {
-        width: 100%;
-        padding: 10px 14px;
-        background: white;
-        border: 1px solid rgba(200, 180, 140, 0.5);
-        border-radius: 20px;
-        font-size: 0.8rem;
-        transition: all 0.2s;
-    }
-
-    .filter-group select:focus, .filter-group input:focus {
-        outline: none;
-        border-color: var(--primary-light);
-    }
-
-    .filter-group button {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white;
-        padding: 10px 24px;
-        border: none;
-        border-radius: 40px;
-        cursor: pointer;
-        font-weight: 600;
-        width: 100%;
-        transition: all 0.2s;
-    }
-
-    .filter-group button:hover {
-        transform: translateY(-2px);
-    }
-
-    /* Table */
-    .exams-table {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        overflow-x: auto;
-        border: 1px solid rgba(200, 180, 140, 0.35);
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 900px;
-    }
-
-    th, td {
-        padding: 14px 12px;
-        text-align: center;
-        border-bottom: 1px solid rgba(200, 180, 140, 0.25);
-    }
-
-    th {
-        background: rgba(200, 180, 140, 0.1);
-        font-weight: 700;
-        color: var(--gray-800);
-        font-size: 0.8rem;
-    }
-
-    td {
-        font-size: 0.8rem;
-        color: var(--gray-700);
-    }
-
-    .exam-title {
-        font-weight: 700;
-        color: var(--gray-800);
-        text-align: right;
-    }
-
-    .badge-active {
-        background: rgba(122, 156, 62, 0.15);
-        color: var(--success);
-        padding: 4px 14px;
-        border-radius: 30px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .badge-inactive {
-        background: rgba(220, 134, 134, 0.15);
-        color: var(--danger);
-        padding: 4px 14px;
-        border-radius: 30px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .badge-cheat {
-        background: rgba(245, 166, 35, 0.15);
-        color: var(--warning);
-        padding: 4px 12px;
-        border-radius: 30px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .btn-icon {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 30px;
-        cursor: pointer;
-        margin: 2px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .btn-view {
-        background: rgba(139, 107, 74, 0.2);
-        color: var(--gray-700);
-        border: 1px solid rgba(200, 180, 140, 0.4);
-    }
-
-    .btn-cheat {
-        background: rgba(245, 166, 35, 0.15);
-        color: var(--warning);
-        border: 1px solid rgba(245, 166, 35, 0.3);
-    }
-
-    .btn-toggle {
-        background: rgba(139, 107, 74, 0.2);
-        color: var(--gray-700);
-        border: 1px solid rgba(200, 180, 140, 0.4);
-    }
-
-    .btn-delete {
-        background: rgba(220, 134, 134, 0.15);
-        color: var(--danger);
-        border: 1px solid rgba(220, 134, 134, 0.3);
-    }
-
-    .btn-icon:hover {
-        transform: translateY(-1px);
-        filter: brightness(0.98);
-    }
-
-    /* Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(8px);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-content {
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(16px);
-        border-radius: 32px;
-        padding: 28px;
-        max-width: 650px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        border: 1px solid rgba(200, 180, 140, 0.5);
-    }
-
-    .modal-content h3 {
-        font-size: 1.1rem;
-        color: var(--gray-800);
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .cheat-item {
-        background: rgba(220, 134, 134, 0.08);
-        border-radius: 20px;
-        padding: 14px 16px;
-        margin-bottom: 12px;
-        border-right: 3px solid var(--danger);
-    }
-
-    .cheat-type {
-        font-weight: 700;
-        color: var(--danger);
-        font-size: 0.75rem;
-    }
-
-    .cheat-detail {
-        font-size: 0.7rem;
-        color: var(--gray-600);
-        margin-top: 6px;
-    }
-
-    .cheat-time {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-top: 6px;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--gray-500);
-        font-size: 0.8rem;
-    }
-
-    @media (max-width: 768px) {
-        .container-custom { padding: 12px; }
-        .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .filter-bar { flex-direction: column; }
-        .filter-group { width: 100%; }
-        th, td { font-size: 0.7rem; padding: 8px; }
-        .btn-icon { padding: 4px 8px; font-size: 0.65rem; }
-    }
+    .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .t-toggle.on { background: var(--oksoft, #e8f7ee); color: var(--ok); border-color: #bfe6cd; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-custom">
-    <!-- Header -->
-    <div class="glass-header">
-        <h1><span>📋</span> مدیریت آزمون‌ها</h1>
-    </div>
+{% include 'admin_panel/_admin_nav.html' %}
 
-    <!-- Stats -->
-    <div class="stats-row">
-        <div class="stat-box"><div class="stat-number">{{ total_exams }}</div><div class="stat-label">کل آزمون‌ها</div></div>
-        <div class="stat-box"><div class="stat-number">{{ active_exams }}</div><div class="stat-label">آزمون فعال</div></div>
-        <div class="stat-box"><div class="stat-number">{{ total_questions }}</div><div class="stat-label">کل سوالات</div></div>
-        <div class="stat-box"><div class="stat-number">{{ total_students }}</div><div class="stat-label">دانش‌آموزان</div></div>
-    </div>
+<div class="page-title">📝 مدیریت آزمون‌های سامانه</div>
 
-    <!-- Filters -->
-    <div class="filter-bar">
-        <div class="filter-group"><label>وضعیت</label><select id="statusFilter"><option value="all">همه</option><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></div>
-        <div class="filter-group"><label>پایه</label><select id="gradeFilter"><option value="all">همه پایه‌ها</option>{% for grade in grades %}<option value="{{ grade.id }}">{{ grade.get_name_display }}</option>{% endfor %}</select></div>
-        <div class="filter-group"><label>جستجو</label><input type="text" id="searchInput" placeholder="عنوان آزمون..."></div>
-        <div class="filter-group"><button id="applyFilter">🔍 اعمال فیلتر</button></div>
-    </div>
-
-    <!-- Exams Table -->
-    <div class="exams-table">
-        <table id="examsTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>عنوان</th>
-                    <th>معلم</th>
-                    <th>پایه</th>
-                    <th>سوال</th>
-                    <th>دانش‌آموز</th>
-                    <th>تقلب</th>
-                    <th>وضعیت</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for exam in exams %}
-                <tr data-status="{% if exam.is_active %}active{% else %}inactive{% endif %}" data-grade="{{ exam.grade.id }}" data-title="{{ exam.title|lower }}">
-                    <td>{{ forloop.counter }}</td>
-                    <td class="exam-title" style="text-align:right;"><strong>{{ exam.title }}</strong></td>
-                    <td>{{ exam.teacher.get_full_name|default:exam.teacher.username }}</td>
-                    <td>{{ exam.grade.get_name_display|default:'-' }}</td>
-                    <td>{{ exam.questions_count }}</td>
-                    <td>{{ exam.students_count }}</td>
-                    <td><span class="badge-cheat">{{ exam.cheat_count|default:0 }}</span></td>
-                    <td><span class="{% if exam.is_active %}badge-active{% else %}badge-inactive{% endif %}">{% if exam.is_active %}فعال{% else %}غیرفعال{% endif %}</span></td>
-                    <td>
-                        <button class="btn-icon btn-view" onclick="viewExam({{ exam.id }})">👁️</button>
-                        <button class="btn-icon btn-cheat" onclick="viewCheats({{ exam.id }}, '{{ exam.title|escapejs }}')">⚠️</button>
-                        <button class="btn-icon btn-toggle" onclick="toggleExam({{ exam.id }})">{% if exam.is_active %}🔒{% else %}✅{% endif %}</button>
-                        <button class="btn-icon btn-delete" onclick="deleteExam({{ exam.id }})">🗑️</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="stats">
+    <div class="stat-card ongoing"><div class="stat-number">{{ total_exams }}</div><div class="stat-label">📝 کل آزمون‌ها</div></div>
+    <div class="stat-card active"><div class="stat-number">{{ active_exams }}</div><div class="stat-label">✅ فعال</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ total_questions }}</div><div class="stat-label">❓ کل سوال‌ها</div></div>
 </div>
 
-<!-- Cheat Modal -->
-<div id="cheatModal" class="modal">
-    <div class="modal-content">
-        <h3><span>⚠️</span> <span id="cheatModalTitle">گزارش تقلب‌ها</span></h3>
-        <div id="cheatList"></div>
-        <button onclick="closeModal()" style="margin-top:20px; width:100%; padding:12px; background:rgba(200,180,140,0.3); border:none; border-radius:40px; cursor:pointer;">بستن</button>
+<form class="filters" method="get">
+    <div class="filter-group">
+        <label>جستجو</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="عنوان آزمون یا نام معلم…">
     </div>
+    <div class="filter-group">
+        <label>پایه</label>
+        <select name="grade">
+            <option value="">همه</option>
+            {% for g in grades %}<option value="{{ g.id }}" {% if grade_f == g.id|stringformat:'s' %}selected{% endif %}>پایه {{ g.name }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>وضعیت</label>
+        <select name="status">
+            <option value="">همه</option>
+            <option value="active" {% if status_f == 'active' %}selected{% endif %}>فعال</option>
+            <option value="inactive" {% if status_f == 'inactive' %}selected{% endif %}>غیرفعال</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-filter"> اعمال فیلتر</button>
+</form>
+
+<div class="card" style="margin-top:14px;">
+    {% if exams %}
+    <table>
+        <thead>
+        <tr><th>آزمون</th><th>پایه</th><th>وضعیت</th><th>سوال / دانش‌آموز</th><th>بازه برگزاری</th><th>عملیات</th></tr>
+        </thead>
+        <tbody>
+        {% for e in exams %}
+        <tr>
+            <td>
+                <b>{{ e.title }}</b>
+                <div style="font-size:.68rem; color:var(--ink3);">🧑‍🏫 {{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.get_show_questions_mode_display }}</div>
+            </td>
+            <td>{{ e.grade.name|default:'—' }}</td>
+            <td><span class="status-badge {% if e.is_active %}status-ongoing{% else %}status-inactive{% endif %}">{% if e.is_active %}فعال{% else %}غیرفعال{% endif %}</span></td>
+            <td>{{ e.questions_count }} / {{ e.students_count }}</td>
+            <td style="font-size:.72rem;">{{ e.start_time|to_jalali }}<br>تا {{ e.end_time|to_jalali }}</td>
+            <td>
+                <div class="row-actions">
+                    <a class="btn btn-info" href="{% url 'exam_detail' e.id %}">🔍 جزئیات</a>
+                    <button class="btn btn-toggle t-toggle {% if e.is_active %}on{% endif %} js-toggle" data-id="{{ e.id }}">
+                        {% if e.is_active %}🔒 غیرفعال‌سازی{% else %}🔓 فعال‌سازی{% endif %}
+                    </button>
+                    <button class="btn btn-delete js-del" data-id="{{ e.id }}" data-name="{{ e.title }}">🗑️ حذف</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">🔍 آزمونی با این فیلترها پیدا نشد.</div>
+    {% endif %}
 </div>
 
 <script>
-    function getCSRF() { return document.cookie.match('(^|; )csrftoken=([^;]*)')?.pop() || ''; }
-
-    async function viewExam(id) { window.location.href = `/admin-panel/exams/${id}/`; }
-
-    async function toggleExam(id) {
-        const response = await fetch(`/admin-panel/exams/${id}/toggle/`, { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
-        if (response.ok) location.reload();
-    }
-
-    async function deleteExam(id) {
-        if (confirm('آیا از حذف این آزمون مطمئن هستید؟')) {
-            const response = await fetch(`/admin-panel/exams/${id}/delete/`, { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
-            if (response.ok) location.reload();
-        }
-    }
-
-    async function viewCheats(examId, examTitle) {
-        document.getElementById('cheatModalTitle').innerHTML = `گزارش تقلب‌ها - ${examTitle}`;
-        document.getElementById('cheatList').innerHTML = '<div class="empty-state">📤 در حال بارگذاری...</div>';
-        document.getElementById('cheatModal').style.display = 'flex';
-
-        try {
-            const response = await fetch(`/admin-panel/exams/${examId}/cheats/`);
-            const data = await response.json();
-            if (data.cheats && data.cheats.length > 0) {
-                let html = '';
-                data.cheats.forEach(cheat => {
-                    html += `<div class="cheat-item">
-                        <div class="cheat-type">🔴 ${cheat.cheat_type_display}</div>
-                        <div class="cheat-detail">📝 ${cheat.detail || 'جزئیات ثبت نشده'}</div>
-                        <div class="cheat-time">👤 ${cheat.student_name} | 🕐 ${cheat.created_at}</div>
-                    </div>`;
-                });
-                document.getElementById('cheatList').innerHTML = html;
-            } else {
-                document.getElementById('cheatList').innerHTML = '<div class="empty-state">✅ هیچ تقلبی برای این آزمون ثبت نشده است.</div>';
-            }
-        } catch(e) {
-            document.getElementById('cheatList').innerHTML = '<div class="empty-state" style="color:var(--danger);">❌ خطا در دریافت اطلاعات</div>';
-        }
-    }
-
-    function closeModal() { document.getElementById('cheatModal').style.display = 'none'; }
-
-    function filterExams() {
-        const status = document.getElementById('statusFilter').value;
-        const grade = document.getElementById('gradeFilter').value;
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const rows = document.querySelectorAll('#examsTable tbody tr');
-        rows.forEach(row => {
-            let show = true;
-            if (status !== 'all' && row.dataset.status !== status) show = false;
-            if (grade !== 'all' && row.dataset.grade != grade) show = false;
-            if (search && !row.dataset.title.includes(search)) show = false;
-            row.style.display = show ? '' : 'none';
-        });
-    }
-
-    document.getElementById('applyFilter').addEventListener('click', filterExams);
-    document.getElementById('searchInput').addEventListener('keypress', e => { if(e.key === 'Enter') filterExams(); });
-    document.getElementById('statusFilter').addEventListener('change', filterExams);
-    document.getElementById('gradeFilter').addEventListener('change', filterExams);
-    window.onclick = function(e) { if (e.target.classList.contains('modal')) closeModal(); };
+const csrftoken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+document.querySelectorAll('.js-toggle').forEach(btn => btn.addEventListener('click', async () => {
+    const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/toggle/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+    const d = await r.json();
+    if (d.success) location.reload(); else alert('⚠️ ' + (d.error || 'خطا'));
+}));
+document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click', async () => {
+    if (!confirm('آزمون «' + btn.dataset.name + '» همراه همهٔ پاسخ‌ها حذف شود؟')) return;
+    const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/delete/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+    const d = await r.json();
+    if (d.success) location.reload(); else alert('⚠️ ' + (d.error || 'خطا'));
+}));
 </script>
 {% endblock %}

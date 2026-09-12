@@ -659,3 +659,71 @@
     ::-webkit-scrollbar-thumb { background: #d9c69a; border-radius: 99px; }
     ::-webkit-scrollbar-track { background: transparent; }
 }
+
+/* ================== پنل ادمین (سیستم طراحی مشترک) ================== */
+.admin-nav {
+    display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.admin-nav::-webkit-scrollbar { display: none; }
+.admin-nav a {
+    flex: 0 0 auto; background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 999px; padding: 8px 16px; font-size: .78rem; font-weight: 700;
+    color: var(--ink2); text-decoration: none; transition: .15s;
+}
+.admin-nav a:hover:not(.on) { border-color: var(--gold); color: var(--gold3); transform: translateY(-1px); }
+.admin-nav a.on {
+    background: linear-gradient(135deg, var(--gold), var(--gold3)); color: #fff;
+    border-color: transparent; box-shadow: 0 5px 14px rgba(140, 105, 20, .25);
+}
+.admin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .admin-cols { grid-template-columns: 1fr; } }
+.list-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 10px 4px; border-bottom: 1px dashed var(--line); font-size: .82rem;
+}
+.list-row:last-child { border-bottom: 0; }
+.list-row .muted { color: var(--ink3); font-size: .72rem; }
+.bar-wrap { background: var(--card2); border-radius: 999px; height: 8px; overflow: hidden; min-width: 70px; }
+.bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold3)); }
+.bar-fill.ok { background: linear-gradient(90deg, #35b569, var(--ok)); }
+.bar-fill.err { background: linear-gradient(90deg, #e88, var(--err)); }
+.month-bars { display: flex; align-items: flex-end; gap: 10px; height: 110px; padding: 6px 4px 0; }
+.month-bars .mb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+.month-bars .mb i { display: block; width: 60%; max-width: 34px; border-radius: 8px 8px 0 0; background: linear-gradient(180deg, var(--gold3), var(--gold)); }
+.month-bars .mb span { font-size: .62rem; color: var(--ink3); font-weight: 600; }
+.modal-backdrop {
+    position: fixed; inset: 0; background: rgba(40, 30, 10, .45); backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center; z-index: 1200; padding: 16px;
+}
+.modal-backdrop.show { display: flex; }
+.modal-card {
+    background: var(--card); border-radius: var(--r-lg); border: 1px solid var(--line);
+    box-shadow: var(--sh2); width: 100%; max-width: 460px; padding: 20px;
+    max-height: 88vh; overflow-y: auto; animation: popIn .18s ease;
+}
+.modal-card h3 { font-size: .95rem; margin-bottom: 14px; color: var(--ink); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+.form-row .form-group, .modal-card .form-group { margin-bottom: 10px; }
+.switch {
+    position: relative; display: inline-block; width: 46px; height: 26px; flex: 0 0 auto;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch i {
+    position: absolute; inset: 0; border-radius: 999px; background: var(--card2);
+    border: 1.5px solid var(--line); transition: .2s; cursor: pointer;
+}
+.switch i::before {
+    content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; top: 2.5px; right: 3px; transition: .2s; box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+.switch input:checked + i { background: linear-gradient(135deg, var(--gold), var(--gold3)); border-color: transparent; }
+.switch input:checked + i::before { transform: translateX(-19px); }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 2px; border-bottom: 1px dashed var(--line); }
+.switch-row:last-of-type { border-bottom: 0; }
+.switch-row .lbl { font-size: .84rem; font-weight: 700; color: var(--ink); }
+.switch-row .hint { font-size: .7rem; color: var(--ink3); margin-top: 2px; }
+@media (min-width: 901px) { .stats-4x { grid-template-columns: repeat(4, 1fr); } }
+.admin-cols > * { min-width: 0; }
+.admin-cols input, .admin-cols select, .admin-cols textarea { max-width: 100%; }

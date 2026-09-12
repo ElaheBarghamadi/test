@@ -1,466 +1,161 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load jalali_tags %}
 
 {% block title %}داشبورد مدیریت{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root {
-        --primary: #a07830;
-        --primary-light: #c49a2b;
-        --primary-dark: #8b6914;
-        --success: #7a9c3e;
-        --warning: #f5a623;
-        --danger: #dc8686;
-        --info: #8b6b4a;
-        --gray-50: #faf8f3;
-        --gray-100: #f5f0e6;
-        --gray-200: #e8e0d0;
-        --gray-300: #d4c4a8;
-        --gray-400: #b89a6a;
-        --gray-500: #a08060;
-        --gray-600: #8b6b4a;
-        --gray-700: #6b4c3a;
-        --gray-800: #5a3e2b;
-    }
-
-    .container-dashboard {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    /* Glassmorphism Header */
-    .glass-header {
-        background: linear-gradient(135deg, rgba(30, 60, 50, 0.95), rgba(45, 90, 60, 0.95));
-        backdrop-filter: blur(16px);
-        border-radius: 28px;
-        padding: 28px 32px;
-        margin-bottom: 28px;
-        border: 1px solid rgba(200, 180, 140, 0.3);
-    }
-
-    .glass-header h1 {
-        color: white;
-        font-size: 1.4rem;
-        margin: 0 0 6px 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .glass-header p {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.8rem;
-        margin: 0;
-    }
-
-    /* Quick Menu */
-    .quick-menu {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 28px;
-    }
-
-    .quick-menu a {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(8px);
-        padding: 10px 24px;
-        border-radius: 40px;
-        text-decoration: none;
-        color: var(--gray-700);
-        font-size: 0.8rem;
-        font-weight: 600;
-        transition: all 0.25s;
-        border: 1px solid rgba(200, 180, 140, 0.35);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .quick-menu a:hover {
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.95);
-        border-color: var(--primary-light);
-        color: var(--primary-dark);
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 20px;
-        margin-bottom: 32px;
-    }
-
-    .stat-card {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        padding: 20px;
-        transition: all 0.25s;
-        border: 1px solid rgba(200, 180, 140, 0.35);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(200, 180, 140, 0.6);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
-    }
-
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 16px;
-        background: rgba(200, 180, 140, 0.15);
-    }
-
-    .stat-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: var(--gray-800);
-    }
-
-    .stat-label {
-        font-size: 0.7rem;
-        color: var(--gray-500);
-        margin-top: 6px;
-    }
-
-    /* Two Columns */
-    .two-columns {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 24px;
-        margin-bottom: 28px;
-    }
-
-    /* Widget */
-    .widget {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(12px);
-        border-radius: 24px;
-        padding: 24px;
-        border: 1px solid rgba(200, 180, 140, 0.35);
-    }
-
-    .widget-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 18px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid rgba(200, 180, 140, 0.3);
-    }
-
-    .widget-header h3 {
-        font-size: 1rem;
-        color: var(--gray-800);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin: 0;
-    }
-
-    .widget-link {
-        color: var(--primary);
-        text-decoration: none;
-        font-size: 0.7rem;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .widget-link:hover {
-        color: var(--primary-dark);
-        text-decoration: underline;
-    }
-
-    /* Table Styles */
-    .grade-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.75rem;
-    }
-
-    .grade-table th, .grade-table td {
-        padding: 10px 6px;
-        text-align: center;
-        border-bottom: 1px solid rgba(200, 180, 140, 0.25);
-    }
-
-    .grade-table th {
-        background: rgba(200, 180, 140, 0.08);
-        font-weight: 700;
-        color: var(--gray-700);
-    }
-
-    .progress-bar {
-        height: 5px;
-        background: rgba(200, 180, 140, 0.3);
-        border-radius: 10px;
-        overflow: hidden;
-        margin-top: 6px;
-        width: 100px;
-    }
-
-    .progress-fill {
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.3s;
-    }
-
-    /* List Items */
-    .list-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid rgba(200, 180, 140, 0.2);
-    }
-
-    .list-item:last-child {
-        border-bottom: none;
-    }
-
-    .item-title {
-        font-weight: 600;
-        color: var(--gray-700);
-        font-size: 0.8rem;
-    }
-
-    .item-meta {
-        font-size: 0.65rem;
-        color: var(--gray-500);
-        margin-top: 4px;
-    }
-
-    .badge {
-        padding: 4px 12px;
-        border-radius: 30px;
-        font-size: 0.65rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: rgba(122, 156, 62, 0.15);
-        color: var(--success);
-    }
-
-    .badge-danger {
-        background: rgba(220, 134, 134, 0.15);
-        color: var(--danger);
-    }
-
-    .activity-time {
-        font-size: 0.6rem;
-        color: var(--gray-500);
-        margin-top: 4px;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 30px;
-        color: var(--gray-500);
-        font-size: 0.75rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .container-dashboard {
-            padding: 12px;
-        }
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        .two-columns {
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
-        .quick-menu {
-            justify-content: center;
-        }
-        .quick-menu a {
-            padding: 7px 16px;
-            font-size: 0.7rem;
-        }
-        .glass-header {
-            padding: 20px;
-            text-align: center;
-        }
-        .glass-header h1 {
-            justify-content: center;
-        }
-        .grade-table {
-            font-size: 0.65rem;
-        }
-        .progress-bar {
-            width: 70px;
-        }
-    }
+    /* صفحه فقط چیدمان خاص خودش را تعریف می‌کند؛ بقیه از site.css */
+    .grade-avg { display: inline-flex; align-items: center; gap: 8px; min-width: 120px; }
+    .month-bars .mb .pair { display: flex; align-items: flex-end; gap: 3px; height: 100%; }
+    .month-bars .mb .pair i { width: 16px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-dashboard">
-    <!-- Header -->
-    <div class="glass-header">
-        <h1><span>📊</span> داشبورد مدیریت</h1>
-        <p>به پنل مدیریت سامانه آزمون آنلاین خوش آمدید</p>
+{% include 'admin_panel/_admin_nav.html' %}
+
+<div class="page-title">🛡️ داشبورد مدیریت سامانه</div>
+
+<!-- آمار کلی -->
+<div class="stats stats-4x">
+    <div class="stat-card students">
+        <div class="stat-number">{{ stats.total_students }}</div>
+        <div class="stat-label">👥 دانش‌آموزان</div>
     </div>
-
-    <!-- Quick Menu -->
-    <div class="quick-menu">
-        <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
-        <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
-        <a href="{% url 'exam_analytics' %}">📈 تحلیل آزمون‌ها</a>
-        <a href="{% url 'student_analytics' %}">🎓 تحلیل دانش‌آموزان</a>
-        <a href="{% url 'system_settings' %}">⚙️ تنظیمات سیستم</a>
-        <a href="{% url 'system_logs' %}">📜 لاگ‌ها</a>
+    <div class="stat-card active">
+        <div class="stat-number">{{ stats.total_teachers }}</div>
+        <div class="stat-label">🧑🏫 معلم‌ها</div>
     </div>
-
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">👨‍🎓</div>
-            <div class="stat-value">{{ stats.total_students }}</div>
-            <div class="stat-label">دانش‌آموز</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">👨‍🏫</div>
-            <div class="stat-value">{{ stats.total_teachers }}</div>
-            <div class="stat-label">معلم</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📋</div>
-            <div class="stat-value">{{ stats.total_exams }}</div>
-            <div class="stat-label">آزمون</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📝</div>
-            <div class="stat-value">{{ stats.total_questions }}</div>
-            <div class="stat-label">سوال</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">✅</div>
-            <div class="stat-value">{{ stats.active_exams }}</div>
-            <div class="stat-label">آزمون فعال</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📌</div>
-            <div class="stat-value">{{ stats.submitted_attempts }}</div>
-            <div class="stat-label">ثبت شده</div>
-        </div>
+    <div class="stat-card ongoing">
+        <div class="stat-number">{{ stats.total_exams }}</div>
+        <div class="stat-label">📝 کل آزمون‌ها</div>
     </div>
+    <div class="stat-card active">
+        <div class="stat-number">{{ stats.active_exams }}</div>
+        <div class="stat-label">✅ آزمون فعال</div>
+    </div>
+    <div class="stat-card ongoing">
+        <div class="stat-number">{{ stats.total_attempts }}</div>
+        <div class="stat-label">🚀 تلاش‌های آزمون</div>
+    </div>
+    <div class="stat-card students">
+        <div class="stat-number">{{ stats.submitted_attempts }}</div>
+        <div class="stat-label">📥 ثبت‌نهایی‌شده</div>
+    </div>
+    <div class="stat-card inactive">
+        <div class="stat-number">{{ stats.total_answers }}</div>
+        <div class="stat-label">✍️ پاسخ‌ها</div>
+    </div>
+    <div class="stat-card inactive">
+        <div class="stat-number">{{ stats.graded_answers }}</div>
+        <div class="stat-label">💯 تصحیح‌شده</div>
+    </div>
+</div>
 
-    <!-- Two Columns -->
-    <div class="two-columns">
-        <!-- Grade Statistics -->
-        <div class="widget">
-            <div class="widget-header">
-                <h3>📚 آمار پایه‌های تحصیلی</h3>
-                <a href="{% url 'student_analytics' %}" class="widget-link">مشاهده همه →</a>
-            </div>
-            <table class="grade-table">
-                <thead>
-                    <tr>
-                        <th>پایه</th>
-                        <th>دانش‌آموز</th>
-                        <th>آزمون</th>
-                        <th>میانگین</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in grade_stats %}
-                    <tr>
-                        <td><strong>{{ item.grade.get_name_display }}</strong></td>
-                        <td>{{ item.students }}</td>
-                        <td>{{ item.exams }}<td>
-                        <td style="width:130px">
-                            <span style="color:{% if item.avg_score >= 70 %}#7a9c3e{% elif item.avg_score >= 50 %}#f5a623{% else %}#dc8686{% endif %}; font-weight:600;">
-                                {{ item.avg_score }}%
-                            </span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ item.avg_score }}%; background: {% if item.avg_score >= 70 %}#7a9c3e{% elif item.avg_score >= 50 %}#f5a623{% else %}#dc8686{% endif %};"></div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!-- روند ۶ ماه اخیر -->
+<div class="card" style="margin-bottom:14px;">
+    <div class="section-title">📈 روند شش ماه اخیر</div>
+    <div class="month-bars">
+        {% for m in monthly_stats %}
+        <div class="mb" title="{{ m.month }}: {{ m.exams }} آزمون، {{ m.attempts }} ثبت">
+            <i style="height:{% widthratio m.exams 12 100 %}%; min-height:4px; max-height:88%;"></i>
+            <i style="height:{% widthratio m.attempts 12 100 %}%; min-height:4px; background:linear-gradient(180deg,#8fd39a,#35b569);"></i>
+            <span>{{ m.month }}</span>
         </div>
+        {% endfor %}
+    </div>
+    <div style="display:flex; gap:16px; justify-content:center; margin-top:8px; font-size:.68rem; color:var(--ink3); font-weight:600;">
+        <span>🟨 آزمون ساخته‌شده</span><span>🟩 ثبت نهایی</span>
+    </div>
+</div>
 
-        <!-- Recent Exams -->
-        <div class="widget">
-            <div class="widget-header">
-                <h3>📋 آخرین آزمون‌ها</h3>
-                <a href="{% url 'manage_exams' %}" class="widget-link">مدیریت →</a>
-            </div>
-            {% for item in exams_data %}
-            <div class="list-item">
-                <div>
-                    <div class="item-title">{{ item.exam.title }}</div>
-                    <div class="item-meta">{{ item.exam.grade.get_name_display }} | {{ item.submitted }} ثبت شده</div>
-                </div>
-                <span class="badge {% if item.exam.is_active %}badge-success{% else %}badge-danger{% endif %}">
-                    {% if item.exam.is_active %}فعال{% else %}غیرفعال{% endif %}
+<!-- آمار پایه‌ها -->
+<div class="card" style="margin-bottom:14px;">
+    <div class="section-title">🎓 وضعیت پایه‌های تحصیلی</div>
+    {% if grade_stats %}
+    <table>
+        <thead>
+        <tr><th>پایه</th><th>دانش‌آموز</th><th>آزمون</th><th>ثبت نهایی</th><th>میانگین نمره</th></tr>
+        </thead>
+        <tbody>
+        {% for g in grade_stats %}
+        <tr>
+            <td><b>پایه {{ g.grade.name }}</b></td>
+            <td>{{ g.students }}</td>
+            <td>{{ g.exams }}</td>
+            <td>{{ g.attempts }}</td>
+            <td>
+                <span class="grade-avg">
+                    <span class="bar-wrap" style="flex:1;"><span class="bar-fill {% if g.avg_score >= 50 %}ok{% else %}err{% endif %}" style="display:block; width:{{ g.avg_score }}%;"></span></span>
+                    <b>{{ g.avg_score }}٪</b>
                 </span>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">📭 هنوز پایه‌ای تعریف نشده است.</div>
+    {% endif %}
+</div>
+
+<div class="admin-cols">
+    <!-- آخرین آزمون‌ها -->
+    <div class="card">
+        <div class="section-title">📝 آخرین آزمون‌ها</div>
+        {% if exams_data %}
+        {% for row in exams_data %}
+        <div class="list-row">
+            <div>
+                <b>{{ row.exam.title }}</b>
+                <div class="muted">{{ row.exam.teacher.get_full_name|default:row.exam.teacher.username }} · پایه {{ row.exam.grade.name|default:'—' }} · {{ row.exam.created_at|to_jalali }}</div>
             </div>
-            {% empty %}
-            <div class="empty-state">📭 آزمونی یافت نشد</div>
-            {% endfor %}
+            <div style="text-align:left;">
+                <span class="status-badge {% if row.exam.is_active %}status-ongoing{% else %}status-inactive{% endif %}">{% if row.exam.is_active %}فعال{% else %}غیرفعال{% endif %}</span>
+                <div class="muted">{{ row.submitted }}/{{ row.attempts }} ثبت</div>
+            </div>
         </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">📭 هنوز آزمونی ساخته نشده است.</div>
+        {% endif %}
     </div>
 
-    <!-- Second Row -->
-    <div class="two-columns">
-        <!-- Recent Activities -->
-        <div class="widget">
-            <div class="widget-header">
-                <h3>🕐 فعالیت‌های اخیر</h3>
+    <!-- آخرین کاربران -->
+    <div class="card">
+        <div class="section-title">👥 آخرین کاربران</div>
+        {% if recent_users %}
+        {% for u in recent_users %}
+        <div class="list-row">
+            <div>
+                <b>{{ u.get_full_name|default:u.username }}</b>
+                <div class="muted">@{{ u.username }} · {{ u.date_joined|to_jalali }}</div>
             </div>
-            {% for activity in recent_activities %}
-            <div class="list-item">
-                <div>
-                    <div class="item-title">{{ activity.message }}</div>
-                    <div class="activity-time">{{ activity.time|date:"Y/m/d H:i" }}</div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="empty-state">📭 فعالیتی یافت نشد</div>
-            {% endfor %}
+            <span class="status-badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'teacher' %}status-ongoing{% else %}status-completed{% endif %}">
+                {% if u.role == 'admin' %}🛡️ ادمین{% elif u.role == 'teacher' %}🧑‍🏫 معلم{% else %}👥 دانش‌آموز{% endif %}
+            </span>
         </div>
-
-        <!-- Monthly Statistics -->
-        <div class="widget">
-            <div class="widget-header">
-                <h3>📊 آمار ۶ ماه اخیر</h3>
-            </div>
-            <table class="grade-table">
-                <thead>
-                    <tr>
-                        <th>ماه</th>
-                        <th>آزمون جدید</th>
-                        <th>ثبت شده</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in monthly_stats %}
-                    <tr>
-                        <td>{{ item.month }}</td>
-                        <td>{{ item.exams }}<td>
-                        <td>{{ item.attempts }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">📭 کاربری ثبت نشده است.</div>
+        {% endif %}
     </div>
+</div>
+
+<!-- فعالیت‌های اخیر -->
+<div class="card" style="margin-top:14px;">
+    <div class="section-title">⚡ فعالیت‌های اخیر</div>
+    {% if recent_activities %}
+    {% for a in recent_activities %}
+    <div class="list-row">
+        <div>📥 {{ a.message }}</div>
+        <div class="muted">{{ a.time|to_jalali }}</div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">📭 هنوز فعالیتی ثبت نشده است.</div>
+    {% endif %}
 </div>
 {% endblock %}

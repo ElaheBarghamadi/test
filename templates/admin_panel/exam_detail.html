@@ -1,66 +1,78 @@
 {% extends 'base.html' %}
-{% block title %}جزئیات آزمون - {{ exam.title }}{% endblock %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block title %}جزئیات آزمون{% endblock %}
 
 {% block extra_css %}
 <style>
-    :root { --primary: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --gray: #64748b; }
-    .exam-header { background: linear-gradient(135deg, #6f5210, #a67c1e 55%, #c49a2b); border-radius: 24px; padding: 24px; margin-bottom: 22px; color: white; box-shadow: 0 8px 24px rgba(140,105,20,.25); }
-    .exam-header h1 { margin-bottom: 8px; }
-    .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
-    .stat-card { background: white; border-radius: 20px; padding: 16px 20px; flex: 1; min-width: 120px; text-align: center; border: 1px solid #e2e8f0; }
-    .stat-number { font-size: 28px; font-weight: 800; color: var(--primary); }
-    .card { background: white; border-radius: 24px; padding: 24px; margin-bottom: 24px; border: 1px solid #e2e8f0; }
-    .card h3 { margin-bottom: 16px; border-right: 3px solid var(--primary); padding-right: 12px; color: var(--dark); }
-    .question-item { border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-    .question-header { display: flex; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-    .student-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .student-badge { background: #f1f5f9; padding: 6px 14px; border-radius: 30px; font-size: 13px; }
-    .back-btn { background: var(--gray); color: white; padding: 10px 24px; border: none; border-radius: 40px; cursor: pointer; text-decoration: none; display: inline-block; }
-    @media (max-width: 768px) { .stats-row { gap: 12px; } .stat-card { padding: 12px; } .stat-number { font-size: 20px; } }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .info-grid .cell { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+    .info-grid .cell .k { font-size: .68rem; color: var(--ink3); font-weight: 700; margin-bottom: 3px; }
+    .info-grid .cell .v { font-size: .82rem; font-weight: 700; color: var(--ink); }
+    .q-text { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="exam-header">
-    <h1>{{ exam.title }}</h1>
-    <p>👨‍🏫 معلم: {{ exam.teacher.get_full_name|default:exam.teacher.username }} | 📅 ایجاد: {{ exam.created_at|date:"Y/m/d H:i" }}</p>
-    <p>📅 شروع: {{ exam.start_time|date:"Y/m/d H:i" }} | 🏁 پایان: {{ exam.end_time|date:"Y/m/d H:i" }}</p>
+{% include 'admin_panel/_admin_nav.html' %}
+
+<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+    <div class="page-title" style="margin:0;">🔍 {{ exam.title }}</div>
+    <a class="btn btn-back" href="{% url 'manage_exams' %}">→ بازگشت به آزمون‌ها</a>
 </div>
 
-<div class="stats-row">
-    <div class="stat-card"><div class="stat-number">{{ exam.questions.count }}</div><div>تعداد سوالات</div></div>
-    <div class="stat-card"><div class="stat-number">{{ exam.students.count }}</div><div>دانش‌آموزان</div></div>
-    <div class="stat-card"><div class="stat-number">{{ total_answers }}</div><div>پاسخ‌های ثبت شده</div></div>
-    <div class="stat-card"><div class="stat-number">{{ graded_answers }}</div><div>تصحیح شده</div></div>
-</div>
-
-<div class="card">
-    <h3>📝 سوالات آزمون ({{ exam.questions.count }})</h3>
-    {% for q in questions %}
-    <div class="question-item">
-        <div class="question-header">
-            <strong>سوال {{ forloop.counter }}</strong>
-            <span style="color:var(--warning);">⭐ {{ q.max_score }} نمره</span>
-            <span style="background:#f1f5f9; padding:2px 10px; border-radius:20px; font-size:12px;">{{ q.get_question_type_display }}</span>
-        </div>
-        <div style="color:var(--dark);">{{ q.text|truncatewords:40|default:'(بدون متن)' }}</div>
-        {% if q.image %}<div style="margin-top:10px;"><img src="{{ q.image.url }}" style="max-height:100px; border-radius:12px;"></div>{% endif %}
+<div class="card" style="margin-bottom:14px;">
+    <div class="info-grid">
+        <div class="cell"><div class="k">🧑‍🏫 معلم</div><div class="v">{{ exam.teacher.get_full_name|default:exam.teacher.username }}</div></div>
+        <div class="cell"><div class="k">🎓 پایه</div><div class="v">{{ exam.grade.name|default:'—' }}</div></div>
+        <div class="cell"><div class="k">🖥️ حالت نمایش</div><div class="v">{% if exam.show_questions_mode == 'one_by_one' %}صفحه به صفحه{% else %}یکجا{% endif %}</div></div>
+        <div class="cell"><div class="k">🛡️ ضد تقلب</div><div class="v">{% if exam.enable_anti_cheat %}فعال{% else %}خاموش{% endif %}</div></div>
+        <div class="cell"><div class="k">⏰ شروع</div><div class="v">{{ exam.start_time|to_jalali }}</div></div>
+        <div class="cell"><div class="k"> پایان</div><div class="v">{{ exam.end_time|to_jalali }}</div></div>
+        <div class="cell"><div class="k">✅ وضعیت</div><div class="v">{% if exam.is_active %}فعال{% else %}غیرفعال{% endif %}</div></div>
     </div>
-    {% empty %}
-    <p style="color:var(--gray);">هیچ سوالی برای این آزمون ثبت نشده است</p>
-    {% endfor %}
+</div>
+
+<div class="stats">
+    <div class="stat-card ongoing"><div class="stat-number">{{ questions|length }}</div><div class="stat-label">❓ سوال</div></div>
+    <div class="stat-card students"><div class="stat-number">{{ students|length }}</div><div class="stat-label">👥 دانش‌آموز مجاز</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ total_answers }}</div><div class="stat-label">✍️ پاسخ‌ها</div></div>
+    <div class="stat-card active"><div class="stat-number">{{ graded_answers }}</div><div class="stat-label">💯 تصحیح‌شده</div></div>
+</div>
+
+<div class="card" style="margin-bottom:14px;">
+    <div class="section-title">❓ سوال‌ها</div>
+    {% if questions %}
+    <table>
+        <thead><tr><th>#</th><th>متن سوال</th><th>نوع</th><th>بارم</th></tr></thead>
+        <tbody>
+        {% for q in questions %}
+        <tr>
+            <td>{{ q.order }}</td>
+            <td><div class="q-text">{{ q.text }}</div></td>
+            <td><span class="status-badge status-completed">{{ q.get_question_type_display }}</span></td>
+            <td>{{ q.max_score }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">📭 این آزمون سوالی ندارد.</div>
+    {% endif %}
 </div>
 
 <div class="card">
-    <h3>👥 دانش‌آموزان شرکت‌کننده ({{ exam.students.count }})</h3>
-    <div class="student-list">
-        {% for s in exam.students.all %}
-        <span class="student-badge">{{ s.get_full_name|default:s.username }}</span>
-        {% empty %}
-        <p>هیچ دانش‌آموزی ثبت نشده است</p>
+    <div class="section-title">👥 دانش‌آموزان مجاز</div>
+    {% if students %}
+    <div class="chips">
+        {% for s in students %}
+        <span class="group-chip">{{ s.get_full_name|default:s.username }}</span>
         {% endfor %}
     </div>
+    {% else %}
+    <div class="empty-state">📭 دانش‌آموزی به این آزمون اختصاص داده نشده است.</div>
+    {% endif %}
 </div>
-
-<a href="{% url 'manage_exams' %}" class="back-btn">← بازگشت به لیست آزمون‌ها</a>
 {% endblock %}
