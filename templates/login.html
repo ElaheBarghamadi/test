@@ -3,6 +3,11 @@
 
 {% block extra_css %}
 <style>
+    /* صفحهٔ ورود در حالت ریسپانسیو منو نمی‌خواهد: فقط لوگو ماند */
+    @media (max-width: 768px) {
+        .hamburger { display: none !important; }
+        .nav-links { display: none !important; }
+    }
     /* ========== توکن‌های رنگی مشترک با بقیه سامانه ========== */
     :root {
         --primary: #a07830;
