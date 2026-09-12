@@ -14,6 +14,7 @@ from django.core.exceptions import PermissionDenied
 
 # ========== ایمپورت‌های مدل‌ها ==========
 from exams.models import (
+    BankFolder,
     Exam, Question, StudentAnswer, ExamAttempt,
     ExamSession, CheatAttempt, ExamLog, TeacherAnswer,
     QuestionBank, StudentGroup, Announcement
@@ -1325,6 +1326,10 @@ def question_bank(request):
             messages.error(request, 'متن سوال و نوع معتبر الزامی است.')
             return redirect('question_bank')
         options = [o.strip() for o in (request.POST.get('options') or '').splitlines() if o.strip()]
+        folder_id = request.POST.get('folder') or None
+        folder = None
+        if folder_id and folder_id.isdigit():
+            folder = BankFolder.objects.filter(id=int(folder_id), teacher=request.user).first()
         bank = QuestionBank.objects.create(
             teacher=request.user,
             text=text,
@@ -1333,15 +1338,87 @@ def question_bank(request):
             correct_answer=(request.POST.get('correct_answer') or '').strip() or None,
             blanks=[b.strip() for b in (request.POST.get('blanks') or '').split(',') if b.strip()],
             max_score=validate_decimal_score(request.POST.get('max_score', '1'), max_value=None) or 1,
+            folder=folder,
         )
         messages.success(request, 'سوال به بانک اضافه شد.')
         return redirect('question_bank')
+    folders = BankFolder.objects.filter(teacher=request.user).annotate(cnt=Count('questions'))
+    folder_id = request.GET.get('folder', '').strip()
     banks = QuestionBank.objects.filter(teacher=request.user)
+    if folder_id == 'none':
+        banks = banks.filter(folder__isnull=True)
+    elif folder_id.isdigit():
+        banks = banks.filter(folder_id=int(folder_id))
     return render(request, 'teacher_panel/question_bank.html', {
         'banks': banks,
+        'folders': folders,
+        'folder_id': folder_id,
+        'total_count': QuestionBank.objects.filter(teacher=request.user).count(),
         'exams': Exam.objects.filter(teacher=request.user),
         'type_choices': QuestionBank._meta.get_field('question_type').choices,
     })
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_folder_add(request):
+    """ساخت پوشه جدید در بانک سوال"""
+    check_teacher_access(request.user)
+    name = (request.POST.get('name') or '').strip()
+    if not name:
+        messages.error(request, 'نام پوشه الزامی است.')
+    elif BankFolder.objects.filter(teacher=request.user, name=name).exists():
+        messages.error(request, 'پوشه‌ای با این نام دارید.')
+    else:
+        BankFolder.objects.create(teacher=request.user, name=name)
+        messages.success(request, 'پوشه ساخته شد.')
+    return redirect('question_bank')
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_folder_rename(request, folder_id):
+    """تغییر نام پوشه"""
+    check_teacher_access(request.user)
+    folder = get_object_or_404(BankFolder, id=folder_id, teacher=request.user)
+    name = (request.POST.get('name') or '').strip()
+    if not name:
+        messages.error(request, 'نام پوشه الزامی است.')
+    elif BankFolder.objects.filter(teacher=request.user, name=name).exclude(id=folder.id).exists():
+        messages.error(request, 'پوشه‌ای با این نام دارید.')
+    else:
+        folder.name = name
+        folder.save()
+        messages.success(request, 'نام پوشه تغییر کرد.')
+    return redirect('question_bank')
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_folder_delete(request, folder_id):
+    """حذف پوشه؛ سوال‌ها به ریشه بانک برمی‌گردند"""
+    check_teacher_access(request.user)
+    folder = get_object_or_404(BankFolder, id=folder_id, teacher=request.user)
+    name = folder.name
+    folder.delete()
+    messages.success(request, 'پوشه «%s» حذف شد؛ سوال‌ها به ریشه بانک رفتند.' % name)
+    return redirect('question_bank')
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_question_move(request, bank_id):
+    """جابجایی سوال بانک بین پوشه‌ها"""
+    check_teacher_access(request.user)
+    bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
+    folder_id = request.POST.get('folder') or ''
+    if folder_id and folder_id.isdigit():
+        bank.folder = get_object_or_404(BankFolder, id=int(folder_id), teacher=request.user)
+    else:
+        bank.folder = None
+    bank.save()
+    messages.success(request, 'سوال جابجا شد.')
+    return redirect('question_bank')
 
 
 @login_required

@@ -204,6 +204,22 @@ class TeacherAnswer(models.Model):
         return f"پاسخ معلم - {self.question}"
 
 
+class BankFolder(models.Model):
+    """پوشهٔ دسته‌بندی سوال‌های بانک مشترک معلم"""
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                related_name='bank_folders',
+                                limit_choices_to={'role': 'teacher'})
+    name = models.CharField(max_length=80)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        unique_together = [('teacher', 'name')]
+
+    def __str__(self):
+        return self.name
+
+
 class QuestionBank(models.Model):
     """بانک سوال مشترک معلم — سوال‌هایی که بین چند آزمون قابل استفاده‌اند"""
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
@@ -217,6 +233,8 @@ class QuestionBank(models.Model):
     blanks = models.JSONField(default=list, blank=True)
     max_score = models.DecimalField(max_digits=10, decimal_places=2, default=1.0)
     use_count = models.PositiveIntegerField(default=0)
+    folder = models.ForeignKey('BankFolder', on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='questions', verbose_name='پوشه')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

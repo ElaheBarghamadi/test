@@ -549,3 +549,72 @@ class BankGroupsAnnounceTests(TestCase):
         r = self.client.post(reverse('announcement_delete', args=[ann.id]))
         self.assertEqual(r.status_code, 302)
         self.assertEqual(Announcement.objects.count(), 0)
+
+
+class BankFolderTests(TestCase):
+    """پوشه‌بندی بانک سوال: ساخت، تغییر نام، حذف، جابجایی و فیلتر"""
+
+    def setUp(self):
+        from accounts.models import User
+        from exams.models import QuestionBank
+        self.teacher = User.objects.create_user(username='tf', password='test12345', role='teacher')
+        self.other = User.objects.create_user(username='of', password='test12345', role='teacher')
+        self.client.login(username='tf', password='test12345')
+        self.q = QuestionBank.objects.create(teacher=self.teacher, text='سوال نمونه',
+                                               question_type='multiple_choice',
+                                               options=['۱', '۲'], correct_answer='1')
+
+    def _folder(self, name='پوشه یک', teacher=None):
+        from exams.models import BankFolder
+        return BankFolder.objects.create(teacher=teacher or self.teacher, name=name)
+
+    def test_add_folder_and_duplicate_rejected(self):
+        r = self.client.post('/teacher/bank/folder/add/', {'name': 'ریاضی'})
+        self.assertEqual(r.status_code, 302)
+        from exams.models import BankFolder
+        self.assertTrue(BankFolder.objects.filter(teacher=self.teacher, name='ریاضی').exists())
+        self.client.post('/teacher/bank/folder/add/', {'name': 'ریاضی'})
+        self.assertEqual(BankFolder.objects.filter(teacher=self.teacher, name='ریاضی').count(), 1)
+
+    def test_add_question_into_folder_and_filter(self):
+        f = self._folder()
+        r = self.client.post('/teacher/bank/', {'text': 'سوال داخل پوشه', 'question_type': 'short_answer',
+                                                'folder': str(f.id)})
+        self.assertEqual(r.status_code, 302)
+        from exams.models import QuestionBank
+        q = QuestionBank.objects.get(text='سوال داخل پوشه')
+        self.assertEqual(q.folder_id, f.id)
+        resp = self.client.get(f'/teacher/bank/?folder={f.id}')
+        self.assertContains(resp, 'سوال داخل پوشه')
+        self.assertNotContains(resp, 'سوال نمونه')
+        resp = self.client.get('/teacher/bank/?folder=none')
+        self.assertContains(resp, 'سوال نمونه')
+
+    def test_rename_folder(self):
+        f = self._folder()
+        self.client.post(f'/teacher/bank/folder/{f.id}/rename/', {'name': 'فیزیک'})
+        f.refresh_from_db()
+        self.assertEqual(f.name, 'فیزیک')
+
+    def test_delete_folder_keeps_questions(self):
+        f = self._folder()
+        self.q.folder = f
+        self.q.save()
+        self.client.post(f'/teacher/bank/folder/{f.id}/delete/')
+        self.q.refresh_from_db()
+        self.assertIsNone(self.q.folder_id)
+
+    def test_move_question_between_folders(self):
+        f1, f2 = self._folder('الف'), self._folder('ب')
+        self.client.post(f'/teacher/bank/{self.q.id}/move/', {'folder': str(f1.id)})
+        self.q.refresh_from_db()
+        self.assertEqual(self.q.folder_id, f1.id)
+        self.client.post(f'/teacher/bank/{self.q.id}/move/', {'folder': ''})
+        self.q.refresh_from_db()
+        self.assertIsNone(self.q.folder_id)
+
+    def test_other_teacher_folder_is_404(self):
+        f = self._folder(teacher=self.other)
+        for url in (f'/teacher/bank/folder/{f.id}/rename/', f'/teacher/bank/folder/{f.id}/delete/'):
+            self.assertEqual(self.client.post(url, {'name': 'x'}).status_code, 404)
+        self.assertEqual(self.client.post(f'/teacher/bank/{self.q.id}/move/', {'folder': str(f.id)}).status_code, 404)

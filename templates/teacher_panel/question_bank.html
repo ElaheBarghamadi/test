@@ -3,113 +3,224 @@
 
 {% block extra_css %}
 <style>
-    .bank-hero { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-    .bank-form { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 12px; }
+    /* چیدمان خاص صفحه — فاصله‌ها یکدست و تنفس‌دار */
+    .bank-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .bank-topbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .collapsible { display: none; margin-bottom: 14px; }
+    .collapsible.show { display: block; animation: popIn .18s ease; }
+    .bank-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .bank-form .full { grid-column: 1 / -1; }
-    .bank-form textarea, .bank-form input, .bank-form select {
-        width: 100%; background: #fff; border: 1.5px solid var(--line); border-radius: 12px;
-        padding: 9px 12px; font-family: inherit; font-size: .86rem; color: var(--ink);
+    .bank-form label { font-size: .76rem; font-weight: 700; color: var(--ink2); display: block; margin-bottom: 5px; }
+    .bank-form textarea { min-height: 70px; resize: vertical; }
+    .folder-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .folder-chip {
+        display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+        background: var(--card); border: 1.5px solid var(--line); color: var(--ink2);
+        font-size: .78rem; font-weight: 700; text-decoration: none; transition: .15s;
     }
-    .bank-form textarea { min-height: 64px; resize: vertical; }
-    .bank-form label { font-size: .76rem; font-weight: 700; color: var(--ink2); display: block; margin-bottom: 4px; }
-    .bank-list { display: grid; gap: 10px; }
-    .bank-item { background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 12px; border-right: 4px solid var(--gold); }
-    .bank-q { font-size: .88rem; color: var(--ink); font-weight: 600; margin-bottom: 6px; }
-    .bank-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .bank-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .bank-actions select { background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 7px 10px; font-family: inherit; font-size: .8rem; }
+    .folder-chip:hover { border-color: var(--gold); color: var(--gold3); transform: translateY(-1px); }
+    .folder-chip.on { background: linear-gradient(135deg, var(--gold), var(--gold3)); color: #fff; border-color: transparent; }
+    .folder-chip .cnt { background: rgba(255,255,255,.25); border-radius: 999px; padding: 1px 8px; font-size: .7rem; }
+    .folder-chip:not(.on) .cnt { background: var(--card2); }
+    .folder-mgr { display: grid; gap: 10px; }
+    .folder-row {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px;
+    }
+    .folder-row .fname { font-weight: 800; font-size: .84rem; color: var(--ink); flex: 1 1 120px; }
+    .folder-row form { display: flex; gap: 6px; align-items: center; }
+    .folder-row input[type=text] { max-width: 160px; }
+    .bank-list { display: grid; gap: 12px; }
+    .bank-item {
+        background: var(--card2); border: 1px solid var(--line2); border-radius: 16px;
+        padding: 14px; border-right: 4px solid var(--gold);
+        display: grid; gap: 10px;
+    }
+    .bank-q { font-size: .88rem; color: var(--ink); font-weight: 600; line-height: 1.9; }
+    .bank-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+    .bank-meta .tag {
+        background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+        padding: 4px 12px; font-size: .72rem; font-weight: 700; color: var(--ink2);
+    }
+    .bank-meta .tag.folder-tag { background: var(--goldsoft); color: var(--gold3); border-color: #f0e0b8; }
+    .bank-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-top: 4px; border-top: 1px dashed var(--line); }
+    .bank-actions form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .bank-actions select { min-width: 150px; }
     @media (max-width: 640px) {
         .bank-form { grid-template-columns: 1fr; }
-        .bank-actions select, .bank-actions button, .bank-actions .btn { width: 100%; }
+        .bank-actions form { width: 100%; }
+        .bank-actions select, .bank-actions .btn { flex: 1 1 46%; min-width: 0; }
+        .folder-row input[type=text] { max-width: 100%; flex: 1; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="exam-hero bank-hero">
-        <div>
-            <h1><span>📚</span> بانک سوال مشترک</h1>
-            <div class="exam-meta">
-                <span>{{ banks|length }} سوال در بانک</span>
-                <span>قابل استفاده در همه آزمون‌ها</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3 style="margin-bottom: 8px;">➕ افزودن سوال به بانک</h3>
-        <form method="post" class="bank-form">
-            {% csrf_token %}
-            <div class="full">
-                <label>متن سوال *</label>
-                <textarea name="text" required placeholder="صورت سوال را بنویسید..."></textarea>
-            </div>
-            <div>
-                <label>نوع سوال</label>
-                <select name="question_type">
-                    {% for value, label in type_choices %}
-                    <option value="{{ value }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label>بارم</label>
-                <input type="number" name="max_score" value="1" step="0.25" min="0.25">
-            </div>
-            <div class="full">
-                <label>گزینه‌ها (هر خط یک گزینه — فقط برای تستی)</label>
-                <textarea name="options" placeholder="گزینه ۱&#10;گزینه ۲&#10;گزینه ۳&#10;گزینه ۴"></textarea>
-            </div>
-            <div class="full">
-                <label>پاسخ صحیح (شماره گزینه برای تستی / true یا false برای صحیح‌غلط / متن برای جاخالی و کوتاه)</label>
-                <input type="text" name="correct_answer" placeholder="مثلاً 2 یا true یا تهران">
-            </div>
-            <div class="full">
-                <label>برچسب جاهای خالی (اختیاری، با ویرگول)</label>
-                <input type="text" name="blanks" placeholder="جای خالی ۱, جای خالی ۲">
-            </div>
-            <div class="full">
-                <button type="submit" class="btn btn-gold">💾 ذخیره در بانک</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="card">
-        <h3 style="margin-bottom: 10px;">📚 سوال‌های بانک من</h3>
-        {% if banks %}
-        <div class="bank-list">
-            {% for b in banks %}
-            <div class="bank-item">
-                <div class="bank-q">{{ b.text|truncatewords:40 }}</div>
-                <div class="bank-meta">
-                    <span class="info-stat">{{ b.get_question_type_display }}</span>
-                    <span class="info-stat">⭐ {{ b.max_score }}</span>
-                    <span class="info-stat">🔁 {{ b.use_count }} بار استفاده</span>
-                    {% if b.correct_answer %}<span class="info-stat">✅ پاسخ: {{ b.correct_answer|truncatewords:6 }}</span>{% endif %}
-                </div>
-                <div class="bank-actions">
-                    <form method="post" action="{% url 'import_bank_question' b.id %}" style="display:flex; gap:6px; flex-wrap:wrap; flex:1;">
-                        {% csrf_token %}
-                        <select name="exam_id" required>
-                            <option value="">افزودن به آزمون...</option>
-                            {% for e in exams %}
-                            <option value="{{ e.id }}">{{ e.title }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="btn btn-gold">📥 افزودن به آزمون</button>
-                    </form>
-                    <form method="post" action="{% url 'delete_bank_question' b.id %}" onsubmit="return confirm('حذف سوال از بانک؟');">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">🗑️ حذف</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">📭 بانک سوال خالی است. بالا سوال اضافه کنید یا هنگام ساخت سوال، تیک «ذخیره در بانک سوال مشترک» را بزنید.</div>
-        {% endif %}
+<div class="bank-topbar">
+    <div class="page-title" style="margin:0;">📚 بانک سوال مشترک</div>
+    <div class="actions">
+        <button class="btn btn-gold" id="btnNewQ" type="button">➕ سوال جدید</button>
+        <button class="btn btn-secondary" id="btnNewF" type="button">📁 پوشه جدید</button>
     </div>
 </div>
+
+<!-- فرم افزودن سوال (با دکمه باز می‌شود) -->
+<div class="card collapsible" id="newQBox">
+    <div class="section-title">➕ افزودن سوال به بانک</div>
+    <form method="post" class="bank-form">
+        {% csrf_token %}
+        <input type="hidden" name="folder" value="{% if folder_id.isdigit %}{{ folder_id }}{% endif %}">
+        <div class="full">
+            <label>متن سوال *</label>
+            <textarea name="text" required placeholder="صورت سوال را بنویسید…"></textarea>
+        </div>
+        <div>
+            <label>نوع سوال</label>
+            <select name="question_type">
+                {% for value, label in type_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>بارم</label>
+            <input type="number" name="max_score" value="1" step="0.25" min="0.25">
+        </div>
+        <div>
+            <label>پوشه</label>
+            <select name="folder">
+                <option value="">بدون پوشه (ریشه)</option>
+                {% for f in folders %}
+                <option value="{{ f.id }}" {% if folder_id == f.id|stringformat:'s' %}selected{% endif %}>📁 {{ f.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>پاسخ صحیح</label>
+            <input type="text" name="correct_answer" placeholder="شماره گزینه / true / متن">
+        </div>
+        <div class="full">
+            <label>گزینه‌ها (هر خط یک گزینه — فقط برای تستی)</label>
+            <textarea name="options" placeholder="گزینه ۱&#10;گزینه ۲&#10;گزینه ۳&#10;گزینه ۴"></textarea>
+        </div>
+        <div class="full">
+            <label>برچسب جاهای خالی (اختیاری، با ویرگول)</label>
+            <input type="text" name="blanks" placeholder="جای خالی ۱, جای خالی ۲">
+        </div>
+        <div class="full">
+            <button type="submit" class="btn btn-gold">💾 ذخیره در بانک</button>
+            <button type="button" class="btn btn-secondary" id="btnCancelQ">انصراف</button>
+        </div>
+    </form>
+</div>
+
+<!-- فرم پوشه جدید -->
+<div class="card collapsible" id="newFBox">
+    <div class="section-title">📁 ساخت پوشه جدید</div>
+    <form method="post" action="{% url 'bank_folder_add' %}" style="display:flex; gap:10px; flex-wrap:wrap;">
+        {% csrf_token %}
+        <input type="text" name="name" required placeholder="نام پوشه، مثلاً «ریاضی فصل ۳»" style="flex:1; min-width:180px;">
+        <button type="submit" class="btn btn-gold">📁 ساخت پوشه</button>
+    </form>
+</div>
+
+<!-- نوار پوشه‌ها -->
+<div class="folder-bar">
+    <a class="folder-chip {% if not folder_id %}on{% endif %}" href="{% url 'question_bank' %}">📚 همه <span class="cnt">{{ total_count }}</span></a>
+    {% for f in folders %}
+    <a class="folder-chip {% if folder_id == f.id|stringformat:'s' %}on{% endif %}" href="?folder={{ f.id }}">📁 {{ f.name }} <span class="cnt">{{ f.cnt }}</span></a>
+    {% endfor %}
+    <a class="folder-chip {% if folder_id == 'none' %}on{% endif %}" href="?folder=none">🗂️ بدون پوشه</a>
+</div>
+
+<!-- مدیریت پوشه‌ها -->
+{% if folders %}
+<div class="card" style="margin-bottom:14px;">
+    <div class="section-title">🗂️ مدیریت پوشه‌ها</div>
+    <div class="folder-mgr">
+        {% for f in folders %}
+        <div class="folder-row">
+            <span class="fname">📁 {{ f.name }} <span style="font-size:.72rem; color:var(--ink3);">({{ f.cnt }} سوال)</span></span>
+            <form method="post" action="{% url 'bank_folder_rename' f.id %}">
+                {% csrf_token %}
+                <input type="text" name="name" value="{{ f.name }}" placeholder="نام جدید">
+                <button class="btn btn-edit" type="submit">✏️ تغییر نام</button>
+            </form>
+            <form method="post" action="{% url 'bank_folder_delete' f.id %}" onsubmit="return confirm('پوشه حذف شود؟ سوال‌ها به ریشه بانک می‌روند.');">
+                {% csrf_token %}
+                <button class="btn btn-delete" type="submit">🗑️ حذف پوشه</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- لیست سوال‌ها -->
+<div class="card">
+    <div class="section-title">📚 سوال‌های بانک من {{ banks|length }} مورد</div>
+    {% if banks %}
+    <div class="bank-list">
+        {% for b in banks %}
+        <div class="bank-item">
+            <div class="bank-q">{{ b.text|truncatewords:40 }}</div>
+            <div class="bank-meta">
+                {% if b.folder %}<span class="tag folder-tag">📁 {{ b.folder.name }}</span>{% endif %}
+                <span class="tag">{{ b.get_question_type_display }}</span>
+                <span class="tag">⭐ بارم {{ b.max_score }}</span>
+                <span class="tag">🔁 {{ b.use_count }} بار استفاده</span>
+                {% if b.correct_answer %}<span class="tag">✅ پاسخ: {{ b.correct_answer|truncatewords:6 }}</span>{% endif %}
+            </div>
+            <div class="bank-actions">
+                <form method="post" action="{% url 'import_bank_question' b.id %}">
+                    {% csrf_token %}
+                    <select name="exam_id" required>
+                        <option value="">افزودن به آزمون…</option>
+                        {% for e in exams %}
+                        <option value="{{ e.id }}">{{ e.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-gold">📥 افزودن به آزمون</button>
+                </form>
+                <form method="post" action="{% url 'bank_question_move' b.id %}">
+                    {% csrf_token %}
+                    <select name="folder">
+                        <option value="">انتقال به ریشه</option>
+                        {% for f in folders %}
+                        <option value="{{ f.id }}" {% if b.folder_id == f.id %}selected{% endif %}>📁 {{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-secondary">🚚 جابجایی</button>
+                </form>
+                <form method="post" action="{% url 'delete_bank_question' b.id %}" onsubmit="return confirm('سوال از بانک حذف شود؟');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">🗑️ حذف</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        📭 این بخش سوالی ندارد.
+        <a href="#" onclick="document.getElementById('newQBox').classList.add('show'); return false;">➕ افزودن اولین سوال</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const newQ = document.getElementById('newQBox');
+const newF = document.getElementById('newFBox');
+document.getElementById('btnNewQ').addEventListener('click', () => {
+    newQ.classList.toggle('show');
+    newF.classList.remove('show');
+    if (newQ.classList.contains('show')) newQ.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+document.getElementById('btnCancelQ').addEventListener('click', () => newQ.classList.remove('show'));
+document.getElementById('btnNewF').addEventListener('click', () => {
+    newF.classList.toggle('show');
+    newQ.classList.remove('show');
+    if (newF.classList.contains('show')) newF.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>
 {% endblock %}
