@@ -130,7 +130,7 @@
         <tr>
             <td>
                 <b>{{ u.get_full_name|default:u.username }}</b>
-                <div style="font-size:.68rem; color:var(--ink3);">@{{ u.username }}</div>
+                <div style="font-size:.72rem; color:var(--ink3);">@{{ u.username }}</div>
             </td>
             <td><span class="status-badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'teacher' %}status-ongoing{% else %}status-completed{% endif %}">{% if u.role == 'admin' %}🛡️ ادمین{% elif u.role == 'teacher' %}🧑‍ معلم{% else %}👥 دانش‌آموز{% endif %}</span></td>
             <td>{{ u.grade.name|default:'—' }}</td>

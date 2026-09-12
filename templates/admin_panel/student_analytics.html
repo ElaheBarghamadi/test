@@ -34,7 +34,7 @@
         {% for row in students_data %}
         <tr>
             <td>{{ forloop.counter }}</td>
-            <td><b>{{ row.student.get_full_name|default:row.student.username }}</b><div style="font-size:.68rem; color:var(--ink3);">@{{ row.student.username }}{% if row.student.student_code %} · کد {{ row.student.student_code }}{% endif %}</div></td>
+            <td><b>{{ row.student.get_full_name|default:row.student.username }}</b><div style="font-size: .72rem; color:var(--ink3);">@{{ row.student.username }}{% if row.student.student_code %} · کد {{ row.student.student_code }}{% endif %}</div></td>
             <td>{{ row.student.grade.name|default:'—' }}</td>
             <td>{{ row.total_exams }}</td>
             <td>

@@ -75,7 +75,7 @@
         }
 
         .logo-sub {
-            font-size: 9px;
+            font-size: 11px;
             color: #8b6b4a;
         }
 
@@ -237,7 +237,7 @@
         }
 
         .sidebar-user-role {
-            font-size: 0.65rem;
+            font-size: 0.72rem;
             color: #8b6b4a;
             margin-top: 4px;
         }
@@ -505,7 +505,7 @@
                         {% elif user.role == 'teacher' %}👨‍🏫
                         {% else %}👤{% endif %}
                         {{ user.get_full_name|default:user.username }}
-                        <span style="font-size: 10px; opacity: 0.7;">
+                        <span style="font-size: 11px; opacity: 0.7;">
                             ({% if user.role == 'admin' %}ادمین{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %})
                         </span>
                         ▼

@@ -39,7 +39,7 @@
         <tbody>
         {% for e in exams %}
         <tr>
-            <td><b>{{ e.title }}</b><div style="font-size:.68rem; color:var(--ink3);">{{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.created_at|to_jalali }}</div></td>
+            <td><b>{{ e.title }}</b><div style="font-size: .72rem; color:var(--ink3);">{{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.created_at|to_jalali }}</div></td>
             <td>{{ e.grade.name|default:'—' }}</td>
             <td>{{ e.students_count }}</td>
             <td>{{ e.attempts_count }}</td>

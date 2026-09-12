@@ -56,7 +56,7 @@
         <tr>
             <td>
                 <b>{{ e.title }}</b>
-                <div style="font-size:.68rem; color:var(--ink3);">🧑‍🏫 {{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.get_show_questions_mode_display }}</div>
+                <div style="font-size: .72rem; color:var(--ink3);">🧑‍🏫 {{ e.teacher.get_full_name|default:e.teacher.username }} · {{ e.get_show_questions_mode_display }}</div>
             </td>
             <td>{{ e.grade.name|default:'—' }}</td>
             <td><span class="status-badge {% if e.is_active %}status-ongoing{% else %}status-inactive{% endif %}">{% if e.is_active %}فعال{% else %}غیرفعال{% endif %}</span></td>
