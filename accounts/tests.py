@@ -462,3 +462,24 @@ class SecurityHeadersTests(TestCase):
         self.assertEqual(res.headers.get('X-Content-Type-Options'), 'nosniff')
         self.assertIn(res.headers.get('X-Frame-Options'), ('DENY', 'SAMEORIGIN'))
         self.assertIn('strict-origin', res.headers.get('Referrer-Policy', ''))
+
+
+class BrandedNotFoundTests(TestCase):
+    """صفحه ۴۰۴ برندشده حتی وقتی DEBUG روشن است؛ درخواست‌های غیرHTML دست‌نخورده"""
+
+    @_override_settings(DEBUG=True)
+    def test_html_404_is_branded_even_in_debug(self):
+        r = self.client.get('/no-such-page-xyz/', HTTP_ACCEPT='text/html,application/xhtml+xml')
+        self.assertEqual(r.status_code, 404)
+        self.assertContains(r, '۴۰۴', status_code=404)
+
+    @_override_settings(DEBUG=True)
+    def test_non_html_404_not_swallowed_in_debug(self):
+        r = self.client.get('/no-such-page-xyz/', HTTP_ACCEPT='application/json')
+        self.assertEqual(r.status_code, 404)
+        self.assertNotIn('۴۰۴', r.content.decode('utf-8', 'ignore'))
+
+    def test_html_404_branded_in_production_mode(self):
+        r = self.client.get('/no-such-page-xyz/', HTTP_ACCEPT='text/html')
+        self.assertEqual(r.status_code, 404)
+        self.assertContains(r, '۴۰۴', status_code=404)

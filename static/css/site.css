@@ -371,8 +371,28 @@
     /* ================== حالت خالی ================== */
     .empty-state {
         background: var(--card); border: 1.5px dashed var(--line); border-radius: var(--r-lg);
-        padding: 30px 18px; text-align: center; color: var(--ink2); font-size: .85rem;
+        padding: 34px 18px; text-align: center; color: var(--ink2); font-size: .88rem;
+        display: grid; justify-items: center; gap: 4px; line-height: 2;
     }
+    .exams-grid > .empty-state, .bank-list > .empty-state, .questions-list > .empty-state,
+    .cheats-grid > .empty-state, .announce-list > .empty-state, .students-list > .empty-state {
+        grid-column: 1 / -1; width: 100%;
+    }
+    .empty-state a:not(.btn) {
+        display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+        background: linear-gradient(135deg, var(--gold), var(--gold3)); color: #fff;
+        border-radius: 999px; padding: 9px 22px; font-size: .82rem; font-weight: 700;
+        text-decoration: none; box-shadow: 0 5px 14px rgba(140, 105, 20, .25); transition: .15s;
+    }
+    .empty-state a:not(.btn):hover { filter: brightness(1.06); transform: translateY(-1px); }
+
+    /* ================== میکروانیمیشن منوهای کشویی ================== */
+    @keyframes popIn {
+        from { opacity: 0; transform: translateY(-6px) scale(.98); }
+        to { opacity: 1; transform: none; }
+    }
+    .more-items, .bell-items { animation: popIn .18s ease; transform-origin: top center; }
+    .exam-card, .stat-card, .btn, .nav-link, .group-chip { transition: all .18s ease; }
 
     /* ================== کاشی/چیپ اطلاعات ================== */
     .info-stat {

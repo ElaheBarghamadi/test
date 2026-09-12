@@ -78,6 +78,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'exam_system.middleware.SecurityHeadersMiddleware',
+    'exam_system.middleware.BrandedNotFoundMiddleware',
 ]
 
 if not DEBUG:
