@@ -38,7 +38,10 @@ X_FRAME_OPTIONS = 'DENY'                # جلوگیری از قرارگیری �
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
-if not DEBUG:
+# هنگام اجرای تست‌ها اجبار HTTPS غیرفعال باشد تا کلاینت تست درست کار کند
+TESTING = 'test' in sys.argv
+
+if not DEBUG and not TESTING:
     # فقط در حالت تولید: اجبار HTTPS و کوکی‌های امن
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -84,7 +87,7 @@ MIDDLEWARE = [
     'exam_system.middleware.BrandedNotFoundMiddleware',
 ]
 
-if not DEBUG:
+if not DEBUG and not TESTING:
     # سرویس فایل‌های استاتیک با WhiteNoise فقط در تولید؛
     # در توسعه خودِ django.contrib.staticfiles بدون هشدار missing-dir سرو می‌کند.
     MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
@@ -150,7 +153,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-if not DEBUG:
+if not DEBUG and not TESTING:
     # فقط در تولید: فشرده‌سازی + هش‌زدن نام فایل‌ها (نیازمند collectstatic)
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
