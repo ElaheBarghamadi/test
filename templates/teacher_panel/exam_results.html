@@ -25,27 +25,27 @@
         border-radius: 28px;
         padding: 22px;
         text-align: center;
-        border: 1px solid rgba(200, 180, 140, 0.35);
+        border: 1px solid rgba(120, 190, 185, 0.35);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
         transition: all 0.3s;
     }
 
     .stat-card:hover {
         transform: translateY(-3px);
-        border-color: rgba(200, 180, 140, 0.6);
+        border-color: rgba(120, 190, 185, 0.6);
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
     }
 
     .stat-value {
         font-size: 2.2rem;
         font-weight: 800;
-        color: #c49a2b;
+        color: #2ec4b6;
         line-height: 1.2;
     }
 
     .stat-label {
         font-size: 0.7rem;
-        color: #8b6b4a;
+        color: #4a6b72;
         margin-top: 8px;
         font-weight: 500;
     }
@@ -56,7 +56,7 @@
         backdrop-filter: blur(12px);
         border-radius: 28px;
         padding: 24px;
-        border: 1px solid rgba(200, 180, 140, 0.35);
+        border: 1px solid rgba(120, 190, 185, 0.35);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
     }
 
@@ -71,7 +71,7 @@
 
     .results-header h2 {
         font-size: 1.1rem;
-        color: #5a3e2b;
+        color: #16404a;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -99,8 +99,8 @@
 
     .btn-print {
         background: rgba(100, 70, 40, 0.2);
-        color: #5a3e2b;
-        border: 1px solid rgba(200, 180, 140, 0.4);
+        color: #16404a;
+        border: 1px solid rgba(120, 190, 185, 0.4);
     }
 
     .btn-print:hover {
@@ -109,14 +109,14 @@
     }
 
     .btn-pdf {
-        background: linear-gradient(135deg, #a07830, #8b6914);
+        background: linear-gradient(135deg, #0f7078, #0b4a52);
         color: white;
-        box-shadow: 0 2px 8px rgba(139, 105, 20, 0.2);
+        box-shadow: 0 2px 8px rgba(11, 74, 82, 0.2);
     }
 
     .btn-pdf:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 14px rgba(139, 105, 20, 0.3);
+        box-shadow: 0 6px 14px rgba(11, 74, 82, 0.3);
     }
 
     /* Table */
@@ -132,26 +132,26 @@
     th, td {
         padding: 14px 12px;
         text-align: center;
-        border-bottom: 1px solid rgba(200, 180, 140, 0.25);
+        border-bottom: 1px solid rgba(120, 190, 185, 0.25);
     }
 
     th {
-        background: rgba(200, 180, 140, 0.12);
+        background: rgba(120, 190, 185, 0.12);
         font-weight: 700;
-        color: #5a3e2b;
+        color: #16404a;
         font-size: 0.8rem;
     }
 
     .student-name {
         font-weight: 700;
-        color: #4a3220;
+        color: #0e2f36;
         text-align: right;
         font-size: 0.85rem;
     }
 
     .score {
         font-weight: 700;
-        color: #c49a2b;
+        color: #2ec4b6;
         font-size: 0.9rem;
     }
 
@@ -183,8 +183,8 @@
     }
 
     .btn-view {
-        background: rgba(200, 180, 140, 0.25);
-        color: #5a3e2b;
+        background: rgba(120, 190, 185, 0.25);
+        color: #16404a;
         border: none;
         padding: 6px 16px;
         border-radius: 30px;
@@ -197,22 +197,22 @@
     }
 
     .btn-view:hover {
-        background: rgba(200, 180, 140, 0.45);
+        background: rgba(120, 190, 185, 0.45);
         transform: translateY(-1px);
     }
 
     .rank {
         font-weight: 700;
-        color: #b89a6a;
+        color: #7fa8ad;
         font-size: 0.85rem;
     }
 
     .footer-note {
         margin-top: 20px;
         padding-top: 16px;
-        border-top: 1px solid rgba(200, 180, 140, 0.25);
+        border-top: 1px solid rgba(120, 190, 185, 0.25);
         font-size: 0.72rem;
-        color: #b89a6a;
+        color: #7fa8ad;
         text-align: center;
     }
 
@@ -225,10 +225,10 @@
     .analysis-card { margin-top: 16px; }
     .analysis-text { max-width: 260px; white-space: normal !important; font-size: .78rem; }
     .rate-wrap {
-        display: inline-block; width: 70px; height: 8px; background: #f3ead9;
+        display: inline-block; width: 70px; height: 8px; background: #e0f1ee;
         border-radius: 99px; overflow: hidden; vertical-align: middle; margin-inline-end: 6px;
     }
-    .rate-bar { display: block; height: 100%; background: linear-gradient(90deg, #c49a2b, #7d5d10); border-radius: 99px; }
+    .rate-bar { display: block; height: 100%; background: linear-gradient(90deg, #2ec4b6, #0e5e66); border-radius: 99px; }
 
     /* Print Styles */
     @media print {
@@ -342,10 +342,10 @@
                         <td class="rank">{{ forloop.counter }}</td>
                         <td class="student-name">
                             {{ result.student.get_full_name|default:result.student.username }}
-                            <div style="font-size: 0.6rem; color: #b89a6a;">{{ result.student.student_code|default:'' }}</div>
+                            <div style="font-size: 0.6rem; color: #7fa8ad;">{{ result.student.student_code|default:'' }}</div>
                         </td>
                         <td class="score">{{ result.total_score|floatformat:1 }}</td>
-                        <td style="color: #8b6b4a;">{{ result.total_possible|floatformat:1 }}</td>
+                        <td style="color: #4a6b72;">{{ result.total_possible|floatformat:1 }}</td>
                         <td>
                             {% if result.percentage >= 70 %}
                                 <span class="percentage high">{{ result.percentage }}%</span>
@@ -368,7 +368,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 50px; color: #b89a6a;">📭 هیچ دانش‌آموزی برای این آزمون ثبت نام نشده است</td>
+                        <td colspan="7" style="text-align: center; padding: 50px; color: #7fa8ad;">📭 هیچ دانش‌آموزی برای این آزمون ثبت نام نشده است</td>
                     </tr>
                 {% endfor %}
                 </tbody>

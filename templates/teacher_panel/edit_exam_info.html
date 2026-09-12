@@ -9,29 +9,29 @@
     /* تم روشن طلایی — هم‌سان با سیستم یکپارچه سایت */
     .container { max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px; }
     .card {
-        background: #fffdfa; border: 1px solid #e9dcc4; border-radius: 20px; padding: 16px;
-        margin-bottom: 14px; box-shadow: 0 1px 2px rgba(80,55,30,.05), 0 6px 18px rgba(80,55,30,.06);
+        background: #fdfffe; border: 1px solid #cfe8e3; border-radius: 20px; padding: 16px;
+        margin-bottom: 14px; box-shadow: 0 1px 2px rgba(10, 60, 70,.05), 0 6px 18px rgba(10, 60, 70,.06);
     }
-    .card:hover { box-shadow: 0 6px 20px rgba(140,105,20,.10); }
-    .card-title { font-size: 1.05rem; font-weight: 800; color: #3d2c1c; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
-    .info-note { background: #fdf4de; border: 1px dashed #f0e0b8; color: #6d543a; border-radius: 12px; padding: 10px 12px; font-size: .8rem; margin-bottom: 12px; }
+    .card:hover { box-shadow: 0 6px 20px rgba(15, 112, 120,.10); }
+    .card-title { font-size: 1.05rem; font-weight: 800; color: #12333a; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+    .info-note { background: #e2f8f5; border: 1px dashed #bfe8e2; color: #3f5f66; border-radius: 12px; padding: 10px 12px; font-size: .8rem; margin-bottom: 12px; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; }
-    .stat-card { background: #fdf7ec; border: 1px solid #f3ead9; border-radius: 14px; padding: 10px; text-align: center; }
-    .stat-card:hover { border-color: #f0e0b8; }
-    .stat-number { font-size: 1.3rem; font-weight: 800; color: #7d5d10; }
-    .stat-label { font-size: .74rem; color: #6d543a; font-weight: 600; }
+    .stat-card { background: #f0faf8; border: 1px solid #e0f1ee; border-radius: 14px; padding: 10px; text-align: center; }
+    .stat-card:hover { border-color: #bfe8e2; }
+    .stat-number { font-size: 1.3rem; font-weight: 800; color: #0e5e66; }
+    .stat-label { font-size: .74rem; color: #3f5f66; font-weight: 600; }
 
     .tabs {
-        display: flex; gap: 6px; background: #fdf7ec; border: 1px solid #f3ead9;
+        display: flex; gap: 6px; background: #f0faf8; border: 1px solid #e0f1ee;
         padding: 6px; border-radius: 14px; margin-bottom: 12px; overflow-x: auto;
     }
     .tab-btn {
-        flex: 1 1 auto; border: none; background: transparent; color: #6d543a;
+        flex: 1 1 auto; border: none; background: transparent; color: #3f5f66;
         font-weight: 700; font-size: .82rem; padding: 9px 12px; border-radius: 10px;
         cursor: pointer; white-space: nowrap;
     }
-    .tab-btn:hover { background: #fdf4de; color: #7d5d10; }
-    .tab-btn.active { background: linear-gradient(135deg, #c49a2b, #7d5d10); color: #fff; box-shadow: 0 4px 12px rgba(140,105,20,.25); }
+    .tab-btn:hover { background: #e2f8f5; color: #0e5e66; }
+    .tab-btn.active { background: linear-gradient(135deg, #2ec4b6, #0e5e66); color: #fff; box-shadow: 0 4px 12px rgba(15, 112, 120,.25); }
     .tab-btn.active::after { content: none; }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn .25s ease; }
@@ -39,36 +39,36 @@
 
     .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
     .form-group { flex: 1 1 210px; margin-bottom: 12px; min-width: 0; }
-    .form-group label { display: block; font-size: .8rem; font-weight: 700; color: #6d543a; margin-bottom: 5px; }
+    .form-group label { display: block; font-size: .8rem; font-weight: 700; color: #3f5f66; margin-bottom: 5px; }
     .form-group input, .form-group select, .form-group textarea {
-        width: 100%; background: #fff; border: 1.5px solid #e9dcc4; border-radius: 12px;
-        padding: 10px 12px; font-family: inherit; font-size: .88rem; color: #3d2c1c;
+        width: 100%; background: #fff; border: 1.5px solid #cfe8e3; border-radius: 12px;
+        padding: 10px 12px; font-family: inherit; font-size: .88rem; color: #12333a;
     }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-        outline: none; border-color: #c49a2b; box-shadow: 0 0 0 3px rgba(196,154,43,.18);
+        outline: none; border-color: #2ec4b6; box-shadow: 0 0 0 3px rgba(46, 196, 182,.18);
     }
-    .help-text { font-size: .74rem; color: #9c8568; margin-top: 4px; }
-    .jalali-date { background: #fdf4de; border: 1px solid #f0e0b8; color: #7d5d10; border-radius: 10px; padding: 5px 10px; font-size: .76rem; margin-top: 6px; display: inline-block; font-weight: 700; }
-    .jalali-date span { color: #6d543a; font-weight: 600; }
+    .help-text { font-size: .74rem; color: #7a979c; margin-top: 4px; }
+    .jalali-date { background: #e2f8f5; border: 1px solid #bfe8e2; color: #0e5e66; border-radius: 10px; padding: 5px 10px; font-size: .76rem; margin-top: 6px; display: inline-block; font-weight: 700; }
+    .jalali-date span { color: #3f5f66; font-weight: 600; }
     .checkbox-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-    .checkbox-group label { font-size: .84rem; color: #3d2c1c; cursor: pointer; margin: 0; font-weight: 600; }
-    .checkbox-group input { width: 17px; height: 17px; accent-color: #a67c1e; }
+    .checkbox-group label { font-size: .84rem; color: #12333a; cursor: pointer; margin: 0; font-weight: 600; }
+    .checkbox-group input { width: 17px; height: 17px; accent-color: #0f7078; }
     .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
     .filter-item { flex: 1 1 150px; min-width: 0; }
-    .filter-item label { display: block; font-size: .76rem; font-weight: 700; color: #6d543a; margin-bottom: 4px; }
+    .filter-item label { display: block; font-size: .76rem; font-weight: 700; color: #3f5f66; margin-bottom: 4px; }
     .filter-item select, .filter-item input {
-        width: 100%; background: #fff; border: 1.5px solid #e9dcc4; border-radius: 12px;
-        padding: 9px 12px; font-family: inherit; font-size: .86rem; color: #3d2c1c;
+        width: 100%; background: #fff; border: 1.5px solid #cfe8e3; border-radius: 12px;
+        padding: 9px 12px; font-family: inherit; font-size: .86rem; color: #12333a;
     }
     .filter-item button { height: 40px; }
     .students-list { display: grid; gap: 6px; max-height: 340px; overflow: auto; padding: 4px; }
-    .student-item { background: #fdf7ec; border: 1px solid #f3ead9; border-radius: 12px; padding: 8px 10px; }
-    .student-item:hover { border-color: #c49a2b; background: #fdf4de; }
-    .student-item label { display: flex; gap: 8px; align-items: center; font-size: .84rem; color: #3d2c1c; cursor: pointer; flex-wrap: wrap; }
-    .student-item input { width: 17px; height: 17px; accent-color: #a67c1e; }
+    .student-item { background: #f0faf8; border: 1px solid #e0f1ee; border-radius: 12px; padding: 8px 10px; }
+    .student-item:hover { border-color: #2ec4b6; background: #e2f8f5; }
+    .student-item label { display: flex; gap: 8px; align-items: center; font-size: .84rem; color: #12333a; cursor: pointer; flex-wrap: wrap; }
+    .student-item input { width: 17px; height: 17px; accent-color: #0f7078; }
     .student-name { font-weight: 700; }
     .selected-badge { background: #e7f6ec; color: #157a3b; border: 1px solid #b9e2c6; border-radius: 999px; font-size: .7rem; font-weight: 700; padding: 2px 10px; }
-    .selected-count { background: #fdf4de; color: #7d5d10; border: 1px solid #f0e0b8; border-radius: 999px; font-size: .74rem; font-weight: 700; padding: 3px 12px; }
+    .selected-count { background: #e2f8f5; color: #0e5e66; border: 1px solid #bfe8e2; border-radius: 999px; font-size: .74rem; font-weight: 700; padding: 3px 12px; }
     .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 
     a, button { font-family: inherit; }
@@ -80,22 +80,22 @@
         text-decoration: none; cursor: pointer; border: 1.5px solid transparent; transition: .15s;
     }
     .btn-primary, .btn-save, .btn-yes, .btn-home, .btn-dashboard {
-        background: linear-gradient(135deg, #c49a2b, #7d5d10); color: #fff;
-        box-shadow: 0 5px 14px rgba(140, 105, 20, .25);
+        background: linear-gradient(135deg, #2ec4b6, #0e5e66); color: #fff;
+        box-shadow: 0 5px 14px rgba(15, 112, 120, .25);
     }
     .btn-primary:hover, .btn-save:hover, .btn-yes:hover { filter: brightness(1.06); transform: translateY(-1px); }
-    .btn-secondary, .btn-no { background: #fdf7ec; color: #6d543a; border-color: #e9dcc4; }
-    .btn-secondary:hover, .btn-no:hover { border-color: #c49a2b; color: #7d5d10; background: #fdf4de; }
+    .btn-secondary, .btn-no { background: #f0faf8; color: #3f5f66; border-color: #cfe8e3; }
+    .btn-secondary:hover, .btn-no:hover { border-color: #2ec4b6; color: #0e5e66; background: #e2f8f5; }
     .btn-settings { background: #e7f6ec; color: #157a3b; border-color: #b9e2c6; }
     .btn-cheats { background: #fff3e0; color: #b96c07; border-color: #f3d3a4; }
-    .btn-answers, .btn-edit, .btn-teacher-ans { background: #fdf4de; color: #7d5d10; border-color: #f0e0b8; }
+    .btn-answers, .btn-edit, .btn-teacher-ans { background: #e2f8f5; color: #0e5e66; border-color: #bfe8e2; }
     .btn-delete, .btn-danger { background: #fdecec; color: #bd2222; border-color: #f2c4c4; }
     .btn-edit, .btn-delete, .btn-teacher-ans { padding: 5px 11px; font-size: .78rem; }
 
     .error-msg { background: #fdecec; border: 1px solid #f2c4c4; color: #bd2222; border-radius: 12px; padding: 10px 12px; font-size: .82rem; margin-bottom: 12px; }
     .success-msg { background: #e7f6ec; border: 1px solid #b9e2c6; color: #157a3b; border-radius: 12px; padding: 10px 12px; font-size: .82rem; margin-bottom: 12px; }
     .cheat-list { display: grid; gap: 8px; }
-    .cheat-item { background: #fff3e0; border: 1px solid #f3d3a4; border-radius: 12px; padding: 10px 12px; font-size: .82rem; color: #6d543a; }
+    .cheat-item { background: #fff3e0; border: 1px solid #f3d3a4; border-radius: 12px; padding: 10px 12px; font-size: .82rem; color: #3f5f66; }
     .cheat-item:hover { border-color: #e8b06a; }
     @media (max-width: 640px) {
         .container { padding: 10px 8px 44px; }
@@ -191,7 +191,7 @@
 
                 <!-- تنظیمات تایمر -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #e8c890; font-size: 0.9rem;">⏱️ تنظیمات زمان (تایمر)</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">⏱️ تنظیمات زمان (تایمر)</h4>
                     <div class="checkbox-group">
                         <label style="min-width: 100px;">نوع تایمر:</label>
                         <select name="timer_type" style="width: 250px;">
@@ -203,7 +203,7 @@
 
                 <!-- تنظیمات نمایش سوالات -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #e8c890; font-size: 0.9rem;">📄 تنظیمات نمایش سوالات</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">📄 تنظیمات نمایش سوالات</h4>
                     <div class="checkbox-group">
                         <input type="checkbox" name="random_questions" id="random_questions" {% if exam.random_questions %}checked{% endif %}>
                         <label for="random_questions">🎲 نمایش تصادفی سوالات برای هر دانش‌آموز</label>
@@ -223,7 +223,7 @@
 
                 <!-- تنظیمات امنیتی -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #e8c890; font-size: 0.9rem;">🛡️ تنظیمات امنیتی</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">🛡️ تنظیمات امنیتی</h4>
                     <div class="checkbox-group">
                         <input type="checkbox" name="enable_anti_cheat" id="enable_anti_cheat" {% if exam.enable_anti_cheat %}checked{% endif %}>
                         <label for="enable_anti_cheat">✅ فعال کردن سیستم تشخیص تقلب</label>
@@ -244,7 +244,7 @@
 
                 <!-- تنظیمات پاسخ تشریحی -->
                 <div style="margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 12px; color: #e8c890; font-size: 0.9rem;">📝 تنظیمات پاسخ تشریحی</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">📝 تنظیمات پاسخ تشریحی</h4>
                     <div class="checkbox-group">
                         <input type="checkbox" name="allow_teacher_answer" id="allow_teacher_answer" {% if exam.allow_teacher_answer %}checked{% endif %}>
                         <label for="allow_teacher_answer">👨‍🏫 معلم می‌تواند پاسخ تشریحی وارد کند</label>
@@ -267,7 +267,7 @@
         <div class="card">
             <div class="card-title">
                 ⚠️ گزارش تخلفات دانش‌آموزان
-                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-save" style="background: #6b4c3a; padding: 6px 16px; font-size: 0.7rem;">🔍 گزارش کامل</a>
+                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-save" style="background: #35565d; padding: 6px 16px; font-size: 0.7rem;">🔍 گزارش کامل</a>
             </div>
 
             {% if cheats_stats %}
@@ -284,13 +284,13 @@
                 {% if recent_cheats %}
                     {% for cheat in recent_cheats %}
                     <div class="cheat-item">
-                        <div><strong style="color:#e8c890;">{{ cheat.student_name }}</strong></div>
+                        <div><strong style="color:#a8d8d2;">{{ cheat.student_name }}</strong></div>
                         <div style="font-size: 0.7rem; color: #f87171;">⚠️ {{ cheat.cheat_type_display }}</div>
-                        <div style="font-size: 0.6rem; color: #b89a6a;">🕐 {{ cheat.created_at|date:"Y/m/d H:i:s" }}</div>
+                        <div style="font-size: 0.6rem; color: #7fa8ad;">🕐 {{ cheat.created_at|date:"Y/m/d H:i:s" }}</div>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div style="text-align: center; padding: 40px; color: #b89a6a;">📭 هنوز تخلفی ثبت نشده است</div>
+                    <div style="text-align: center; padding: 40px; color: #7fa8ad;">📭 هنوز تخلفی ثبت نشده است</div>
                 {% endif %}
             </div>
         </div>
@@ -339,7 +339,7 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <span style="color:#b89a6a; font-size:0.7rem;">📋 لیست دانش‌آموزان</span>
+                <span style="color:#7fa8ad; font-size:0.7rem;">📋 لیست دانش‌آموزان</span>
                 <div>
                     <button type="button" id="selectAllBtn" class="btn-save" style="padding: 5px 14px; font-size: 0.72rem;">✅ انتخاب همه</button>
                     <button type="button" id="deselectAllBtn" class="btn-danger" style="padding: 5px 14px; font-size: 0.72rem;">❌ لغو همه</button>
@@ -347,7 +347,7 @@
             </div>
 
             <div class="students-list" id="studentsList">
-                <div style="text-align: center; padding: 40px; color:#b89a6a;">⏳ در حال بارگذاری...</div>
+                <div style="text-align: center; padding: 40px; color:#7fa8ad;">⏳ در حال بارگذاری...</div>
             </div>
 
             <form method="post" id="studentsForm" style="margin-top: 20px;">
@@ -379,7 +379,7 @@
             applyFilters();
             updateSelectedCount();
         } catch (error) {
-            document.getElementById('studentsList').innerHTML = '<div style="text-align:center;padding:40px;color:#b89a6a;">❌ خطا در بارگذاری</div>';
+            document.getElementById('studentsList').innerHTML = '<div style="text-align:center;padding:40px;color:#7fa8ad;">❌ خطا در بارگذاری</div>';
         }
     }
 
@@ -397,7 +397,7 @@
     function renderStudentsList(filtered) {
         const container = document.getElementById('studentsList');
         if (filtered.length === 0) {
-            container.innerHTML = '<div style="text-align:center;padding:40px;color:#b89a6a;">📭 دانش‌آموزی یافت نشد</div>';
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:#7fa8ad;">📭 دانش‌آموزی یافت نشد</div>';
             return;
         }
         let html = '';
@@ -407,7 +407,7 @@
                         <input type="checkbox" class="student-checkbox" value="${student.id}" id="student_${student.id}" ${isSelected ? 'checked' : ''}>
                         <label for="student_${student.id}">
                             <span class="student-name">${escapeHtml(student.full_name)}</span>
-                            <span style="color:#b89a6a; font-size:0.6rem;"> - ${student.grade_name}</span>
+                            <span style="color:#7fa8ad; font-size:0.6rem;"> - ${student.grade_name}</span>
                             ${isSelected ? '<span class="selected-badge">✓ انتخاب شده</span>' : ''}
                         </label>
                     </div>`;

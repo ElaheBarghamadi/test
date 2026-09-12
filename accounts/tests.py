@@ -19,7 +19,7 @@ class LoginPageStyleTests(TestCase):
     """صفحه ورود باید هم‌شکل بقیه بخش‌های سامانه باشد"""
 
     OFF_PALETTE = ['#2a5298', '#1e3c72', '#eef2f8', '#1e293b']   # تم آبی/طوسی قدیمی
-    SITE_PALETTE = ['#a07830', '#8b6914', '#c49a2b', '#5a3e2b']  # تم طلایی/قهوه‌ای سامانه
+    SITE_PALETTE = ['#0f7078', '#0b4a52', '#2ec4b6', '#16404a']  # تم فیروزه‌ای/نفتی سامانه
 
     def setUp(self):
         self.response = self.client.get(reverse('login'))

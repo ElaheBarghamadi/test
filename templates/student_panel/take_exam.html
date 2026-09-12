@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token }}">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#8b6914">
+    <meta name="theme-color" content="#0b4a52">
     <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='30'%20fill='%23c49a2b'/%3E%3Ctext%20x='32'%20y='44'%20font-size='34'%20text-anchor='middle'%3E%E2%9C%8D%3C/text%3E%3C/svg%3E">
     <title>{{ exam.title }} | آزمون آنلاین</title>
     <style>
@@ -17,17 +17,17 @@
 
         /* ================== متغیرهای طراحی ================== */
         :root{
-            --bg1:#f8f3e9; --bg2:#e9dfcb;
-            --card:#fffdfa; --card2:#fdf7ec;
-            --ink:#3d2c1c; --ink2:#6d543a; --ink3:#9c8568;
-            --line:#e9dcc4; --line2:#f3ead9;
-            --gold:#c49a2b; --gold2:#a67c1e; --gold3:#7d5d10; --goldsoft:#fdf4de;
+            --bg1:#ecf9f7; --bg2:#d5ecea;
+            --card:#fdfffe; --card2:#f0faf8;
+            --ink:#12333a; --ink2:#3f5f66; --ink3:#7a979c;
+            --line:#cfe8e3; --line2:#e0f1ee;
+            --gold:#2ec4b6; --gold2:#0f7078; --gold3:#0e5e66; --goldsoft:#e2f8f5;
             --ok:#157a3b; --oksoft:#e7f6ec; --okline:#b9e2c6;
             --warn:#b96c07; --warnsoft:#fff3e0; --warnline:#f3d3a4;
             --err:#bd2222; --errsoft:#fdecec; --errline:#f2c4c4;
             --r-lg:20px; --r-md:14px; --r-sm:10px;
-            --sh1:0 1px 2px rgba(80,55,30,.05), 0 6px 18px rgba(80,55,30,.06);
-            --sh2:0 14px 40px rgba(60,40,20,.18);
+            --sh1:0 1px 2px rgba(10, 60, 70,.05), 0 6px 18px rgba(10, 60, 70,.06);
+            --sh2:0 14px 40px rgba(8, 45, 52,.18);
             --bar-h:64px;
         }
 
@@ -48,7 +48,7 @@
 
         img{max-width:100%}
         button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
-        :focus-visible{outline:3px solid rgba(196,154,43,.6);outline-offset:2px;border-radius:6px}
+        :focus-visible{outline:3px solid rgba(46, 196, 182,.6);outline-offset:2px;border-radius:6px}
 
         .skip-link{position:absolute;inset-inline-start:-9999px;top:0;background:var(--gold3);color:#fff;padding:10px 16px;border-radius:0 0 12px 0;z-index:5000}
         .skip-link:focus{inset-inline-start:0}
@@ -68,7 +68,7 @@
 
         /* ================== نوار بالا ================== */
         .topbar{
-            background:linear-gradient(135deg,#6f5210,#a67c1e 55%,#c49a2b);
+            background:linear-gradient(135deg,#0b3c49,#0f7078 55%,#2ec4b6);
             color:#fff;border-radius:var(--r-lg);
             box-shadow:var(--sh1);overflow:hidden;
             position:sticky;top:8px;z-index:800;
@@ -124,7 +124,7 @@
         .q-card.is-answered{border-color:var(--okline);box-shadow:0 0 0 1px var(--okline) inset,var(--sh1)}
         .q-card.has-error{border-color:var(--errline)}
         .q-card.flash{animation:flash .9s ease}
-        @keyframes flash{0%{box-shadow:0 0 0 4px rgba(196,154,43,.45)}100%{box-shadow:var(--sh1)}}
+        @keyframes flash{0%{box-shadow:0 0 0 4px rgba(46, 196, 182,.45)}100%{box-shadow:var(--sh1)}}
 
         body.mode-one_by_one .q-card{display:none}
         body.mode-one_by_one .q-card.is-active{display:block;animation:fadeUp .28s ease}
@@ -132,7 +132,7 @@
 
         .q-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-bottom:9px;margin-bottom:11px;border-bottom:1px dashed var(--line)}
         .q-num{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;font-size:.76rem;font-weight:800;padding:2px 12px;border-radius:999px}
-        .q-chip{font-size:.7rem;background:var(--goldsoft);color:var(--gold3);border:1px solid #f0e0b8;padding:1px 9px;border-radius:999px}
+        .q-chip{font-size:.7rem;background:var(--goldsoft);color:var(--gold3);border:1px solid #bfe8e2;padding:1px 9px;border-radius:999px}
         .q-score{margin-inline-start:auto;font-size:.72rem;color:var(--gold3);background:var(--goldsoft);padding:1px 10px;border-radius:999px;white-space:nowrap}
         .q-state{font-size:.7rem;padding:1px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink3);white-space:nowrap}
         .q-state.on{background:var(--oksoft);border-color:var(--okline);color:var(--ok)}
@@ -178,7 +178,7 @@
         .opt.is-img .opt-head-row{display:flex;align-items:center;gap:10px;text-align:start}
         .opt.is-img .opt-mark{margin-top:0}
         .opt-broken{font-size:.75rem;color:var(--err);background:var(--errsoft);border:1px dashed var(--errline);border-radius:8px;padding:6px 8px;margin-top:6px;word-break:break-all}
-        .opt input:focus-visible + .opt-mark{outline:3px solid rgba(196,154,43,.6);outline-offset:2px}
+        .opt input:focus-visible + .opt-mark{outline:3px solid rgba(46, 196, 182,.6);outline-offset:2px}
 
         /* ================== جاخالی ================== */
         .blank-list{display:grid;gap:9px}
@@ -187,14 +187,14 @@
             .blank-item{grid-template-columns:1fr;gap:4px}
             .blank-label{justify-self:start;width:auto}
         }
-        .blank-label{font-size:.78rem;font-weight:700;color:var(--ink2);background:var(--goldsoft);border:1px solid #f0e0b8;border-radius:999px;padding:2px 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+        .blank-label{font-size:.78rem;font-weight:700;color:var(--ink2);background:var(--goldsoft);border:1px solid #bfe8e2;border-radius:999px;padding:2px 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
         input[type=text].fld,textarea.fld,select.fld{
             width:100%;background:#fff;border:1.5px solid var(--line);border-radius:var(--r-md);
             padding:10px 12px;font-size:.95rem;transition:.16s;line-height:1.8;
         }
         input.fld:hover,textarea.fld:hover,select.fld:hover{border-color:#dcc489}
-        input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--gold);background:#fffdf6;outline:none;box-shadow:0 0 0 3px rgba(196,154,43,.18)}
+        input.fld:focus,textarea.fld:focus,select.fld:focus{border-color:var(--gold);background:#fffdf6;outline:none;box-shadow:0 0 0 3px rgba(46, 196, 182,.18)}
         textarea.fld{resize:vertical;min-height:88px}
         .fld-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:5px}
         .hint{font-size:.72rem;color:var(--ink3)}
@@ -251,7 +251,7 @@
         }
         .pal:hover:not(:disabled){border-color:var(--gold);transform:translateY(-1px)}
         .pal.is-answered{background:var(--oksoft);border-color:var(--okline);color:var(--ok)}
-        .pal.is-current{border-color:var(--gold3);box-shadow:0 0 0 3px rgba(196,154,43,.28);color:var(--gold3);background:var(--goldsoft)}
+        .pal.is-current{border-color:var(--gold3);box-shadow:0 0 0 3px rgba(46, 196, 182,.28);color:var(--gold3);background:var(--goldsoft)}
         .pal.is-answered.is-current{background:#dcf3e4}
         .pal:disabled{opacity:.45;cursor:not-allowed}
         .pal .tick{position:absolute;top:-4px;inset-inline-end:-4px;font-size:.6rem;background:var(--ok);color:#fff;border-radius:50%;width:15px;height:15px;display:grid;place-items:center}
@@ -272,7 +272,7 @@
             padding:11px 20px;font-size:.9rem;transition:.16s;text-decoration:none;
         }
         .btn:disabled{opacity:.55;cursor:not-allowed}
-        .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#fff;box-shadow:0 6px 16px rgba(140,105,20,.28)}
+        .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#fff;box-shadow:0 6px 16px rgba(15, 112, 120,.28)}
         .btn-gold:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-1px)}
         .btn-green{background:linear-gradient(135deg,#1c9149,#136b33);color:#fff;box-shadow:0 6px 16px rgba(19,107,51,.25)}
         .btn-green:hover:not(:disabled){filter:brightness(1.07)}
@@ -298,7 +298,7 @@
         .ab-btn:disabled{opacity:.45;cursor:not-allowed}
         .ab-chip{
             flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;
-            background:var(--goldsoft);border:1.5px solid #f0e0b8;border-radius:999px;
+            background:var(--goldsoft);border:1.5px solid #bfe8e2;border-radius:999px;
             padding:8px 14px;font-size:.8rem;font-weight:700;color:var(--gold3);cursor:pointer;
         }
         .ab-chip:hover{border-color:var(--gold)}
@@ -307,7 +307,7 @@
         .ab-submit{margin-inline-start:auto}
 
         /* ================== مودال ================== */
-        .backdrop{position:fixed;inset:0;background:rgba(40,26,10,.5);backdrop-filter:blur(3px);z-index:940;opacity:0;pointer-events:none;transition:.2s}
+        .backdrop{position:fixed;inset:0;background:rgba(8, 45, 52,.5);backdrop-filter:blur(3px);z-index:940;opacity:0;pointer-events:none;transition:.2s}
         .backdrop.on{opacity:1;pointer-events:auto}
 
         .modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
@@ -356,7 +356,7 @@
         .toast-wrap{position:fixed;top:calc(12px + env(safe-area-inset-top));inset-inline-start:50%;transform:translateX(50%);z-index:1300;display:grid;gap:8px;width:min(420px,calc(100% - 24px))}
         [dir=rtl] .toast-wrap{transform:translateX(50%)}
         .toast{
-            background:#3d2c1c;color:#fff;border-radius:var(--r-md);padding:10px 14px;font-size:.82rem;
+            background:#12333a;color:#fff;border-radius:var(--r-md);padding:10px 14px;font-size:.82rem;
             box-shadow:var(--sh2);display:flex;gap:9px;align-items:flex-start;animation:fadeUp .2s ease;
         }
         .toast.warn{background:#8a5206}
@@ -372,7 +372,7 @@
             .side{
                 position:fixed;inset-inline:0;bottom:0;z-index:950;
                 background:var(--card);border-radius:22px 22px 0 0;border:1px solid var(--line);
-                box-shadow:0 -12px 40px rgba(60,40,20,.22);
+                box-shadow:0 -12px 40px rgba(8, 45, 52,.22);
                 padding:12px 12px calc(16px + env(safe-area-inset-bottom));
                 max-height:76vh;overflow:auto;
                 transform:translateY(115%);transition:transform .28s ease;
@@ -400,12 +400,12 @@
         }
 
         /* ================== پرداخت بصری نهایی (v2) ================== */
-        ::selection{background:rgba(196,154,43,.35);color:var(--ink)}
+        ::selection{background:rgba(46, 196, 182,.35);color:var(--ink)}
 
         /* پس‌زمینه: بافت نقطه‌ای بسیار ملایم روی گرادیان */
         body{
             background-image:
-                radial-gradient(rgba(140,105,20,.055) 1px, transparent 1.4px),
+                radial-gradient(rgba(15, 112, 120,.055) 1px, transparent 1.4px),
                 linear-gradient(150deg,var(--bg1) 0%,var(--bg2) 100%);
             background-size:22px 22px, auto;
         }
@@ -414,7 +414,7 @@
         .topbar{
             background-image:
                 radial-gradient(circle at 92% -20%, rgba(255,255,255,.26), transparent 46%),
-                linear-gradient(135deg,#6f5210,#a67c1e 55%,#c49a2b);
+                linear-gradient(135deg,#0b3c49,#0f7078 55%,#2ec4b6);
         }
         .tb-title::before{
             content:'📝';display:inline-grid;place-items:center;width:1.55em;height:1.55em;
@@ -438,7 +438,7 @@
         }
         .q-card.is-answered::before{background:linear-gradient(180deg,#35b569,var(--ok))}
         .q-card.has-error::before{background:linear-gradient(180deg,#e06060,var(--err))}
-        .q-num{box-shadow:0 3px 9px rgba(140,105,20,.35);letter-spacing:.2px}
+        .q-num{box-shadow:0 3px 9px rgba(15, 112, 120,.35);letter-spacing:.2px}
         .q-chip{background:#fff;border-color:var(--line)}
 
         /* راهنمای بزرگ‌نمایی روی تصویر سوال */
@@ -446,21 +446,21 @@
         .q-img-wrap::after{
             content:'🔍 برای بزرگ‌نمایی روی تصویر کلیک کنید';
             position:absolute;bottom:14px;inset-inline:0;margin-inline:auto;width:max-content;max-width:92%;
-            background:rgba(40,26,10,.58);color:#fff;font-size: .72rem;padding:2px 12px;border-radius:999px;
+            background:rgba(8, 45, 52,.58);color:#fff;font-size: .72rem;padding:2px 12px;border-radius:999px;
             backdrop-filter:blur(2px);pointer-events:none;opacity:0;transition:opacity .2s;
         }
         .q-img-wrap:hover::after,.q-img-wrap:focus-within::after{opacity:1}
 
         /* گزینه‌ها: بلندشدن ملایم و تأکید حالت انتخاب */
-        .opt:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(80,55,30,.09)}
-        .opt.is-on{box-shadow:0 0 0 1px var(--gold) inset,0 5px 16px rgba(140,105,20,.13)}
+        .opt:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(10, 60, 70,.09)}
+        .opt.is-on{box-shadow:0 0 0 1px var(--gold) inset,0 5px 16px rgba(15, 112, 120,.13)}
         .opt.is-on .opt-text{font-weight:700}
 
         /* آیکن آپلود داخل نشان دایره‌ای */
         .drop-ico{
             width:54px;height:54px;border-radius:50%;background:var(--goldsoft);
-            border:1px solid #f0e0b8;display:grid;place-items:center;font-size:1.5rem;margin-bottom:2px;
-            box-shadow:0 4px 10px rgba(140,105,20,.12);
+            border:1px solid #bfe8e2;display:grid;place-items:center;font-size:1.5rem;margin-bottom:2px;
+            box-shadow:0 4px 10px rgba(15, 112, 120,.12);
         }
 
         /* اعلان‌ها: آیکن داخل نشان دایره‌ای */
@@ -480,7 +480,7 @@
         .btn-green:hover:not(:disabled){transform:translateY(-1px)}
 
         /* نوار پایین: خط طلایی بالا + درصد پیشرفت داخل چیپ */
-        .actionbar{box-shadow:0 -10px 28px rgba(60,40,20,.10)}
+        .actionbar{box-shadow:0 -10px 28px rgba(8, 45, 52,.10)}
         .actionbar::before{
             content:'';position:absolute;inset-inline:0;top:0;height:2px;
             background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.55;
@@ -488,7 +488,7 @@
         .ab-btn:hover:not(:disabled){transform:translateY(-1px)}
         .ab-mini{max-width:160px;height:6px}
         .ab-pct{
-            font-size:.72rem;background:#fff;border:1px solid #f0e0b8;border-radius:999px;
+            font-size:.72rem;background:#fff;border:1px solid #bfe8e2;border-radius:999px;
             padding:0 8px;color:var(--gold3);font-variant-numeric:tabular-nums;white-space:nowrap;
         }
 
@@ -580,7 +580,7 @@
         /* هاله سوال جاری در حالت «همه سوالات در یک صفحه» */
         body.mode-all .q-card.is-current{
             border-color:#e2cb8f;
-            box-shadow:0 0 0 2px rgba(196,154,43,.16), var(--sh1);
+            box-shadow:0 0 0 2px rgba(46, 196, 182,.16), var(--sh1);
         }
 
         /* فلش سفارشی برای فهرست‌های کشویی (وصل‌کردنی) */
@@ -605,8 +605,8 @@
         @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.65}}
 
         /* بزرگ‌نمایی ظریف تصویر سوال هنگام hover */
-        .q-img{transition:transform .25s ease,box-shadow .25s ease;box-shadow:0 2px 10px rgba(60,40,20,.08)}
-        .q-img:hover{transform:scale(1.012);box-shadow:0 8px 22px rgba(60,40,20,.14)}
+        .q-img{transition:transform .25s ease,box-shadow .25s ease;box-shadow:0 2px 10px rgba(8, 45, 52,.08)}
+        .q-img:hover{transform:scale(1.012);box-shadow:0 8px 22px rgba(8, 45, 52,.14)}
 
         /* مودال‌ها: نوار طلایی بالا + نشان آیکن */
         .modal-card{position:relative;overflow:hidden;padding-top:26px}
@@ -616,8 +616,8 @@
         }
         .modal-ico{
             width:64px;height:64px;margin:2px auto 0;border-radius:50%;
-            background:var(--goldsoft);border:1px solid #f0e0b8;display:grid;place-items:center;
-            font-size:1.9rem;box-shadow:0 6px 16px rgba(140,105,20,.15);
+            background:var(--goldsoft);border:1px solid #bfe8e2;display:grid;place-items:center;
+            font-size:1.9rem;box-shadow:0 6px 16px rgba(15, 112, 120,.15);
         }
 
         /* توست: آیکن داخل نشان */

@@ -12,7 +12,7 @@
     }
 
     body {
-        background: linear-gradient(145deg, #f5f0e6 0%, #e8e0d0 100%);
+        background: linear-gradient(145deg, #eef7f5 0%, #dcefeb 100%);
         font-family: 'Vazirmatn', 'Segoe UI', system-ui, sans-serif;
         min-height: 100vh;
     }
@@ -25,22 +25,22 @@
 
     /* کارت اصلی شیشه‌ای */
     .glass-card {
-        background: rgba(255, 252, 245, 0.88);
+        background: rgba(247, 252, 251, 0.88);
         backdrop-filter: blur(18px);
         border-radius: 40px;
-        border: 1px solid rgba(200, 170, 130, 0.35);
-        box-shadow: 0 20px 45px rgba(100, 60, 30, 0.1);
+        border: 1px solid rgba(120, 190, 185, 0.35);
+        box-shadow: 0 20px 45px rgba(11, 60, 70, 0.1);
         overflow: hidden;
         transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
     }
 
     .glass-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 25px 55px rgba(100, 60, 30, 0.15);
+        box-shadow: 0 25px 55px rgba(11, 60, 70, 0.15);
     }
 
     .card-header {
-        background: linear-gradient(135deg, #c49a2b, #a07830);
+        background: linear-gradient(135deg, #2ec4b6, #0f7078);
         padding: 28px 32px;
         color: white;
         position: relative;
@@ -84,16 +84,16 @@
 
     /* راهنما */
     .help-glass {
-        background: rgba(200, 170, 130, 0.1);
+        background: rgba(120, 190, 185, 0.1);
         border-radius: 28px;
         padding: 24px;
         margin-bottom: 32px;
-        border-right: 4px solid #c49a2b;
+        border-right: 4px solid #2ec4b6;
     }
 
     .help-title {
         font-weight: 800;
-        color: #5a3e2b;
+        color: #16404a;
         margin-bottom: 16px;
         display: flex;
         align-items: center;
@@ -112,18 +112,18 @@
         background: rgba(255, 255, 255, 0.5);
         border-radius: 20px;
         padding: 16px;
-        border: 1px solid rgba(200, 170, 130, 0.25);
+        border: 1px solid rgba(120, 190, 185, 0.25);
         transition: all 0.3s;
     }
 
     .help-card:hover {
         transform: translateY(-3px);
         background: rgba(255, 255, 255, 0.7);
-        border-color: #c49a2b;
+        border-color: #2ec4b6;
     }
 
     .help-card h4 {
-        color: #c49a2b;
+        color: #2ec4b6;
         font-size: 0.9rem;
         margin-bottom: 10px;
         display: flex;
@@ -133,12 +133,12 @@
 
     .help-card p {
         font-size: 0.75rem;
-        color: #6b4c3a;
+        color: #35565d;
         line-height: 1.5;
     }
 
     .help-example {
-        background: #f5f0e6;
+        background: #eef7f5;
         border-radius: 12px;
         padding: 10px;
         margin-top: 10px;
@@ -150,7 +150,7 @@
     }
 
     .btn-help {
-        background: linear-gradient(135deg, #c49a2b, #a07830);
+        background: linear-gradient(135deg, #2ec4b6, #0f7078);
         border: none;
         padding: 10px 24px;
         border-radius: 40px;
@@ -166,7 +166,7 @@
 
     .btn-help:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(196, 154, 43, 0.3);
+        box-shadow: 0 6px 16px rgba(46, 196, 182, 0.3);
     }
 
     /* دراپ زون */
@@ -175,20 +175,20 @@
         border-radius: 32px;
         padding: 55px 30px;
         text-align: center;
-        background: rgba(255, 250, 240, 0.5);
+        background: rgba(240, 252, 250, 0.5);
         cursor: pointer;
         transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.2);
     }
 
     .dropzone:hover {
-        border-color: #c49a2b;
-        background: rgba(255, 250, 240, 0.85);
+        border-color: #2ec4b6;
+        background: rgba(240, 252, 250, 0.85);
         transform: scale(1.01);
     }
 
     .dropzone.dragover {
-        border-color: #c49a2b;
-        background: rgba(196, 154, 43, 0.15);
+        border-color: #2ec4b6;
+        background: rgba(46, 196, 182, 0.15);
         transform: scale(1.02);
     }
 
@@ -207,7 +207,7 @@
     .file-info {
         margin-top: 20px;
         padding: 14px 20px;
-        background: rgba(200, 170, 130, 0.2);
+        background: rgba(120, 190, 185, 0.2);
         border-radius: 60px;
         display: none;
         align-items: center;
@@ -248,7 +248,7 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #c49a2b, #a07830);
+        background: linear-gradient(135deg, #2ec4b6, #0f7078);
         border: none;
         padding: 14px 36px;
         border-radius: 60px;
@@ -276,7 +276,7 @@
 
     .btn-primary:hover:not(:disabled) {
         transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 12px 28px rgba(196, 154, 43, 0.4);
+        box-shadow: 0 12px 28px rgba(46, 196, 182, 0.4);
     }
 
     .btn-primary:active:not(:disabled)::before {
@@ -291,11 +291,11 @@
     }
 
     .btn-secondary {
-        background: rgba(200, 170, 130, 0.25);
-        border: 1px solid rgba(200, 170, 130, 0.4);
+        background: rgba(120, 190, 185, 0.25);
+        border: 1px solid rgba(120, 190, 185, 0.4);
         padding: 14px 36px;
         border-radius: 60px;
-        color: #5a3e2b;
+        color: #16404a;
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s;
@@ -305,7 +305,7 @@
     }
 
     .btn-secondary:hover {
-        background: rgba(200, 170, 130, 0.4);
+        background: rgba(120, 190, 185, 0.4);
         transform: translateY(-2px);
     }
 
@@ -324,7 +324,7 @@
 
     .progress-fill-custom {
         height: 100%;
-        background: linear-gradient(90deg, #c49a2b, #e8bc6e, #c49a2b);
+        background: linear-gradient(90deg, #2ec4b6, #e8bc6e, #2ec4b6);
         background-size: 200% auto;
         width: 0%;
         border-radius: 10px;
@@ -340,7 +340,7 @@
     .progress-text {
         text-align: center;
         font-size: 0.7rem;
-        color: #a08060;
+        color: #6f9499;
         margin-top: 8px;
     }
 
@@ -398,14 +398,14 @@
     }
 
     .modal-content {
-        background: rgba(255, 252, 245, 0.98);
+        background: rgba(247, 252, 251, 0.98);
         backdrop-filter: blur(20px);
         border-radius: 40px;
         max-width: 850px;
         width: 90%;
         max-height: 85vh;
         overflow-y: auto;
-        border: 1px solid rgba(200, 170, 130, 0.5);
+        border: 1px solid rgba(120, 190, 185, 0.5);
         box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
         animation: modalPop 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.2);
     }
@@ -417,11 +417,11 @@
 
     .modal-header {
         padding: 24px 28px;
-        border-bottom: 1px solid rgba(200, 170, 130, 0.3);
+        border-bottom: 1px solid rgba(120, 190, 185, 0.3);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: linear-gradient(135deg, #c49a2b, #a07830);
+        background: linear-gradient(135deg, #2ec4b6, #0f7078);
         color: white;
         border-radius: 40px 40px 0 0;
     }
@@ -454,40 +454,40 @@
     .spec-table th, .spec-table td {
         padding: 10px 12px;
         text-align: right;
-        border-bottom: 1px solid rgba(200, 170, 130, 0.2);
+        border-bottom: 1px solid rgba(120, 190, 185, 0.2);
     }
 
     .spec-table th {
-        background: rgba(196, 154, 43, 0.1);
-        color: #5a3e2b;
+        background: rgba(46, 196, 182, 0.1);
+        color: #16404a;
         font-weight: 700;
     }
 
     /* مودال پیش‌نمایش */
     .preview-question-item {
-        background: rgba(200, 170, 130, 0.08);
+        background: rgba(120, 190, 185, 0.08);
         border-radius: 20px;
         padding: 16px;
         margin-bottom: 14px;
-        border-right: 4px solid #c49a2b;
+        border-right: 4px solid #2ec4b6;
         transition: all 0.2s;
     }
 
     .preview-question-item:hover {
-        background: rgba(200, 170, 130, 0.15);
+        background: rgba(120, 190, 185, 0.15);
         transform: translateX(-4px);
     }
 
     .preview-question-text {
         font-weight: 700;
-        color: #5a3e2b;
+        color: #16404a;
         margin-bottom: 8px;
         font-size: 0.9rem;
     }
 
     .preview-question-meta {
         font-size: 0.7rem;
-        color: #a08060;
+        color: #6f9499;
         display: flex;
         gap: 16px;
         flex-wrap: wrap;
@@ -592,7 +592,7 @@
                 <div class="dropzone" id="dropzone">
                     <div class="dropzone-icon">📂</div>
                     <p class="mt-2 mb-1" style="font-weight: 600;">فایل اکسل خود را اینجا بکشید یا کلیک کنید</p>
-                    <small style="color: #a08060;">فرمت‌های مجاز: .xlsx, .xls (حداکثر 5MB)</small>
+                    <small style="color: #6f9499;">فرمت‌های مجاز: .xlsx, .xls (حداکثر 5MB)</small>
                     <input type="file" name="excel_file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
                 </div>
 
@@ -658,7 +658,7 @@
                     <tr><td>image_url</td><td>همه</td><td>❌</td><td>آدرس تصویر سوال</td><td>/media/question.jpg</td></tr>
                 </tbody>
             </table>
-            <div style="margin-top: 20px; background: #f5f0e6; padding: 16px; border-radius: 20px;">
+            <div style="margin-top: 20px; background: #eef7f5; padding: 16px; border-radius: 20px;">
                 <strong>💡 نکات مهم:</strong>
                 <ul style="margin-top: 10px; padding-right: 20px;">
                     <li>ستون‌های اضافی در فایل مشکلی ایجاد نمی‌کنند</li>
@@ -679,7 +679,7 @@
             <button class="modal-close" onclick="closePreviewModal()">✕</button>
         </div>
         <div class="modal-body" id="previewModalBody">
-            <p style="color: #a08060;">در حال بارگذاری...</p>
+            <p style="color: #6f9499;">در حال بارگذاری...</p>
         </div>
     </div>
 </div>
@@ -867,7 +867,7 @@
                     </div>
                 `).join('') + '</div>';
         } else {
-            body.innerHTML = '<p style="color:#8b6b4a; text-align:center;">هیچ سوالی برای نمایش وجود ندارد</p>';
+            body.innerHTML = '<p style="color:#4a6b72; text-align:center;">هیچ سوالی برای نمایش وجود ندارد</p>';
         }
         modal.classList.add('active');
     }

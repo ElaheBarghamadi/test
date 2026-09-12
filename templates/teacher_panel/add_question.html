@@ -6,21 +6,21 @@
 {% block extra_css %}
 <style>
     :root {
-        --primary: #a07830;
-        --primary-dark: #8b6914;
-        --primary-light: #c49a2b;
+        --primary: #0f7078;
+        --primary-dark: #0b4a52;
+        --primary-light: #2ec4b6;
         --success: #7a9c3e;
         --danger: #dc8686;
         --warning: #f5a623;
-        --gray-50: #faf8f3;
-        --gray-100: #f5f0e6;
-        --gray-200: #e8e0d0;
-        --gray-300: #d4c4a8;
-        --gray-400: #b89a6a;
-        --gray-500: #a08060;
-        --gray-600: #8b6b4a;
-        --gray-700: #6b4c3a;
-        --gray-800: #5a3e2b;
+        --gray-50: #f7fcfb;
+        --gray-100: #eef7f5;
+        --gray-200: #dcefeb;
+        --gray-300: #bcd9d5;
+        --gray-400: #7fa8ad;
+        --gray-500: #6f9499;
+        --gray-600: #4a6b72;
+        --gray-700: #35565d;
+        --gray-800: #16404a;
     }
 
     .container {
@@ -34,7 +34,7 @@
         background: rgba(255, 255, 255, 0.92);
         backdrop-filter: blur(16px);
         border-radius: 32px;
-        border: 1px solid rgba(200, 180, 140, 0.35);
+        border: 1px solid rgba(120, 190, 185, 0.35);
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
@@ -66,7 +66,7 @@
 
     .form-section {
         margin-bottom: 32px;
-        border-bottom: 2px solid rgba(200, 180, 140, 0.3);
+        border-bottom: 2px solid rgba(120, 190, 185, 0.3);
         padding-bottom: 24px;
     }
 
@@ -112,7 +112,7 @@
         width: 100%;
         padding: 12px 14px;
         background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(200, 180, 140, 0.5);
+        border: 1px solid rgba(120, 190, 185, 0.5);
         border-radius: 20px;
         font-size: 0.85rem;
         transition: all 0.2s;
@@ -125,7 +125,7 @@
     textarea:focus {
         outline: none;
         border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1);
+        box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.1);
     }
 
     .row {
@@ -139,7 +139,7 @@
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        background: rgba(200, 180, 140, 0.1);
+        background: rgba(120, 190, 185, 0.1);
         border-radius: 20px;
         cursor: pointer;
         margin: 15px 0;
@@ -159,8 +159,8 @@
     }
 
     .option-card {
-        background: rgba(200, 180, 140, 0.08);
-        border: 1px solid rgba(200, 180, 140, 0.3);
+        background: rgba(120, 190, 185, 0.08);
+        border: 1px solid rgba(120, 190, 185, 0.3);
         border-radius: 20px;
         padding: 16px;
         margin-bottom: 12px;
@@ -169,7 +169,7 @@
 
     .option-card:hover {
         border-color: var(--primary-light);
-        background: rgba(200, 180, 140, 0.12);
+        background: rgba(120, 190, 185, 0.12);
     }
 
     .option-header {
@@ -193,8 +193,8 @@
     }
 
     .matching-pair {
-        background: rgba(200, 180, 140, 0.08);
-        border: 1px solid rgba(200, 180, 140, 0.3);
+        background: rgba(120, 190, 185, 0.08);
+        border: 1px solid rgba(120, 190, 185, 0.3);
         border-radius: 20px;
         padding: 16px;
         margin-bottom: 12px;
@@ -242,7 +242,7 @@
 
     .btn-add:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(139, 105, 20, 0.3);
+        box-shadow: 0 4px 12px rgba(11, 74, 82, 0.3);
     }
 
     .form-actions {
@@ -250,7 +250,7 @@
         gap: 16px;
         margin-top: 32px;
         padding-top: 24px;
-        border-top: 2px solid rgba(200, 180, 140, 0.3);
+        border-top: 2px solid rgba(120, 190, 185, 0.3);
     }
 
     .btn-submit {
@@ -272,10 +272,10 @@
     }
 
     .btn-cancel {
-        background: rgba(200, 180, 140, 0.25);
+        background: rgba(120, 190, 185, 0.25);
         color: var(--gray-700);
         padding: 12px 32px;
-        border: 1px solid rgba(200, 180, 140, 0.4);
+        border: 1px solid rgba(120, 190, 185, 0.4);
         border-radius: 40px;
         cursor: pointer;
         text-decoration: none;
@@ -287,7 +287,7 @@
     }
 
     .btn-cancel:hover {
-        background: rgba(200, 180, 140, 0.4);
+        background: rgba(120, 190, 185, 0.4);
         transform: translateY(-2px);
     }
 
@@ -298,7 +298,7 @@
     }
 
     .alert-info {
-        background: rgba(196, 154, 43, 0.1);
+        background: rgba(46, 196, 182, 0.1);
         border-right: 3px solid var(--primary-light);
         padding: 12px 16px;
         border-radius: 20px;

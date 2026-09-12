@@ -26,7 +26,7 @@
         border-radius: 24px;
     }
     .progress-stats { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.75rem; color: #4a6741; }
-    .progress-bar { background: #e8e0d0; border-radius: 20px; height: 6px; overflow: hidden; }
+    .progress-bar { background: #dcefeb; border-radius: 20px; height: 6px; overflow: hidden; }
     .progress-fill { background: linear-gradient(90deg, #2d5a3b, #4a8c5c); width: 0%; height: 100%; border-radius: 20px; transition: width 0.3s; }
 
     .mode-tabs {
@@ -131,7 +131,7 @@
 
     .answer-header {
         padding: 14px 18px;
-        background: #faf8f3;
+        background: #f7fcfb;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -144,7 +144,7 @@
 
     .answer-body { padding: 18px; }
     .question-box {
-        background: #faf8f3;
+        background: #f7fcfb;
         border-radius: 20px;
         padding: 14px;
         margin-bottom: 16px;
@@ -738,7 +738,7 @@
 
             html += `<div class="answer-card ${cardClass}">
                         <div class="answer-header">
-                            <div class="question-badge" style="background:#e8e0d0;padding:4px 12px;border-radius:30px;">سوال ${q.num}</div>
+                            <div class="question-badge" style="background:#dcefeb;padding:4px 12px;border-radius:30px;">سوال ${q.num}</div>
                             ${isGraded ? (isCorrect ? '<span style="background:#4a8c5c20;color:#2d5a3b;padding:2px 10px;border-radius:30px;">✓ صحیح</span>' : '<span style="background:#dc868620;color:#9a4a4a;padding:2px 10px;border-radius:30px;">غلط</span>') : ''}
                         </div>
                         <div class="answer-body">

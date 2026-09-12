@@ -6,20 +6,20 @@
 {% block extra_css %}
 <style>
     :root {
-        --primary: #a07830;
-        --primary-light: #c49a2b;
-        --primary-dark: #8b6914;
+        --primary: #0f7078;
+        --primary-light: #2ec4b6;
+        --primary-dark: #0b4a52;
         --success: #7a9c3e;
         --danger: #dc8686;
-        --gray-50: #faf8f3;
-        --gray-100: #f5f0e6;
-        --gray-200: #e8e0d0;
-        --gray-300: #d4c4a8;
-        --gray-400: #b89a6a;
-        --gray-500: #a08060;
-        --gray-600: #8b6b4a;
-        --gray-700: #6b4c3a;
-        --gray-800: #5a3e2b;
+        --gray-50: #f7fcfb;
+        --gray-100: #eef7f5;
+        --gray-200: #dcefeb;
+        --gray-300: #bcd9d5;
+        --gray-400: #7fa8ad;
+        --gray-500: #6f9499;
+        --gray-600: #4a6b72;
+        --gray-700: #35565d;
+        --gray-800: #16404a;
     }
 
     .container {
@@ -33,7 +33,7 @@
         background: rgba(255, 255, 255, 0.88);
         backdrop-filter: blur(16px);
         border-radius: 32px;
-        border: 1px solid rgba(200, 180, 140, 0.35);
+        border: 1px solid rgba(120, 190, 185, 0.35);
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
@@ -45,7 +45,7 @@
     .card-header {
         margin-bottom: 24px;
         padding-bottom: 16px;
-        border-bottom: 2px solid rgba(200, 180, 140, 0.35);
+        border-bottom: 2px solid rgba(120, 190, 185, 0.35);
     }
 
     .card-header h3 {
@@ -65,11 +65,11 @@
 
     /* Question Box */
     .question-box {
-        background: rgba(200, 180, 140, 0.1);
+        background: rgba(120, 190, 185, 0.1);
         padding: 22px;
         border-radius: 24px;
         margin-bottom: 28px;
-        border: 1px solid rgba(200, 180, 140, 0.25);
+        border: 1px solid rgba(120, 190, 185, 0.25);
     }
 
     .question-label {
@@ -95,7 +95,7 @@
         max-width: 160px;
         border-radius: 16px;
         margin-top: 12px;
-        border: 1px solid rgba(200, 180, 140, 0.4);
+        border: 1px solid rgba(120, 190, 185, 0.4);
     }
 
     /* Form */
@@ -115,7 +115,7 @@
         width: 100%;
         padding: 14px 16px;
         background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(200, 180, 140, 0.5);
+        border: 1px solid rgba(120, 190, 185, 0.5);
         border-radius: 20px;
         font-size: 0.85rem;
         font-family: inherit;
@@ -127,14 +127,14 @@
     textarea:focus {
         outline: none;
         border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(196, 154, 43, 0.1);
+        box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.1);
     }
 
     input[type="file"] {
         width: 100%;
         padding: 12px 14px;
         background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(200, 180, 140, 0.5);
+        border: 1px solid rgba(120, 190, 185, 0.5);
         border-radius: 20px;
         font-size: 0.8rem;
         transition: all 0.2s;
@@ -149,7 +149,7 @@
     .current-image {
         margin-top: 14px;
         padding: 14px 18px;
-        background: rgba(200, 180, 140, 0.1);
+        background: rgba(120, 190, 185, 0.1);
         border-radius: 20px;
         display: flex;
         align-items: center;
@@ -160,7 +160,7 @@
     .current-image img {
         max-width: 130px;
         border-radius: 14px;
-        border: 1px solid rgba(200, 180, 140, 0.4);
+        border: 1px solid rgba(120, 190, 185, 0.4);
     }
 
     .current-image label {
@@ -202,10 +202,10 @@
     }
 
     .btn-back {
-        background: rgba(200, 180, 140, 0.25);
+        background: rgba(120, 190, 185, 0.25);
         color: var(--gray-700);
         padding: 12px 32px;
-        border: 1px solid rgba(200, 180, 140, 0.4);
+        border: 1px solid rgba(120, 190, 185, 0.4);
         border-radius: 40px;
         cursor: pointer;
         text-decoration: none;
@@ -216,7 +216,7 @@
     }
 
     .btn-back:hover {
-        background: rgba(200, 180, 140, 0.4);
+        background: rgba(120, 190, 185, 0.4);
         transform: translateY(-2px);
     }
 
