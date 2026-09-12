@@ -53,6 +53,9 @@ ALLOWED_HOSTS = [
     ".onrender.com",
     "USERNAME.pythonanywhere.com"
 ]
+# در توسعه (runserver) هر هاستی مجاز است؛ در تولید همان فهرست بالا اعمال می‌شود
+if DEBUG:
+    ALLOWED_HOSTS = ["*"]
 # 🧩 Apps
 INSTALLED_APPS = [
     'django.contrib.admin',
