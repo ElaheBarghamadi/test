@@ -231,6 +231,7 @@ class QuestionBank(models.Model):
     options = models.JSONField(default=list, blank=True)
     correct_answer = models.TextField(blank=True, null=True)
     blanks = models.JSONField(default=list, blank=True)
+    image = models.ImageField(upload_to='question_images/', null=True, blank=True)
     max_score = models.DecimalField(max_digits=10, decimal_places=2, default=1.0)
     use_count = models.PositiveIntegerField(default=0)
     folder = models.ForeignKey('BankFolder', on_delete=models.SET_NULL, null=True, blank=True,

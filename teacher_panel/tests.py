@@ -579,6 +579,7 @@ class BankFolderTests(TestCase):
     def test_add_question_into_folder_and_filter(self):
         f = self._folder()
         r = self.client.post('/teacher/bank/', {'text': 'سوال داخل پوشه', 'question_type': 'short_answer',
+                                                'correct_answer': 'پاسخ مورد انتظار',
                                                 'folder': str(f.id)})
         self.assertEqual(r.status_code, 302)
         from exams.models import QuestionBank
@@ -618,3 +619,121 @@ class BankFolderTests(TestCase):
         for url in (f'/teacher/bank/folder/{f.id}/rename/', f'/teacher/bank/folder/{f.id}/delete/'):
             self.assertEqual(self.client.post(url, {'name': 'x'}).status_code, 404)
         self.assertEqual(self.client.post(f'/teacher/bank/{self.q.id}/move/', {'folder': str(f.id)}).status_code, 404)
+
+
+class BankDynamicFormTests(TestCase):
+    """فرم پویای بانک سوال: فیلدهای نوع‌محور، اعتبارسنجی، ویرایش و دکمهٔ «سوال بعدی»"""
+
+    def setUp(self):
+        from accounts.models import User
+        self.teacher = User.objects.create_user(username='td', password='test12345', role='teacher')
+        self.other = User.objects.create_user(username='od', password='test12345', role='teacher')
+        self.client.login(username='td', password='test12345')
+
+    def _add(self, **kw):
+        data = {'text': 'صورت سوال', 'question_type': 'multiple_choice',
+                'option1': 'الف', 'option2': 'ب', 'correct_answer': '1'}
+        data.update(kw)
+        return self.client.post(reverse('question_bank'), data)
+
+    def _bank(self):
+        from exams.models import QuestionBank
+        return QuestionBank.objects.get(teacher=self.teacher)
+
+    def test_mc_saved_from_option_fields(self):
+        r = self._add(option3='ج', correct_answer='2', max_score='2.5')
+        self.assertEqual(r.status_code, 302)
+        b = self._bank()
+        self.assertEqual(b.options, ['الف', 'ب', 'ج'])
+        self.assertEqual(b.correct_answer, '2')
+        self.assertEqual(str(b.max_score), '2.50')
+
+    def test_legacy_options_textarea_still_works(self):
+        r = self.client.post(reverse('question_bank'), {
+            'text': 'سوال قدیمی', 'question_type': 'multiple_choice',
+            'options': 'الف\nب', 'correct_answer': '1'})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self._bank().options, ['الف', 'ب'])
+
+    def test_mc_needs_two_options(self):
+        r = self._add(option2='')
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'حداقل دو گزینه')
+        from exams.models import QuestionBank
+        self.assertFalse(QuestionBank.objects.exists())
+
+    def test_mc_wrong_correct_index_rejected(self):
+        r = self._add(correct_answer='9')
+        self.assertEqual(r.status_code, 200)
+        from exams.models import QuestionBank
+        self.assertFalse(QuestionBank.objects.exists())
+
+    def test_true_false_saves_only_answer(self):
+        r = self._add(question_type='true_false', correct_answer='false',
+                      option1='الف', option2='ب')
+        self.assertEqual(r.status_code, 302)
+        b = self._bank()
+        self.assertEqual(b.options, [])
+        self.assertEqual(b.correct_answer, 'false')
+
+    def test_true_false_requires_answer(self):
+        r = self._add(question_type='true_false', correct_answer='')
+        self.assertEqual(r.status_code, 200)
+        from exams.models import QuestionBank
+        self.assertFalse(QuestionBank.objects.exists())
+
+    def test_fill_blank_requires_answers_and_keeps_blanks(self):
+        r = self._add(question_type='fill_blank', blanks='پایتخت, بزرگ‌ترین شهر', correct_answer='')
+        self.assertEqual(r.status_code, 200)
+        r = self._add(question_type='fill_blank', blanks='پایتخت, بزرگ‌ترین شهر',
+                      correct_answer='تهران, مشهد')
+        self.assertEqual(r.status_code, 302)
+        b = self._bank()
+        self.assertEqual(b.blanks, ['پایتخت', 'بزرگ‌ترین شهر'])
+        self.assertEqual(b.correct_answer, 'تهران, مشهد')
+        self.assertEqual(b.options, [])
+
+    def test_short_answer_requires_expected(self):
+        r = self._add(question_type='short_answer', correct_answer='')
+        self.assertEqual(r.status_code, 200)
+        r = self._add(question_type='short_answer', correct_answer='جرم تقسیم بر حجم')
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(self._bank().correct_answer, 'جرم تقسیم بر حجم')
+
+    def test_stay_button_reopens_form(self):
+        r = self._add(stay='1')
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(r.url.endswith('?new=1'))
+
+    def test_edit_updates_all_fields(self):
+        self._add()
+        b = self._bank()
+        r = self.client.post(reverse('bank_question_edit', args=[b.id]), {
+            'text': 'صورت ویرایش‌شده', 'question_type': 'true_false', 'correct_answer': 'true',
+            'max_score': '3', 'folder': ''})
+        self.assertEqual(r.status_code, 302)
+        b.refresh_from_db()
+        self.assertEqual(b.text, 'صورت ویرایش‌شده')
+        self.assertEqual(b.question_type, 'true_false')
+        self.assertEqual(b.correct_answer, 'true')
+        self.assertEqual(b.options, [])
+        self.assertEqual(str(b.max_score), '3.00')
+
+    def test_edit_validation_error_reopens_edit_form(self):
+        self._add()
+        b = self._bank()
+        r = self.client.post(reverse('bank_question_edit', args=[b.id]), {
+            'text': 'متن', 'question_type': 'multiple_choice', 'option1': 'تنها',
+            'correct_answer': '1'})
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?edit=%d' % b.id, r.url)
+        b.refresh_from_db()
+        self.assertEqual(b.text, 'صورت سوال')
+
+    def test_edit_other_teacher_is_404(self):
+        from exams.models import QuestionBank
+        q = QuestionBank.objects.create(teacher=self.other, text='مال دیگری',
+                                        question_type='true_false', correct_answer='true')
+        r = self.client.post(reverse('bank_question_edit', args=[q.id]),
+                             {'text': 'هک', 'question_type': 'true_false', 'correct_answer': 'true'})
+        self.assertEqual(r.status_code, 404)

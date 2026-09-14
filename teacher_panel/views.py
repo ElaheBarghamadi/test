@@ -3,6 +3,7 @@
 
 # ========== ایمپورت‌های پایه ==========
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
@@ -1316,47 +1317,92 @@ def question_analysis(exam):
 # =====================================================================
 
 @login_required
+def _parse_bank_payload(request):
+    """استخراج فیلدهای فرم سوال بانک بر اساس نوع سوال.
+    خروجی: (data_dict, error_message|None)"""
+    qtype = request.POST.get('question_type', '')
+    text = (request.POST.get('text') or '').strip()
+    if not text or qtype not in dict(QuestionBank._meta.get_field('question_type').choices):
+        return None, 'متن سوال و نوع معتبر الزامی است.'
+    explicit = [(request.POST.get('option%d' % i) or '').strip() for i in range(1, 5)]
+    if any(explicit):
+        options = [o for o in explicit if o]
+    else:
+        options = [o.strip() for o in (request.POST.get('options') or '').splitlines() if o.strip()]
+    correct = (request.POST.get('correct_answer') or '').strip() or None
+    blanks = [b.strip() for b in (request.POST.get('blanks') or '').split(',') if b.strip()]
+    # فقط فیلدهای مربوط به نوع انتخاب‌شده ذخیره می‌شوند
+    if qtype != 'multiple_choice':
+        options = []
+    if qtype != 'fill_blank':
+        blanks = []
+    if qtype == 'multiple_choice':
+        if len(options) < 2:
+            return None, 'برای سوال تستی حداقل دو گزینه لازم است.'
+        if not (correct or '').isdigit() or not (1 <= int(correct) <= len(options)):
+            return None, 'پاسخ صحیح باید شمارهٔ یکی از گزینه‌های واردشده باشد.'
+    elif qtype == 'true_false':
+        if correct not in ('true', 'false'):
+            return None, 'برای سوال صحیح/غلط، پاسخ صحیح را انتخاب کنید.'
+    elif qtype == 'fill_blank' and not correct:
+        return None, 'برای سوال جاخالی، پاسخ جاهای خالی را (با ویرگول) بنویسید.'
+    elif qtype == 'short_answer' and not correct:
+        return None, 'برای سوال پاسخ کوتاه، پاسخ مورد انتظار را بنویسید.'
+    folder = None
+    folder_id = request.POST.get('folder') or ''
+    if folder_id.isdigit():
+        folder = BankFolder.objects.filter(id=int(folder_id), teacher=request.user).first()
+    data = {
+        'text': text,
+        'question_type': qtype,
+        'options': options,
+        'correct_answer': correct,
+        'blanks': blanks,
+        'max_score': validate_decimal_score(request.POST.get('max_score', '1'), max_value=None) or 1,
+        'folder': folder,
+    }
+    return data, None
+
+
 def question_bank(request):
     """مدیریت بانک سوال معلم + افزودن سوال جدید به بانک"""
     check_teacher_access(request.user)
     if request.method == 'POST':
-        qtype = request.POST.get('question_type', '')
-        text = (request.POST.get('text') or '').strip()
-        if not text or qtype not in dict(QuestionBank._meta.get_field('question_type').choices):
-            messages.error(request, 'متن سوال و نوع معتبر الزامی است.')
-            return redirect('question_bank')
-        options = [o.strip() for o in (request.POST.get('options') or '').splitlines() if o.strip()]
-        folder_id = request.POST.get('folder') or None
-        folder = None
-        if folder_id and folder_id.isdigit():
-            folder = BankFolder.objects.filter(id=int(folder_id), teacher=request.user).first()
+        data, err = _parse_bank_payload(request)
+        if err:
+            messages.error(request, err)
+            ctx = _bank_render_context(request, '')
+            ctx['open_add'] = True
+            ctx['fd'] = request.POST
+            return render(request, 'teacher_panel/question_bank.html', ctx)
         bank = QuestionBank.objects.create(
             teacher=request.user,
-            text=text,
-            question_type=qtype,
-            options=options,
-            correct_answer=(request.POST.get('correct_answer') or '').strip() or None,
-            blanks=[b.strip() for b in (request.POST.get('blanks') or '').split(',') if b.strip()],
-            max_score=validate_decimal_score(request.POST.get('max_score', '1'), max_value=None) or 1,
-            folder=folder,
-        )
+            image=request.FILES.get('image') or None,
+            **data)
         messages.success(request, 'سوال به بانک اضافه شد.')
+        if request.POST.get('stay'):
+            return redirect(reverse('question_bank') + '?new=1')
         return redirect('question_bank')
-    folders = BankFolder.objects.filter(teacher=request.user).annotate(cnt=Count('questions'))
     folder_id = request.GET.get('folder', '').strip()
+    return render(request, 'teacher_panel/question_bank.html',
+                  _bank_render_context(request, folder_id))
+
+
+def _bank_render_context(request, folder_id=''):
+    folders = BankFolder.objects.filter(teacher=request.user).annotate(cnt=Count('questions'))
     banks = QuestionBank.objects.filter(teacher=request.user)
     if folder_id == 'none':
         banks = banks.filter(folder__isnull=True)
     elif folder_id.isdigit():
         banks = banks.filter(folder_id=int(folder_id))
-    return render(request, 'teacher_panel/question_bank.html', {
+    return {
         'banks': banks,
         'folders': folders,
         'folder_id': folder_id,
         'total_count': QuestionBank.objects.filter(teacher=request.user).count(),
         'exams': Exam.objects.filter(teacher=request.user),
         'type_choices': QuestionBank._meta.get_field('question_type').choices,
-    })
+    }
 
 
 @login_required
@@ -1407,6 +1453,28 @@ def bank_folder_delete(request, folder_id):
 
 @login_required
 @require_http_methods(["POST"])
+def bank_question_edit(request, bank_id):
+    """ویرایش یک سوال موجود در بانک سوال"""
+    check_teacher_access(request.user)
+    bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
+    data, err = _parse_bank_payload(request)
+    if err:
+        messages.error(request, err)
+        return redirect(reverse('question_bank') + '?edit=%d' % bank.id)
+    for key, value in data.items():
+        setattr(bank, key, value)
+    if request.FILES.get('image'):
+        bank.image = request.FILES['image']
+    if request.POST.get('remove_image') and bank.image:
+        bank.image.delete(save=False)
+        bank.image = None
+    bank.save()
+    messages.success(request, 'سوال ویرایش شد.')
+    return redirect('question_bank')
+
+
+@login_required
+@require_http_methods(["POST"])
 def bank_question_move(request, bank_id):
     """جابجایی سوال بانک بین پوشه‌ها"""
     check_teacher_access(request.user)
@@ -1440,7 +1508,8 @@ def import_bank_question(request, bank_id):
     Question.objects.create(
         exam=exam, text=bank.text, question_type=bank.question_type,
         options=list(bank.options or []), correct_answer=bank.correct_answer,
-        blanks=list(bank.blanks or []), max_score=bank.max_score, order=last + 1)
+        blanks=list(bank.blanks or []), image=bank.image or None,
+        max_score=bank.max_score, order=last + 1)
     bank.use_count += 1
     bank.save(update_fields=['use_count'])
     messages.success(request, f'سوال به آزمون «{exam.title}» اضافه شد.')

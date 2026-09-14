@@ -279,7 +279,7 @@
         font-size: .74rem; color: var(--ink2);
     }
     .exam-actions {
-        display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px;
+        display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 9px;
         border-top: 1px dashed var(--line2);
     }
     .exam-actions .btn, .exam-actions a, .exam-actions button {
@@ -308,7 +308,7 @@
     /* ================== کارت آزمون: آمار سریع + منوی «بیشتر» ================== */
     .exam-stats {
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
-        margin: 10px 0; padding-top: 10px; border-top: 1px dashed var(--line2);
+        margin: 0; padding-top: 9px; border-top: 1px dashed var(--line2);
     }
     .exam-stat {
         background: var(--card2); border: 1px solid var(--line2); border-radius: 12px;

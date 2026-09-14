@@ -33,6 +33,7 @@ urlpatterns = [
     path('bank/', views.question_bank, name='question_bank'),
     path('bank/<int:bank_id>/delete/', views.delete_bank_question, name='delete_bank_question'),
     path('bank/<int:bank_id>/move/', views.bank_question_move, name='bank_question_move'),
+    path('bank/<int:bank_id>/edit/', views.bank_question_edit, name='bank_question_edit'),
     path('bank/folder/add/', views.bank_folder_add, name='bank_folder_add'),
     path('bank/folder/<int:folder_id>/rename/', views.bank_folder_rename, name='bank_folder_rename'),
     path('bank/folder/<int:folder_id>/delete/', views.bank_folder_delete, name='bank_folder_delete'),
