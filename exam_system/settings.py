@@ -50,9 +50,7 @@ if not DEBUG and not TESTING:
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-ALLOWED_HOSTS = [
-    *
-]
+ALLOWED_HOSTS = ["*"]
 # در توسعه (runserver) هر هاستی مجاز است؛ در تولید همان فهرست بالا اعمال می‌شود
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
