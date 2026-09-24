@@ -31,11 +31,13 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         User = get_user_model()
+        quiet = options.get('verbosity', 1) == 0
         for spec in DEFAULT_USERS:
             spec = dict(spec)
             username = spec.pop('username')
             if User.objects.filter(username=username).exists():
-                self.stdout.write(f'• {username}: از قبل وجود دارد')
+                if not quiet:
+                    self.stdout.write(f'• {username}: از قبل وجود دارد')
                 continue
 
             grade_name = spec.pop('grade', None)
@@ -48,4 +50,5 @@ class Command(BaseCommand):
             user = User(username=username, **spec)
             user.set_password(username)   # رمز = نام کاربری
             user.save()
-            self.stdout.write(self.style.SUCCESS(f'✓ {username}: ساخته شد (رمز: {username})'))
+            if not quiet:
+                self.stdout.write(self.style.SUCCESS(f'✓ {username}: ساخته شد (رمز: {username})'))

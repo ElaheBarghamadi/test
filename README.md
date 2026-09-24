@@ -81,6 +81,13 @@ python manage.py runserver
 
 ---
 
+## 👤 کاربران پیش‌فرض
+
+کاربران `admin/admin`، `teacher/teacher` و `student/student` به‌طور خودکار ساخته می‌شوند (اگر نباشند):
+بعد از هر `python manage.py migrate`، با `runserver`، و هنگام بالا آمدن سرور تولید (gunicorn) —
+پس روی Render و هاست‌هایی که دیتابیس با هر deploy پاک می‌شود هم همیشه وجود دارند.
+دستی: `python manage.py ensure_default_users` (به رمز کاربران موجود دست نمی‌زند).
+
 ## 🔧 تنظیمات
 
 فعلاً فایل `.env` و متغیر محیطی نداریم؛ همهٔ مقادیر مستقیماً در `exam_system/settings.py` هستند:
