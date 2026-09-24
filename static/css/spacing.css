@@ -141,3 +141,63 @@ body .bank-bar, body .bulk-bar { background: var(--ink); box-shadow: none; }
 
 /* هدر سبک‌تر */
 body .site-header, body .navbar { box-shadow: none !important; border-bottom: 1px solid var(--line); }
+
+/* =====================================================================
+   هدر مینیمال — سفید، یک خط نازک، بدون گرادیان
+   ===================================================================== */
+body .site-header.navbar {
+    background: rgba(255,255,255,.92) !important; backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line) !important; box-shadow: none !important;
+}
+body .site-header.navbar::after { display: none; }
+body .site-header.scrolled { box-shadow: 0 1px 12px rgba(20,40,45,.05) !important; }
+body .site-header .nav-container { padding: 14px 28px; }
+body .site-header .logo-icon { background: var(--gold2); border: none; box-shadow: none; width: 36px; height: 36px; border-radius: 10px; }
+body .site-header .logo:hover .logo-icon { transform: none; }
+body .site-header .logo-text { color: var(--ink); font-weight: 700; }
+body .site-header .logo-sub { color: var(--ink3); }
+body .site-header .nav-links { background: transparent; border: none; gap: 6px; }
+body .site-header .nav-link { color: var(--ink2); font-weight: 500; padding: 8px 14px; border-radius: 10px; }
+body .site-header .nav-link:hover { background: var(--card2); color: var(--ink); }
+body .site-header .nav-link.active { background: var(--goldsoft); color: var(--gold2); box-shadow: none; font-weight: 700; }
+body .site-header .bell-menu summary, body .site-header .hamburger {
+    background: transparent; border: 1px solid var(--line); color: var(--ink2);
+}
+body .site-header .bell-menu summary:hover, body .site-header .hamburger:hover { background: var(--card2); }
+body .site-header .bell-menu summary b { border-color: #fff; }
+body .site-header .hamburger span { background: var(--ink2); }
+body .site-header .user-chip { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+body .site-header .user-chip:hover { background: var(--card2); }
+body .site-header .avatar { background: var(--goldsoft); color: var(--gold2); }
+body .site-header .user-role { color: var(--ink3); opacity: 1; }
+@media (max-width: 768px) { body .site-header .nav-container { padding: 10px 16px; } }
+
+/* =====================================================================
+   جزئیات آرام‌تر
+   ===================================================================== */
+body .page-title { font-size: 1.25rem; }
+body .section-title { font-size: .95rem; }
+body .tag, body .badge, body .chip, body .bank-meta .tag { font-size: .7rem; padding: 3px 10px; border-radius: 8px; }
+body .bank-item { border-right-width: 1px !important; }           /* نوار رنگی کناری سطح دشواری حذف */
+body .bank-item.diff-easy, body .bank-item.diff-hard { border-right-color: var(--line) !important; }
+body .empty-state { border: 1px dashed var(--line); background: transparent; color: var(--ink3); padding: 40px 20px; }
+body .site-message { border-radius: 12px; box-shadow: none; }
+body hr { border: none; border-top: 1px solid var(--line2); margin: var(--gap-l) 0; }
+body .dropdown-content { border: 1px solid var(--line); box-shadow: 0 8px 30px rgba(20,40,45,.08); border-radius: 14px; }
+
+/* آمار بانک: یک ردیف قرص ساده به‌جای ۹ کاشی */
+body .bank-stats { display: flex; flex-wrap: wrap; gap: 8px; }
+body .bstat { display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 14px; border-radius: 999px; background: #fff; }
+body .bstat b { font-size: .95rem; font-weight: 700; color: var(--ink); }
+body .bstat span { font-size: .74rem; font-weight: 500; }
+body .bstat.main b { color: var(--gold2); }
+@media (max-width: 640px) { body .bank-stats { flex-wrap: nowrap; overflow-x: auto; } body .bstat { flex: 0 0 auto; } }
+
+/* نوار ذخیرهٔ موبایل تمام‌عرض */
+@media (max-width: 600px) { body .qf-savebar { width: 100%; align-self: stretch; } }
+
+/* درخت پوشه‌ها: نام‌های بلند داخل کارت بمانند */
+body .folder-tree { padding: 16px 12px; overflow-x: hidden; }
+body .tree-body { min-width: 0; }
+body .tree-link { min-width: 0; max-width: 100%; box-sizing: border-box; }
+body .tree-link .tl-name { min-width: 0; flex: 1; }

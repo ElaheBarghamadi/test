@@ -202,7 +202,7 @@
 <div class="bank-stats">
     <div class="bstat main"><b>{{ total_count }}</b><span>کل سوال‌ها</span></div>
     <div class="bstat"><b>{{ folders|length }}</b><span>پوشه</span></div>
-    {% for label, n in type_stats %}<div class="bstat"><b>{{ n }}</b><span>{{ label }}</span></div>{% endfor %}
+    {% for label, n in type_stats %}{% if n %}<div class="bstat"><b>{{ n }}</b><span>{{ label }}</span></div>{% endif %}{% endfor %}
 </div>
 
 <div class="bank-layout">
