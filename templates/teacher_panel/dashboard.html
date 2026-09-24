@@ -13,7 +13,20 @@
     }
     .exam-details { gap: 6px 16px; }
     .exam-details span { display: inline-flex; align-items: center; gap: 5px; }
-    .filters .btn { grid-column: 1 / -1; }
+    .dash-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .dash-head h1 { font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--ink); }
+    .dash-head p { margin: 2px 0 0; color: var(--ink3); font-size: .85rem; }
+    .dash-cta { min-height: 44px; padding-inline: 22px; }
+    button.stat-card { font: inherit; text-align: inherit; cursor: pointer; width: 100%; border-width: 1px; }
+    button.stat-card:hover { transform: translateY(-2px); }
+    button.stat-card.is-on { outline: 3px solid rgba(46,196,182,.45); }
+    .dash-filters { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin: 16px 0 12px; }
+    details.announce-card { margin-top: 18px; }
+    details.announce-card > summary { cursor: pointer; list-style: none; }
+    details.announce-card > summary::-webkit-details-marker { display: none; }
+    details.announce-card:not([open]) > summary { margin-bottom: 0; }
+    details.announce-card[open] > summary { margin-bottom: 12px; }
+    @media (max-width: 640px) { .dash-filters { grid-template-columns: 1fr 1fr; } .dash-filters input { grid-column: 1 / -1; } .dash-cta { width: 100%; } }
     @media (max-width: 640px) {
         .exam-actions .btn { flex: 1 1 46%; }
     }
@@ -22,62 +35,110 @@
 
 {% block content %}
 <div>
+    <div class="dash-head">
+        <div>
+            <h1>سلام {{ user.first_name|default:user.username }} 👋</h1>
+            <p>{% if exams %}آزمون‌های شما در یک نگاه{% else %}برای شروع، اولین آزمون خود را بسازید.{% endif %}</p>
+        </div>
+        <a href="{% url 'create_exam' %}" class="btn btn-gold dash-cta">➕ آزمون جدید</a>
+    </div>
+
     <!-- آمار -->
     <div class="stats">
-        <div class="stat-card active">
+        <button type="button" class="stat-card active" data-filter="active" title="نمایش آزمون‌های فعال">
             <div class="stat-number">{{ active_exams_count|default:"0" }}</div>
             <div class="stat-label">✅ آزمون فعال</div>
-        </div>
-        <div class="stat-card ongoing">
+        </button>
+        <button type="button" class="stat-card ongoing" data-filter="ongoing" title="نمایش آزمون‌های در حال برگزاری">
             <div class="stat-number">{{ ongoing_exams_count|default:"0" }}</div>
             <div class="stat-label">⏳ در حال برگزاری</div>
-        </div>
-        <div class="stat-card inactive">
+        </button>
+        <button type="button" class="stat-card inactive" data-filter="inactive" title="نمایش آزمون‌های غیرفعال">
             <div class="stat-number">{{ inactive_exams_count|default:"0" }}</div>
             <div class="stat-label">🔒 غیرفعال</div>
-        </div>
+        </button>
         <div class="stat-card students">
             <div class="stat-number">{{ total_students|default:"0" }}</div>
             <div class="stat-label">👥 دانش‌آموزان</div>
         </div>
     </div>
 
-    <!-- فیلترها -->
-    <div class="filters">
-        <div class="filter-group">
-            <label>وضعیت</label>
-            <select id="statusFilter">
-                <option value="all">همه</option>
-                <option value="active">فعال</option>
-                <option value="inactive">غیرفعال</option>
-                <option value="ongoing">در حال برگزاری</option>
-                <option value="ended">تمام شده</option>
-            </select>
+    <div class="dash-filters" role="search">
+        <input type="search" id="searchFilter" placeholder="🔎 جستجوی عنوان آزمون" aria-label="جستجوی عنوان آزمون">
+        <select id="statusFilter" aria-label="وضعیت">
+            <option value="all">همهٔ وضعیت‌ها</option>
+            <option value="active">فعال</option>
+            <option value="ongoing">در حال برگزاری</option>
+            <option value="inactive">غیرفعال</option>
+            <option value="ended">تمام شده</option>
+        </select>
+        <select id="gradeFilter" aria-label="پایه">
+            <option value="all">همهٔ پایه‌ها</option>
+            {% for grade in grades %}<option value="{{ grade.id }}">{{ grade.get_name_display }}</option>{% endfor %}
+        </select>
+    </div>
+
+    <!-- لیست آزمون‌ها -->
+    <div class="exams-grid" id="examsContainer">
+        {% for exam in exams %}
+        <div class="exam-card {{ exam.status_class }}" data-status="{{ exam.status }}" data-grade="{{ exam.grade.id }}" data-title="{{ exam.title }}">
+            <div class="exam-header">
+                <span class="exam-title">{{ exam.title }}</span>
+                <span class="exam-status {{ exam.status_badge_class }}">{{ exam.status_text }}</span>
+            </div>
+            <div class="exam-details">
+                <span>📚 {{ exam.grade.get_name_display }}</span>
+                <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
+                <span>📅 {{ exam.start_time|to_jalali }}</span>
+                <span>👥 {{ exam.students_count }} نفر</span>
+            </div>
+            <div class="exam-stats">
+                <div class="exam-stat"><b>{{ exam.questions_count|default:"0" }}</b><span>سوال</span></div>
+                <div class="exam-stat"><b>{{ exam.submitted_count|default:"0" }}</b><span>ثبت‌شده</span></div>
+                <div class="exam-stat"><b>{% if exam.avg_total is not None %}{{ exam.avg_total }}{% else %}—{% endif %}</b><span>میانگین نمره</span></div>
+            </div>
+            <div class="exam-actions">
+                {% if not exam.questions_count %}
+                <a href="{% url 'add_question' exam.id %}" class="btn btn-gold" title="این آزمون هنوز سوال ندارد">➕ افزودن اولین سوال</a>
+                {% else %}
+                <a href="{% url 'edit_exam' exam.id %}" class="btn btn-questions" title="مدیریت سوالات">📋 سوالات</a>
+                {% if exam.submitted_count %}<a href="{% url 'grade_exam' exam.id %}" class="btn btn-grade" title="تصحیح آزمون">📝 تصحیح</a>{% endif %}
+                <a href="{% url 'exam_results' exam.id %}" class="btn btn-results" title="مشاهده نتایج">📊 نتایج</a>
+                {% endif %}
+                <details class="more-menu">
+                    <summary title="امکانات بیشتر">⋯</summary>
+                    <div class="more-items">
+                        <a href="{% url 'edit_exam_info' exam.id %}">✏️ ویرایش اطلاعات</a>
+                        <a href="{% url 'exam_settings' exam.id %}">⚙️ تنظیمات آزمون</a>
+                        <a href="{% url 'print_exam_paper' exam.id %}" target="_blank">🖨️ چاپ برگه</a>
+                        <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">📋 چاپ پاسخنامه</a>
+                        <a href="{% url 'exam_cheats_report' exam.id %}">⚠️ گزارش تخلفات</a>
+                        <form method="post" action="{% url 'duplicate_exam' exam.id %}">
+                            {% csrf_token %}
+                            <button type="submit">📑 کپی این آزمون</button>
+                        </form>
+                        <a href="{% url 'toggle_exam_status' exam.id %}" data-confirm="{% if exam.is_active %}آزمون غیرفعال شود؟ دانش‌آموزان تا فعال‌سازی دوباره نمی‌توانند وارد شوند.{% else %}آزمون فعال شود؟{% endif %}">
+                            {% if exam.is_active %}🔒 غیرفعال کردن{% else %}✅ فعال کردن{% endif %}
+                        </a>
+                        <a class="danger" href="{% url 'delete_exam' exam.id %}" data-confirm="«{{ exam.title }}» و همهٔ سوال‌ها و پاسخ‌هایش برای همیشه حذف می‌شود. ادامه می‌دهید؟">🗑️ حذف آزمون</a>
+                    </div>
+                </details>
+            </div>
         </div>
-        <div class="filter-group">
-            <label>پایه</label>
-            <select id="gradeFilter">
-                <option value="all">همه پایه‌ها</option>
-                {% for grade in grades %}
-                <option value="{{ grade.id }}">{{ grade.get_name_display }}</option>
-                {% endfor %}
-            </select>
+        {% empty %}
+        <div class="empty-state">
+            📭 هنوز آزمونی ساخته نشده است.<br>
+            <a href="{% url 'create_exam' %}" class="btn btn-gold" style="margin-top: 14px;">➕ ساخت اولین آزمون</a>
         </div>
-        <div class="filter-group">
-            <label>جستجو</label>
-            <input type="text" id="searchFilter" placeholder="عنوان آزمون...">
-        </div>
-        <div class="filter-group">
-            <button id="applyFilters">🔍 اعمال فیلتر</button>
-        </div>
+        {% endfor %}
     </div>
 
     <!-- اطلاعیه‌ها -->
-    <div class="card announce-card">
-        <div class="announce-head">
+    <details class="card announce-card">
+        <summary class="announce-head">
             <h3>📣 اطلاعیه به دانش‌آموزان</h3>
-            <span class="info-stat">{{ my_announcements|length }} اطلاعیه شما</span>
-        </div>
+            <span class="info-stat">{{ my_announcements|length }} اطلاعیه · برای نوشتن کلیک کنید</span>
+        </summary>
         <form method="post" action="{% url 'announcement_create' %}" class="announce-form">
             {% csrf_token %}
             <input type="hidden" name="back" value="teacher_dashboard">
@@ -100,7 +161,7 @@
                 <div>
                     <b>{{ a.title }}</b>
                     {% if a.body %}<div class="announce-body">{{ a.body|truncatewords:20 }}</div>{% endif %}
-                    <div class="announce-time">{{ a.created_at|date:"Y/m/d H:i" }} · {% if a.grade %}{{ a.grade.get_name_display }}{% else %}همه پایه‌ها{% endif %}</div>
+                    <div class="announce-time">{{ a.created_at|to_jalali }} · {% if a.grade %}{{ a.grade.get_name_display }}{% else %}همه پایه‌ها{% endif %}</div>
                 </div>
                 <form method="post" action="{% url 'announcement_delete' a.id %}" onsubmit="return confirm('حذف اطلاعیه؟');">
                     {% csrf_token %}
@@ -111,58 +172,8 @@
             {% endfor %}
         </div>
         {% endif %}
-    </div>
+    </details>
 
-    <!-- لیست آزمون‌ها -->
-    <div class="exams-grid" id="examsContainer">
-        {% for exam in exams %}
-        <div class="exam-card {{ exam.status_class }}" data-status="{{ exam.status }}" data-grade="{{ exam.grade.id }}" data-title="{{ exam.title }}">
-            <div class="exam-header">
-                <span class="exam-title">{{ exam.title }}</span>
-                <span class="exam-status {{ exam.status_badge_class }}">{{ exam.status_text }}</span>
-            </div>
-            <div class="exam-details">
-                <span>📚 {{ exam.grade.get_name_display }}</span>
-                <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
-                <span>📅 {{ exam.start_time|date:"Y/m/d H:i" }}</span>
-                <span>👥 {{ exam.students_count }} نفر</span>
-            </div>
-            <div class="exam-stats">
-                <div class="exam-stat"><b>{{ exam.questions_count|default:"0" }}</b><span>سوال</span></div>
-                <div class="exam-stat"><b>{{ exam.submitted_count|default:"0" }}</b><span>ثبت‌شده</span></div>
-                <div class="exam-stat"><b>{% if exam.avg_total is not None %}{{ exam.avg_total }}{% else %}—{% endif %}</b><span>میانگین نمره</span></div>
-            </div>
-            <div class="exam-actions">
-                <a href="{% url 'grade_exam' exam.id %}" class="btn btn-grade" title="تصحیح آزمون">📝 تصحیح</a>
-                <a href="{% url 'exam_results' exam.id %}" class="btn btn-results" title="مشاهده نتایج">📊 نتایج</a>
-                <a href="{% url 'edit_exam' exam.id %}" class="btn btn-questions" title="مدیریت سوالات">📋 سوالات</a>
-                <details class="more-menu">
-                    <summary title="امکانات بیشتر">⋯</summary>
-                    <div class="more-items">
-                        <a href="{% url 'edit_exam_info' exam.id %}">✏️ ویرایش اطلاعات</a>
-                        <a href="{% url 'exam_settings' exam.id %}">⚙️ تنظیمات آزمون</a>
-                        <a href="{% url 'print_exam_paper' exam.id %}" target="_blank">🖨️ چاپ برگه</a>
-                        <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">📋 چاپ پاسخنامه</a>
-                        <a href="{% url 'exam_cheats_report' exam.id %}">⚠️ گزارش تخلفات</a>
-                        <form method="post" action="{% url 'duplicate_exam' exam.id %}">
-                            {% csrf_token %}
-                            <button type="submit">📑 کپی این آزمون</button>
-                        </form>
-                        <a href="{% url 'toggle_exam_status' exam.id %}" onclick="return confirm('تغییر وضعیت آزمون؟')">
-                            {% if exam.is_active %}🔒 غیرفعال کردن{% else %}✅ فعال کردن{% endif %}
-                        </a>
-                        <a class="danger" href="{% url 'delete_exam' exam.id %}" onclick="return confirm('آیا مطمئنی می‌خوای این آزمون رو حذف کنی؟')">🗑️ حذف آزمون</a>
-                    </div>
-                </details>
-            </div>
-        </div>
-        {% empty %}
-        <div class="empty-state">
-            📭 هنوز آزمونی ساخته نشده است.<br>
-            <a href="{% url 'create_exam' %}" style="color: var(--primary); margin-top: 12px; display: inline-block;">➕ ساخت اولین آزمون</a>
-        </div>
-        {% endfor %}
-    </div>
 </div>
 
 <script>
@@ -195,9 +206,15 @@
         emptyMsg.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';
     }
 
-    document.getElementById('applyFilters').addEventListener('click', filterExams);
+    document.querySelectorAll('.stat-card[data-filter]').forEach(b => b.addEventListener('click', () => {
+        const sel = document.getElementById('statusFilter');
+        sel.value = sel.value === b.dataset.filter ? 'all' : b.dataset.filter;
+        document.querySelectorAll('.stat-card[data-filter]').forEach(x => x.classList.toggle('is-on', x.dataset.filter === sel.value));
+        filterExams();
+        document.getElementById('examsContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
     document.getElementById('statusFilter').addEventListener('change', filterExams);
     document.getElementById('gradeFilter').addEventListener('change', filterExams);
-    document.getElementById('searchFilter').addEventListener('keyup', filterExams);
+    document.getElementById('searchFilter').addEventListener('input', filterExams);
 </script>
 {% endblock %}

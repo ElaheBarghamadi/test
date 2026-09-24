@@ -286,7 +286,7 @@
                     <div class="cheat-item">
                         <div><strong style="color:#a8d8d2;">{{ cheat.student_name }}</strong></div>
                         <div style="font-size: 0.7rem; color: #f87171;">⚠️ {{ cheat.cheat_type_display }}</div>
-                        <div style="font-size: 0.6rem; color: #7fa8ad;">🕐 {{ cheat.created_at|date:"Y/m/d H:i:s" }}</div>
+                        <div style="font-size: 0.6rem; color: #7fa8ad;">🕐 {{ cheat.created_at|to_jalali }}</div>
                     </div>
                     {% endfor %}
                 {% else %}

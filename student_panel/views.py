@@ -385,7 +385,26 @@ def student_dashboard(request):
             'can_start': can_start,
             'start_time_jalali': to_jalali(exam.start_time),
             'end_time_jalali': to_jalali(exam.end_time),
+            'start_iso': exam.start_time.isoformat(),
+            'questions_count': exam.questions.count(),
         })
+
+    # ترتیب بر اساس اولویت کار دانش‌آموز: در حال انجام ← قابل شروع ← به‌زودی ← بقیه
+    def _priority(item):
+        att = item['attempt']
+        if att and att.status == 'submitted':
+            return (4, 0)
+        if item['can_start'] and att and att.status == 'in_progress':
+            return (0, item['exam'].end_time.timestamp())
+        if item['can_start']:
+            return (1, item['exam'].end_time.timestamp())
+        if item['status'] == 'not_started' and item['exam'].is_active:
+            return (2, item['exam'].start_time.timestamp())
+        return (3, -item['exam'].end_time.timestamp())
+    exams_with_status.sort(key=_priority)
+    next_exam = next((i for i in exams_with_status
+                      if i['can_start'] and i['exam'].is_active
+                      and not (i['attempt'] and i['attempt'].status == 'submitted')), None)
 
     # نتایج ثبت شده
     completed_attempts = ExamAttempt.objects.filter(
@@ -465,6 +484,7 @@ def student_dashboard(request):
 
     return render(request, 'student_panel/dashboard.html', {
         'exams_with_status': exams_with_status,
+        'next_exam': next_exam,
         'completed_results': completed_results,
         'now': now,
         'overall_average': round(overall_average, 2),

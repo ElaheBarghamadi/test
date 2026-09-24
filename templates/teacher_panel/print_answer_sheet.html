@@ -387,7 +387,7 @@
             <div class="exam-title">{{ exam.title }}</div>
             <div class="exam-meta">
                 <span>📖 پایه: {{ exam.grade.get_name_display }}</span>
-                <span>📅 تاریخ: {{ exam.start_time|date:"Y/m/d" }}</span>
+                <span>📅 تاریخ: {{ exam.start_time|to_jalali_date }}</span>
                 <span>⏱️ مدت: {{ exam.duration_minutes }} دقیقه</span>
             </div>
         </div>

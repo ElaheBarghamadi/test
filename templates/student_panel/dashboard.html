@@ -19,6 +19,16 @@
         .info-two-columns { grid-template-columns: 1fr 1fr; gap: 6px; }
         .info-badge .value { font-size: .74rem; }
     }
+
+    .next-exam { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+        background: linear-gradient(135deg, #0b3c49, #0f7078 60%, #2ec4b6); color: #fff; border-radius: 20px; padding: 18px 20px; margin: 14px 0 18px;
+        box-shadow: 0 14px 34px rgba(15,112,120,.25); }
+    .next-exam .ne-label { font-size: .78rem; opacity: .9; font-weight: 700; }
+    .next-exam .ne-title { font-size: 1.15rem; font-weight: 800; margin: 2px 0; }
+    .next-exam .ne-meta { font-size: .8rem; opacity: .85; }
+    .next-exam .ne-btn { background: #fff !important; color: #0f5f68 !important; min-height: 46px; padding: 0 26px; display: inline-flex; align-items: center; border-radius: 14px; font-weight: 800; text-decoration: none; }
+    .countdown { display: block; font-size: .72rem; opacity: .85; }
+    @media (max-width: 600px) { .next-exam .ne-btn { width: 100%; justify-content: center; } }
 </style>
 {% endblock %}
 
@@ -38,20 +48,17 @@
         </div>
     </div>
 
-    {% if bell_announcements %}
-    <div class="card announce-card student-announce">
-        <h3 style="margin-bottom: 8px;">📣 اطلاعیه‌های معلم</h3>
-        <div class="announce-list">
-            {% for a in bell_announcements %}
-            <div class="announce-item">
-                <div>
-                    <b>{{ a.title }}</b>
-                    {% if a.body %}<div class="announce-body">{{ a.body|truncatewords:24 }}</div>{% endif %}
-                    <div class="announce-time">{{ a.created_at|date:"Y/m/d H:i" }}</div>
-                </div>
-            </div>
-            {% endfor %}
+    {% if next_exam %}
+    <div class="next-exam" role="region" aria-label="آزمون قابل شروع">
+        <div>
+            <div class="ne-label">{% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}⏳ آزمون نیمه‌تمام دارید{% else %}🟢 همین حالا می‌توانید شرکت کنید{% endif %}</div>
+            <div class="ne-title">{{ next_exam.exam.title }}</div>
+            <div class="ne-meta">{{ next_exam.questions_count }} سوال · {{ next_exam.exam.duration_minutes }} دقیقه · تا {{ next_exam.end_time_jalali }} باز است</div>
         </div>
+        <a href="{% url 'take_exam' next_exam.hashed_id %}" class="btn-start ne-btn"
+           {% if not next_exam.attempt %}data-confirm="با شروع آزمون، زمان {{ next_exam.exam.duration_minutes }} دقیقه‌ای شما آغاز می‌شود. آماده‌اید؟"{% endif %}>
+            {% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}▶️ ادامه آزمون{% else %}✨ شروع آزمون{% endif %}
+        </a>
     </div>
     {% endif %}
 
@@ -78,7 +85,7 @@
                 </div>
                 <div class="info-badge">
                     <span class="label">📊 تعداد سوالات</span>
-                    <span class="value">{{ item.exam.questions.count }}</span>
+                    <span class="value">{{ item.questions_count }}</span>
                 </div>
             </div>
 
@@ -100,9 +107,9 @@
                 {% if item.attempt and item.attempt.status == 'in_progress' %}
                     <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start">▶️ ادامه آزمون</a>
                 {% elif item.exam.start_time > now %}
-                    <div class="btn-disabled">⏳ شروع از {{ item.start_time_jalali }}</div>
+                    <div class="btn-disabled">⏳ شروع از {{ item.start_time_jalali }} <span class="countdown" data-start="{{ item.start_iso }}"></span></div>
                 {% else %}
-                    <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start">✨ شروع آزمون</a>
+                    <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start" data-confirm="با شروع آزمون، زمان {{ item.exam.duration_minutes }} دقیقه‌ای شما آغاز می‌شود. آماده‌اید؟">✨ شروع آزمون</a>
                 {% endif %}
             {% else %}
                 <div class="btn-disabled">
@@ -113,9 +120,26 @@
             {% endif %}
         </div>
         {% empty %}
-        <div class="empty-state">📭 هیچ آزمونی برای شما وجود ندارد.</div>
+        <div class="empty-state">📭 فعلاً آزمونی برای شما تعریف نشده است. وقتی معلم آزمونی بسازد، همین‌جا نمایش داده می‌شود.</div>
         {% endfor %}
     </div>
+
+    {% if bell_announcements %}
+    <div class="card announce-card student-announce">
+        <h3 style="margin-bottom: 8px;">📣 اطلاعیه‌های معلم</h3>
+        <div class="announce-list">
+            {% for a in bell_announcements %}
+            <div class="announce-item">
+                <div>
+                    <b>{{ a.title }}</b>
+                    {% if a.body %}<div class="announce-body">{{ a.body|truncatewords:24 }}</div>{% endif %}
+                    <div class="announce-time">{{ a.created_at|to_jalali }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- بخش 2: نتایج آزمون‌ها -->
     <div class="section-title">📊 نتایج منتشر شده</div>
@@ -263,5 +287,23 @@
             });
         });
     });
+</script>
+
+<script>
+(function () {
+    const FA = '۰۱۲۳۴۵۶۷۸۹', fa = n => String(n).replace(/\d/g, d => FA[d]);
+    const els = document.querySelectorAll('.countdown[data-start]');
+    if (!els.length) return;
+    function tick() {
+        const now = Date.now();
+        els.forEach(e => {
+            const ms = new Date(e.dataset.start) - now;
+            if (ms <= 0) { e.textContent = 'باز شد — صفحه را تازه کنید'; return; }
+            const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60;
+            e.textContent = '(' + (d ? fa(d) + ' روز و ' : '') + (h ? fa(h) + ' ساعت و ' : '') + fa(m) + ' دقیقه دیگر)';
+        });
+    }
+    tick(); setInterval(tick, 30000);
+})();
 </script>
 {% endblock %}

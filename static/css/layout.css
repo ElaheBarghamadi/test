@@ -202,3 +202,16 @@
 }
 @media print { .site-header, .site-footer { display: none !important; } }
 .main-content { flex: 1 0 auto; }
+
+/* ===== پیام‌ها و وضعیت‌های تعاملی (UX) ===== */
+.site-message { position: relative; transition: opacity .25s, transform .25s; }
+.site-message .sm-text { flex: 1; }
+.site-message .sm-close { border: none; background: transparent; cursor: pointer; color: inherit; opacity: .55; font-size: .8rem; width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; }
+.site-message .sm-close:hover { opacity: 1; background: rgba(0,0,0,.06); }
+.site-message.bye { opacity: 0; transform: translateY(-6px); }
+button.is-busy { opacity: .7; cursor: progress; }
+.nav-link[aria-current="page"] { font-weight: 800; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid rgba(46,196,182,.55); outline-offset: 2px; }
+.skip-to-content { position: absolute; inset-inline-start: -9999px; top: 8px; z-index: 5000; background: #0f7078; color: #fff; padding: 10px 16px; border-radius: 10px; }
+.skip-to-content:focus { inset-inline-start: 8px; }

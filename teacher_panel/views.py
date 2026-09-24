@@ -5,7 +5,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q, Max, F
@@ -269,17 +269,9 @@ def create_exam(request):
 
         if errors:
             # به‌جای خطای 500، فرم با پیام خطا دوباره نمایش داده می‌شود
-            local_now = timezone.localtime(timezone.now())
-            return render(request, 'teacher_panel/create_exam.html', {
-                'grades': Grade.objects.all(),
-                'students': User.objects.filter(role='student'),
-                'errors': errors,
-                'form': request.POST,
-                'default_start': request.POST.get('start_time') or local_now.strftime('%Y-%m-%dT%H:%M'),
-                'default_end': request.POST.get('end_time') or (local_now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
-                'start_jalali': to_jalali(data['start_time'] or local_now),
-                'end_jalali': to_jalali(data['end_time'] or (local_now + timedelta(hours=2))),
-            }, status=200)
+            ctx = _create_exam_context(request)
+            ctx['errors'] = errors
+            return render(request, 'teacher_panel/create_exam.html', ctx, status=200)
 
         exam = Exam.objects.create(
             title=data['title'],
@@ -305,17 +297,27 @@ def create_exam(request):
         exam.students.set(student_ids)
         return redirect('edit_exam', exam_id=exam.id)
 
-    # ⚠️ مقادیر پیش‌فرض فرم باید به وقت محلی (تهران) باشند تا با آنچه
-    # هنگام ذخیره تفسیر می‌شود یکی باشد (قبلاً ۳:۳۰ اختلاف داشت).
-    now = timezone.localtime(timezone.now())
-    return render(request, 'teacher_panel/create_exam.html', {
+    return render(request, 'teacher_panel/create_exam.html', _create_exam_context(request))
+
+
+def _create_exam_context(request):
+    """دادهٔ فرم ساخت آزمون؛ بعد از خطا مقادیر واردشده (از جمله دانش‌آموزان انتخابی) حفظ می‌شوند."""
+    # مقادیر پیش‌فرض به وقت محلی (تهران) تا با تفسیر هنگام ذخیره یکی باشد
+    now = timezone.localtime(timezone.now()).replace(second=0, microsecond=0)
+    minute = (now.minute // 5 + 1) * 5          # گرد کردن به ۵ دقیقهٔ بعد
+    start = now.replace(minute=0) + timedelta(minutes=minute)
+    post = request.POST if request.method == 'POST' else None
+    groups = [{'id': g.id, 'name': g.name, 'students': list(g.students.values_list('id', flat=True))}
+              for g in StudentGroup.objects.filter(teacher=request.user).prefetch_related('students')]
+    return {
         'grades': Grade.objects.all(),
-        'students': User.objects.filter(role='student'),
-        'default_start': now.strftime('%Y-%m-%dT%H:%M'),
-        'default_end': (now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
-        'start_jalali': to_jalali(now),
-        'end_jalali': to_jalali(now + timedelta(hours=2)),
-    })
+        'form': post or {},
+        'is_post': bool(post),
+        'default_start': (post and post.get('start_time')) or start.strftime('%Y-%m-%dT%H:%M'),
+        'default_end': (post and post.get('end_time')) or (start + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
+        'selected_ids': [int(i) for i in (post.getlist('students') if post else []) if str(i).isdigit()],
+        'groups': groups,
+    }
 
 
 @login_required
@@ -433,12 +435,14 @@ def edit_exam(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
     check_teacher_access(request.user, exam)
 
-    questions = exam.questions.all().order_by('order')
+    questions = exam.questions.all().order_by('order', 'id')
     cheats = CheatAttempt.objects.filter(session__exam=exam)
 
     return render(request, 'teacher_panel/edit_exam.html', {
         'exam': exam,
         'questions': questions,
+        'total_score': sum((q.max_score or 0) for q in questions),
+        'students_count': exam.students.count(),
         'cheats_stats': {
             'total_cheats': cheats.count(),
             'tab_switch': cheats.filter(cheat_type='tab_switch').count(),
@@ -486,6 +490,12 @@ def toggle_exam_status(request, exam_id):
 
     exam.is_active = not exam.is_active
     exam.save()
+    messages.success(request, 'آزمون «%s» %s شد.' % (exam.title, 'فعال' if exam.is_active else 'غیرفعال'))
+    # کاربر به همان صفحه‌ای برمی‌گردد که از آن آمده بود
+    from django.utils.http import url_has_allowed_host_and_scheme
+    back = request.META.get('HTTP_REFERER', '')
+    if back and url_has_allowed_host_and_scheme(back, allowed_hosts={request.get_host()}) and '/teacher/' in back:
+        return redirect(back)
     return redirect('teacher_dashboard')
 
 
@@ -629,7 +639,28 @@ def delete_question(request, exam_id, question_id):
     """حذف سوال"""
     question = get_object_or_404(Question, id=question_id, exam__teacher=request.user)
     question.delete()
+    messages.success(request, 'سوال حذف شد.')
     return redirect('edit_exam', exam_id=exam_id)
+
+
+@login_required
+def move_question(request, exam_id, question_id):
+    """جابه‌جایی ترتیب سوال (بالا/پایین)"""
+    if request.method != 'POST':
+        return redirect('edit_exam', exam_id=exam_id)
+    exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
+    items = list(exam.questions.all().order_by('order', 'id'))
+    idx = next((i for i, q in enumerate(items) if q.id == question_id), None)
+    if idx is None:
+        raise Http404
+    j = idx - 1 if request.POST.get('dir') == 'up' else idx + 1
+    if 0 <= j < len(items):
+        items[idx], items[j] = items[j], items[idx]
+        for n, q in enumerate(items, start=1):
+            if q.order != n:
+                q.order = n
+                q.save(update_fields=['order'])
+    return redirect(reverse('edit_exam', args=[exam_id]) + '#q%d' % question_id)
 
 
 # ========== تصحیح و نمره‌دهی ==========

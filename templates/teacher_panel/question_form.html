@@ -588,10 +588,15 @@
     if (stb) stb.addEventListener('change', () => { document.getElementById('bankFolder').hidden = !stb.checked; });
 
     /* ---------------- تب‌ها ---------------- */
-    $$('.qf-tab').forEach(tab => tab.addEventListener('click', () => {
-        $$('.qf-tab').forEach(t => t.classList.toggle('on', t === tab));
+    function openTab(tab) {
+        $$('.qf-tab').forEach(t => { t.classList.toggle('on', t === tab); t.setAttribute('aria-selected', String(t === tab)); });
         $$('.qf-pane').forEach(p => p.hidden = p.id !== tab.dataset.pane);
+    }
+    $$('.qf-tab').forEach(tab => tab.addEventListener('click', () => {
+        openTab(tab);
+        history.replaceState(null, '', tab.dataset.pane === 'paneBank' ? '#bank' : location.pathname + location.search);
     }));
+    if (location.hash === '#bank') { const t = $('.qf-tab[data-pane=paneBank]'); if (t) openTab(t); }
 
     /* ---------------- افزودن از بانک ---------------- */
     const bankData = document.getElementById('bankData');

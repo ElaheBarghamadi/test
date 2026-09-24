@@ -1,40 +1,19 @@
 from pathlib import Path
-import os
-import dj_database_url
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 🔐 SECRET KEY (برای production بهتره از ENV بخونی)
+# ⚙️ همهٔ تنظیمات مستقیماً در همین فایل است (فعلاً فایل .env نداریم).
+# برای ساخت کلید جدید: python -c "import secrets;print(secrets.token_urlsafe(50))"
 
-# ⚠️ حالت توسعه / تولید
-# اگر متغیر محیطی DEBUG تنظیم نشده باشد: اجرای با `runserver` یعنی توسعه،
-# و غیر از آن (gunicorn و…) یعنی تولید — تا روی دستگاه محلی فقط با
-# `python manage.py runserver` همه‌چیز بدون تنظیمات اضافه درست کار کند.
-import sys
-
-
-def _env_flag(name, default):
-    raw = os.getenv(name)
-    if raw is None or raw.strip() == '':
-        return default
-    return raw.strip().lower() in ('1', 'true', 'yes', 'on')
-
-
+# ⚠️ حالت توسعه / تولید: اجرای `runserver` یعنی توسعه؛ gunicorn و… یعنی تولید.
+# برای اجبار، مقدار DEBUG را مستقیم True/False بگذارید.
 _RUNNING_DEV_SERVER = any(a.startswith('runserver') for a in sys.argv[1:])
-DEBUG = _env_flag('DEBUG', _RUNNING_DEV_SERVER)
+DEBUG = _RUNNING_DEV_SERVER
 TESTING = 'test' in sys.argv
 
-# 🔐 SECRET KEY: در تولید حتماً باید از متغیر محیطی خوانده شود
-SECRET_KEY = os.getenv('SECRET_KEY', '').strip()
-if not SECRET_KEY:
-    # دستورات manage.py (migrate، ساخت کاربر و…) بدون کلید هم اجرا شوند؛
-    # ولی سرور تولید (gunicorn/wsgi) بدون SECRET_KEY بالا نمی‌آید.
-    _SERVING = os.getenv('EXAM_SYSTEM_SERVING') == '1'   # در wsgi.py/asgi.py تنظیم می‌شود
-    if DEBUG or TESTING or not _SERVING:
-        SECRET_KEY = 'django-insecure-dev-only-key-do-not-use-in-production'
-    else:
-        from django.core.exceptions import ImproperlyConfigured
-        raise ImproperlyConfigured('در حالت تولید متغیر محیطی SECRET_KEY باید تنظیم شود.')
+# 🔐 کلید امنیتی
+SECRET_KEY = 'k7Qm2vX9pR4tLw8zN3bH6yJc1fD5sG0aE-uVxZqWiOoPlKjMnB_rTyUe4hS8dC2g'
 
 # 🔒 کوکی‌ها و نشست‌ها
 SESSION_COOKIE_HTTPONLY = True          # جاوااسکریپت به کوکی نشست دسترسی ندارد
@@ -59,7 +38,7 @@ if not DEBUG and not TESTING:
 
 ALLOWED_HOSTS = ['*']
 # برای فرم‌ها پشت HTTPS/پروکسی (مثلاً https://example.com)
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
+CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com', 'https://*.e2b.app', 'http://localhost:8000', 'http://127.0.0.1:8000']
 # 🧩 Apps
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -112,6 +91,7 @@ TEMPLATES = [
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
+            'builtins': ['student_panel.templatetags.jalali_tags'],
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -125,11 +105,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'exam_system.wsgi.application'
 
-# 🗄 DATABASE (Render PostgreSQL ready)
+# 🗄 DATABASE
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # 🔒 Password validation
@@ -169,7 +150,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 🌐 CORS — فقط میزبان‌های مجاز (پیش‌فرض: هیچ‌کس؛ متغیر محیطی CORS_ALLOWED_ORIGINS)
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [o.strip() for o in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()]
+CORS_ALLOWED_ORIGINS = []
 CORS_ALLOW_CREDENTIALS = False
 
 # ⚙️ Session

@@ -110,35 +110,71 @@
         .questions-card { padding: 10px; border-radius: 16px; }
         .question-item { padding: 10px; }
     }
-    </style>
+    
+    .crumbs { font-size: .8rem; color: var(--ink3); margin-bottom: 10px; }
+    .crumbs a { color: var(--gold3); text-decoration: none; font-weight: 700; }
+    .crumbs b { color: var(--ink2); }
+    .ready { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+    .ready-item { display: flex; gap: 8px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; font-size: .8rem; color: var(--ink2); font-weight: 800; }
+    .ready-item span { font-weight: 600; }
+    .ready-item.ok { border-color: var(--okline); background: var(--oksoft); color: var(--ok); }
+    .ready-item a { color: var(--gold3); font-weight: 800; }
+    .top-bar .more-menu { position: relative; }
+    .top-bar .more-menu > summary { list-style: none; cursor: pointer; }
+    .top-bar .more-menu > summary::-webkit-details-marker { display: none; }
+    .top-bar .more-items { position: absolute; left: 0; top: calc(100% + 6px); z-index: 50; min-width: 220px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 14px 34px rgba(8,45,52,.14); padding: 6px; display: grid; }
+    .top-bar .more-items a { padding: 9px 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-size: .84rem; }
+    .top-bar .more-items a:hover { background: var(--goldsoft); }
+    .question-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .question-actions form.mv { display: inline-flex; gap: 2px; }
+    .btn-move { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: #fff; cursor: pointer; color: var(--ink2); font-size: .7rem; }
+    .btn-move:hover:not(:disabled) { border-color: var(--gold); color: var(--gold3); }
+    .btn-move:disabled { opacity: .35; cursor: default; }
+    .question-item:target { outline: 3px solid rgba(46,196,182,.4); }
+    @media (max-width: 700px) { .ready { grid-template-columns: 1fr; } .question-actions .lbl { display: none; } }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- کارت اطلاعات -->
+    <nav class="crumbs" aria-label="مسیر"><a href="{% url 'teacher_dashboard' %}">آزمون‌های من</a> <span>›</span> <b>{{ exam.title }}</b></nav>
+
     <div class="info-card">
         <h1><span>📋</span> {{ exam.title }}</h1>
         <div class="info-details">
             <span>📚 {{ exam.grade.get_name_display }}</span>
             <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
-            <span>📅 شروع: {{ exam.start_time|date:"Y/m/d H:i" }}</span>
-            <span>🏁 پایان: {{ exam.end_time|date:"Y/m/d H:i" }}</span>
-            <span>🔘 {% if exam.is_active %}✅ فعال{% else %}❌ غیرفعال{% endif %}</span>
+            <span>📅 {{ exam.start_time|to_jalali }} تا {{ exam.end_time|to_jalali }}</span>
+            <span>{% if exam.is_active %}🟢 فعال{% else %}⚪ غیرفعال{% endif %}</span>
         </div>
     </div>
 
-    <!-- نوار دکمه‌ها با باکس بندی -->
+    <!-- وضعیت آمادگی آزمون: کاربر می‌داند قدم بعدی چیست -->
+    <div class="ready">
+        <div class="ready-item {% if questions %}ok{% endif %}">{% if questions %}✓{% else %}۱{% endif %} <span>{{ questions|length }} سوال · مجموع بارم <b>{{ total_score|floatformat:"-2" }}</b></span></div>
+        <div class="ready-item {% if students_count %}ok{% endif %}">{% if students_count %}✓{% else %}۲{% endif %} <span>{{ students_count }} دانش‌آموز شرکت‌کننده {% if not students_count %}— <a href="{% url 'edit_exam_info' exam.id %}">انتخاب کنید</a>{% endif %}</span></div>
+        <div class="ready-item {% if exam.is_active %}ok{% endif %}">{% if exam.is_active %}✓{% else %}۳{% endif %} <span>{% if exam.is_active %}آزمون فعال است{% else %}آزمون غیرفعال است — <a href="{% url 'toggle_exam_status' exam.id %}">فعال کنید</a>{% endif %}</span></div>
+    </div>
+
     <div class="top-bar">
         <div class="btn-group">
             <a href="{% url 'add_question' exam.id %}" class="btn-primary">➕ سوال جدید</a>
-            <a href="{% url 'bulk_upload_questions' exam.id %}" class="btn-primary" >📤 آپلود انبوه</a>
-            <a href="{% url 'edit_exam_info' exam.id %}" class="btn-secondary">✏️ ویرایش</a>
-            <a href="{% url 'teacher_dashboard' %}" class="btn-secondary">← بازگشت</a>
+            <a href="{% url 'add_question' exam.id %}#bank" class="btn-secondary">📚 از بانک سوال</a>
+            <a href="{% url 'bulk_upload_questions' exam.id %}" class="btn-secondary">📤 از فایل اکسل</a>
         </div>
         <div class="btn-group-right">
-            <a href="{% url 'exam_settings' exam.id %}" class="btn-settings">⚙️ تنظیمات</a>
-            <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-cheats">⚠️ تخلفات</a>
-            <a href="{% url 'view_student_answers' exam.id %}" class="btn-answers">📝 پاسخ‌ها</a>
+            <a href="{% url 'print_exam_paper' exam.id %}" target="_blank" class="btn-secondary">🖨️ چاپ</a>
+            <details class="more-menu">
+                <summary class="btn-secondary" title="امکانات بیشتر">⋯ بیشتر</summary>
+                <div class="more-items">
+                    <a href="{% url 'edit_exam_info' exam.id %}">✏️ مشخصات و دانش‌آموزان</a>
+                    <a href="{% url 'exam_settings' exam.id %}">⚙️ تنظیمات آزمون</a>
+                    <a href="{% url 'view_student_answers' exam.id %}">📝 پاسخ‌های دانش‌آموزان</a>
+                    <a href="{% url 'exam_results' exam.id %}">📊 نتایج</a>
+                    <a href="{% url 'exam_cheats_report' exam.id %}">⚠️ گزارش تخلفات</a>
+                    <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">📋 چاپ پاسخنامه</a>
+                </div>
+            </details>
         </div>
     </div>
 
@@ -157,12 +193,11 @@
                     <span class="section-title">📝 سوالات آزمون</span>
                     <span class="question-count">{{ questions|length }} سوال</span>
                 </div>
-                <a href="{% url 'add_question' exam.id %}" class="btn-primary" style="padding: 5px 14px;">➕ جدید</a>
             </div>
             <div class="questions-list">
                 {% if questions %}
                 {% for q in questions %}
-                <div class="question-item">
+                <div class="question-item" id="q{{ q.id }}">
                     <div class="question-header">
                         <div class="question-badge">
                             <span class="question-number">سوال {{ forloop.counter }}</span>
@@ -170,9 +205,14 @@
                             <span class="question-score">⭐ {{ q.max_score|floatformat:2 }}</span>
                         </div>
                         <div class="question-actions">
-                            <a href="{% url 'edit_question' exam.id q.id %}" class="btn-edit">✏️</a>
-                            <a href="{% url 'add_teacher_answer' exam.id q.id %}" class="btn-teacher-ans">📝</a>
-                            <a href="{% url 'delete_question' exam.id q.id %}" class="btn-delete" onclick="return confirm('حذف؟');">🗑️</a>
+                            <form method="post" action="{% url 'move_question' exam.id q.id %}" class="mv" data-no-lock>
+                                {% csrf_token %}
+                                <button type="submit" name="dir" value="up" class="btn-move" title="انتقال به بالا" aria-label="انتقال سوال {{ forloop.counter }} به بالا" {% if forloop.first %}disabled{% endif %}>▲</button>
+                                <button type="submit" name="dir" value="down" class="btn-move" title="انتقال به پایین" aria-label="انتقال سوال {{ forloop.counter }} به پایین" {% if forloop.last %}disabled{% endif %}>▼</button>
+                            </form>
+                            <a href="{% url 'edit_question' exam.id q.id %}" class="btn-edit" title="ویرایش سوال">✏️ <span class="lbl">ویرایش</span></a>
+                            <a href="{% url 'add_teacher_answer' exam.id q.id %}" class="btn-teacher-ans" title="پاسخ تشریحی معلم">📝 <span class="lbl">پاسخ معلم</span></a>
+                            <a href="{% url 'delete_question' exam.id q.id %}" class="btn-delete" title="حذف سوال" aria-label="حذف سوال {{ forloop.counter }}" data-confirm="سوال {{ forloop.counter }} حذف شود؟ این کار برگشت‌پذیر نیست.">🗑️</a>
                         </div>
                     </div>
                     <div class="question-text">{{ q.text|truncatewords:30|default:"متن سوال وارد نشده" }}</div>
@@ -190,7 +230,13 @@
                 </div>
                 {% endfor %}
                 {% else %}
-                <div class="empty-state">📭 هنوز سوالی اضافه نشده است</div>
+                <div class="empty-state">
+                    📭 هنوز سوالی اضافه نشده است.<br>
+                    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+                        <a href="{% url 'add_question' exam.id %}" class="btn-primary">➕ نوشتن اولین سوال</a>
+                        <a href="{% url 'add_question' exam.id %}#bank" class="btn-secondary">📚 انتخاب از بانک سوال</a>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -218,7 +264,7 @@
                         <div class="cheat-student"><span>👤</span> {{ cheat.student_name }}</div>
                         <div class="cheat-type">{{ cheat.cheat_type_display }}</div>
                     </div>
-                    <div class="cheat-time">⏰ {{ cheat.created_at|date:"Y/m/d H:i" }}</div>
+                    <div class="cheat-time">⏰ {{ cheat.created_at|to_jalali }}</div>
                     <div class="cheat-detail">{{ cheat.detail|default:"جزئیات ثبت نشده" }}</div>
                 </div>
                 {% endfor %}

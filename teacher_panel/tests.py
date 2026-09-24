@@ -900,3 +900,51 @@ class UnifiedQuestionFormTests(TestCase):
             'text': 'q', 'question_type': 'true_false', 'correct_answer': 'false', 'max_score': '1', 'add_another': '1'})
         self.assertEqual(r.status_code, 302)
         self.assertIn(reverse('add_question', args=[self.exam.id]), r.url)
+
+
+class UxImprovementTests(TestCase):
+    """بهبودهای تجربهٔ کاربری: ترتیب سوال‌ها، حفظ انتخاب‌ها بعد از خطا، تاریخ شمسی"""
+
+    def setUp(self):
+        from accounts.models import User, Grade
+        from exams.models import Exam
+        self.teacher = User.objects.create_user(username='ux', password='test12345', role='teacher')
+        self.client.login(username='ux', password='test12345')
+        self.grade = Grade.objects.create(name='9')
+        self.student = User.objects.create_user(username='uxs', password='x12345678', role='student', grade=self.grade)
+        now = timezone.now()
+        self.exam = Exam.objects.create(title='ux', teacher=self.teacher, grade=self.grade,
+                                        duration_minutes=20, start_time=now, end_time=now + timedelta(hours=1))
+
+    def test_move_question_up_and_down(self):
+        from exams.models import Question
+        a = Question.objects.create(exam=self.exam, text='A', question_type='short_answer', order=1)
+        b = Question.objects.create(exam=self.exam, text='B', question_type='short_answer', order=2)
+        r = self.client.post(reverse('move_question', args=[self.exam.id, b.id]), {'dir': 'up'})
+        self.assertEqual(r.status_code, 302)
+        order = list(self.exam.questions.order_by('order').values_list('text', flat=True))
+        self.assertEqual(order, ['B', 'A'])
+        # GET کاری انجام نمی‌دهد
+        self.client.get(reverse('move_question', args=[self.exam.id, b.id]))
+        self.assertEqual(list(self.exam.questions.order_by('order').values_list('text', flat=True)), ['B', 'A'])
+
+    def test_create_exam_error_keeps_selected_students(self):
+        r = self.client.post(reverse('create_exam'), {'title': '', 'grade': self.grade.id, 'duration': '30',
+                                                     'start_time': '2030-01-01T10:00', 'end_time': '2030-01-01T12:00',
+                                                     'students': [self.student.id]})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(self.student.id, r.context['selected_ids'])
+
+    def test_edit_exam_shows_total_score_and_jalali(self):
+        from exams.models import Question
+        Question.objects.create(exam=self.exam, text='A', question_type='short_answer', max_score=2.5)
+        r = self.client.get(reverse('edit_exam', args=[self.exam.id]))
+        self.assertContains(r, 'مجموع بارم')
+        self.assertEqual(r.context['total_score'], 2.5)
+        self.assertContains(r, '14')   # سال شمسی ۱۴xx
+
+    def test_settings_have_no_env_dependency(self):
+        import pathlib
+        src = pathlib.Path('exam_system/settings.py').read_text(encoding='utf-8')
+        self.assertNotIn('getenv', src)
+        self.assertNotIn('os.environ', src)

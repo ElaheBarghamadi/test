@@ -452,9 +452,10 @@
     {% block extra_css %}{% endblock %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}?v=3">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=2">
 </head>
 <body>
+<a class="skip-to-content" href="#mainContent">پرش به محتوای اصلی</a>
 
 <!-- ================== Header ================== -->
 {% with p=request.path %}
@@ -475,19 +476,19 @@
                 {% if user.role == 'admin' %}
                     {% url 'admin_dashboard' as u1 %}{% url 'manage_users' as u2 %}{% url 'manage_exams' as u3 %}{% url 'system_logs' as u4 %}
                     <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
-                    <a href="{{ u2 }}" class="nav-link {% if p == u2 %}active{% endif %}">کاربران</a>
-                    <a href="{{ u3 }}" class="nav-link {% if p == u3 %}active{% endif %}">آزمون‌ها</a>
+                    <a href="{{ u2 }}" class="nav-link {% if u2 in p %}active{% endif %}">کاربران</a>
+                    <a href="{{ u3 }}" class="nav-link {% if u3 in p or '/exam' in p and p != u1 %}active{% endif %}">آزمون‌ها</a>
                     <a href="{{ u4 }}" class="nav-link {% if p == u4 %}active{% endif %}">لاگ سیستم</a>
                 {% elif user.role == 'teacher' %}
                     {% url 'teacher_dashboard' as u1 %}{% url 'create_exam' as u2 %}{% url 'question_bank' as u3 %}{% url 'groups' as u4 %}
-                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
-                    <a href="{{ u2 }}" class="nav-link {% if p == u2 %}active{% endif %}">آزمون جدید</a>
-                    <a href="{{ u3 }}" class="nav-link {% if p == u3 %}active{% endif %}">بانک سوال</a>
-                    <a href="{{ u4 }}" class="nav-link {% if p == u4 %}active{% endif %}">گروه‌ها</a>
+                    <a href="{{ u1 }}" class="nav-link {% if p != u2 and u3 not in p and u4 not in p %}active{% endif %}" {% if p != u2 and u3 not in p and u4 not in p %}aria-current="page"{% endif %}>آزمون‌های من</a>
+                    <a href="{{ u2 }}" class="nav-link {% if p == u2 %}active{% endif %}" {% if p == u2 %}aria-current="page"{% endif %}>آزمون جدید</a>
+                    <a href="{{ u3 }}" class="nav-link {% if u3 in p %}active{% endif %}" {% if u3 in p %}aria-current="page"{% endif %}>بانک سوال</a>
+                    <a href="{{ u4 }}" class="nav-link {% if u4 in p %}active{% endif %}" {% if u4 in p %}aria-current="page"{% endif %}>گروه‌ها</a>
                 {% elif user.role == 'student' %}
                     {% url 'student_dashboard' as u1 %}
-                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
-                    <a href="{{ u1 }}#results" class="nav-link">نتایج من</a>
+                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">آزمون‌های من</a>
+                    <a href="{{ u1 }}#results" class="nav-link {% if 'result' in p %}active{% endif %}">نتایج من</a>
                 {% endif %}
             {% endif %}
         </nav>
@@ -506,7 +507,7 @@
                             <div class="bell-item">
                                 <div class="bell-title">{{ a.title }}</div>
                                 {% if a.body %}<div class="bell-body">{{ a.body|truncatewords:18 }}</div>{% endif %}
-                                <div class="bell-time">{{ a.created_at|date:"Y/m/d H:i" }}</div>
+                                <div class="bell-time">{{ a.created_at|to_jalali }}</div>
                             </div>
                             {% endfor %}
                         {% else %}
@@ -601,19 +602,20 @@
     </div>
 </div>
 
-<div class="main-content">
+<main class="main-content" id="mainContent" tabindex="-1">
     {% if messages %}
-    <div class="site-messages">
+    <div class="site-messages" role="status" aria-live="polite">
         {% for message in messages %}
         <div class="site-message {{ message.tags }}">
             <span>{% if message.tags == 'error' or message.tags == 'danger' %}⚠️{% elif message.tags == 'warning' %}🔶{% elif message.tags == 'info' %}ℹ️{% else %}✅{% endif %}</span>
-            <span>{{ message }}</span>
+            <span class="sm-text">{{ message }}</span>
+            <button type="button" class="sm-close" aria-label="بستن پیام">✕</button>
         </div>
         {% endfor %}
     </div>
     {% endif %}
     {% block content %}{% endblock %}
-</div>
+</main>
 
 <footer class="footer site-footer">
     <div class="footer-wave" aria-hidden="true">
@@ -749,6 +751,29 @@
             }
         });
     }
+
+    // ========== پیام‌ها: قابل بستن؛ پیام موفقیت خودکار محو می‌شود ==========
+    document.querySelectorAll('.site-message').forEach(function (m) {
+        const close = () => { m.classList.add('bye'); setTimeout(() => m.remove(), 250); };
+        const btn = m.querySelector('.sm-close');
+        if (btn) btn.addEventListener('click', close);
+        if (!/error|danger|warning/.test(m.className)) setTimeout(close, 6000);
+    });
+
+    // ========== فرم‌ها: جلوگیری از ارسال دوباره + تأیید با data-confirm ==========
+    document.addEventListener('submit', function (e) {
+        const f = e.target;
+        if (e.defaultPrevented || f.method.toLowerCase() !== 'post' || f.hasAttribute('data-no-lock')) return;
+        if (f.dataset.sending) { e.preventDefault(); return; }
+        f.dataset.sending = '1';
+        setTimeout(() => { delete f.dataset.sending; }, 8000);   // اگر دانلود بود یا خطا شد، دوباره فعال شود
+        const b = e.submitter;
+        if (b && b.tagName === 'BUTTON' && !b.dataset.keepLabel) { b.setAttribute('aria-busy', 'true'); b.classList.add('is-busy'); }
+    });
+    document.addEventListener('click', function (e) {
+        const t = e.target.closest('[data-confirm]');
+        if (t && !confirm(t.dataset.confirm)) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
 
     // سایه هدر هنگام اسکرول
     const siteHeader = document.getElementById('siteHeader');

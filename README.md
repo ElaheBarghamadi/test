@@ -76,39 +76,28 @@ python manage.py runserver
 سپس مرورگر: <http://127.0.0.1:8000/>
 
 > 💡 حالت توسعه به‌صورت خودکار فعال می‌شود: چون با `runserver` اجرا کرده‌اید،
-> `DEBUG=True` در نظر گرفته می‌شود (بدون نیاز به تنظیم متغیر محیطی).
+> `DEBUG=True` در نظر گرفته می‌شود.
 > فایل‌های استاتیک و رسانه همین‌طور سرو می‌شوند و ریدایرکت HTTPS اتفاق نمی‌افتد.
 
 ---
 
-## 🔧 متغیرهای محیطی (اختیاری)
+## 🔧 تنظیمات
 
-| متغیر | معنی | پیش‌فرض |
-|---|---|---|
-| `DEBUG` | `True`/`False` — حالت توسعه یا تولید | اگر تنظیم نشده: با `runserver` = توسعه، وگرنه = تولید |
-| `SECRET_KEY` | کلید امنیتی جنگو | در توسعه مقدار موقت؛ **در تولید اجباری** (بدون آن gunicorn بالا نمی‌آید) |
-| `CSRF_TRUSTED_ORIGINS` | مثلاً `https://your-domain.com` | خالی |
-| `DATABASE_URL` | آدرس دیتابیس (مثلاً postgres) | sqlite فایل `db.sqlite3` |
-| `CORS_ALLOWED_ORIGINS` | فهرست میزبان‌های مجاز CORS، جدا شده با ویرگول | خالی (هیچ میزبانی مجاز نیست) |
+فعلاً فایل `.env` و متغیر محیطی نداریم؛ همهٔ مقادیر مستقیماً در `exam_system/settings.py` هستند:
 
-مثال ویندوز:
-```bat
-set DEBUG=True
-set SECRET_KEY=my-super-secret-key
-python manage.py runserver
-```
+| تنظیم | مقدار فعلی |
+|---|---|
+| `DEBUG` | خودکار: با `runserver` = توسعه، با gunicorn = تولید (برای اجبار، مستقیم `True`/`False` بگذارید) |
+| `SECRET_KEY` | در خود فایل (برای تولید واقعی یک کلید تازه بسازید) |
+| `ALLOWED_HOSTS` | `['*']` |
+| `CSRF_TRUSTED_ORIGINS` | onrender.com و localhost — دامنهٔ خود را به این فهرست اضافه کنید |
+| `DATABASES` | sqlite فایل `db.sqlite3` |
 
 ---
 
 ## 🌐 اجرای تولید (Production)
 
 ```bash
-export DEBUG=False
-export SECRET_KEY='یک-کلید-طولانی-و-تصادفی'
-export DATABASE_URL='postgres://USER:PASS@HOST/DB'   # یا خالی برای sqlite
-export CSRF_TRUSTED_ORIGINS='https://your-domain.com'
-export CORS_ALLOWED_ORIGINS='https://your-domain.com'
-
 python manage.py migrate
 python manage.py collectstatic --noinput
 gunicorn exam_system.wsgi:application --bind 0.0.0.0:8000

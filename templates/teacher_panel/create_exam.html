@@ -3,768 +3,384 @@
 
 {% block title %}ساخت آزمون جدید{% endblock %}
 
-{% block extra_css %}
-<style>
-    :root {
-        --primary: #0f7078;
-        --primary-light: #2ec4b6;
-        --primary-dark: #0b4a52;
-        --success: #7a9c3e;
-        --warning: #f5a623;
-        --danger: #dc8686;
-        --info: #4a6b72;
-        --gray-50: #f7fcfb;
-        --gray-100: #eef7f5;
-        --gray-200: #dcefeb;
-        --gray-300: #bcd9d5;
-        --gray-400: #7fa8ad;
-        --gray-500: #6f9499;
-        --gray-600: #4a6b72;
-        --gray-700: #35565d;
-        --gray-800: #16404a;
-    }
 
-    .container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    /* Glassmorphism Card */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(16px);
-        border-radius: 32px;
-        border: 1px solid rgba(120, 190, 185, 0.35);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.06);
-        overflow: hidden;
-    }
-
-    .card {
-        padding: 32px;
-    }
-
-    h2 {
-        color: var(--gray-800);
-        margin-bottom: 28px;
-        border-right: 4px solid var(--primary);
-        padding-right: 16px;
-        font-size: 1.3rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .selected-count {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white;
-        padding: 5px 16px;
-        border-radius: 40px;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: var(--gray-700);
-        font-size: 0.8rem;
-    }
-
-    .required:after {
-        content: "*";
-        color: var(--danger);
-        margin-right: 4px;
-    }
-
-    input, select {
-        width: 100%;
-        padding: 12px 14px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(120, 190, 185, 0.5);
-        border-radius: 20px;
-        font-size: 0.85rem;
-        transition: all 0.2s;
-        font-family: inherit;
-        color: var(--gray-700);
-    }
-
-    input:focus, select:focus {
-        outline: none;
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.1);
-    }
-
-    .row {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .row .form-group {
-        flex: 1;
-        min-width: 150px;
-    }
-
-    /* Settings Sections */
-    .settings-section {
-        background: rgba(120, 190, 185, 0.08);
-        border-radius: 24px;
-        padding: 20px;
-        margin: 20px 0;
-        border: 1px solid rgba(120, 190, 185, 0.2);
-    }
-
-    .settings-section h3 {
-        font-size: 0.9rem;
-        color: var(--gray-800);
-        margin-bottom: 16px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid rgba(120, 190, 185, 0.3);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .setting-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-        padding: 10px 14px;
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 20px;
-        cursor: pointer;
-    }
-
-    .setting-item:hover {
-        background: rgba(255, 255, 255, 0.9);
-    }
-
-    .setting-item input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
-        margin: 0;
-        accent-color: var(--primary);
-    }
-
-    .setting-item label {
-        margin: 0;
-        cursor: pointer;
-        flex: 1;
-        font-weight: 500;
-    }
-
-    .setting-item select {
-        width: auto;
-        min-width: 200px;
-    }
-
-    .help-text {
-        font-size: 0.72rem;
-        color: var(--gray-500);
-        margin-top: 4px;
-        display: block;
-    }
-
-    .date-note {
-        background: rgba(46, 196, 182, 0.1);
-        padding: 12px 18px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        margin-bottom: 24px;
-        color: var(--gray-700);
-        border-right: 3px solid var(--primary);
-    }
-
-    .form-errors {
-        background: rgba(220, 134, 134, 0.14);
-        padding: 14px 18px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        margin-bottom: 24px;
-        color: #a94442;
-        border: 1px solid rgba(220, 134, 134, 0.35);
-        border-right: 3px solid #dc8686;
-    }
-
-    .form-errors ul {
-        margin: 8px 20px 0 0;
-        line-height: 2;
-    }
-
-    .jalali-display {
-        font-size: 0.72rem;
-        color: var(--gray-600);
-        margin-top: 8px;
-        padding: 6px 12px;
-        background: rgba(120, 190, 185, 0.1);
-        border-radius: 16px;
-    }
-
-    .jalali-display span {
-        color: var(--primary);
-        font-weight: 600;
-    }
-
-    /* Filter Section */
-    .filter-section {
-        background: rgba(120, 190, 185, 0.08);
-        border-radius: 24px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .filter-row {
-        display: flex;
-        gap: 15px;
-        align-items: flex-end;
-        flex-wrap: wrap;
-    }
-
-    .filter-row .form-group {
-        flex: 1;
-        margin-bottom: 0;
-        min-width: 140px;
-    }
-
-    .filter-row button {
-        padding: 10px 24px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        border: none;
-        border-radius: 40px;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .filter-row button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(11, 74, 82, 0.3);
-    }
-
-    .reset-btn {
-        background: rgba(120, 190, 185, 0.3) !important;
-        color: var(--gray-700) !important;
-    }
-
-    .students-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .students-header span {
-        font-weight: 600;
-        color: var(--gray-700);
-        font-size: 0.85rem;
-    }
-
-    .select-buttons {
-        display: flex;
-        gap: 10px;
-    }
-
-    .select-all-btn, .deselect-all-btn {
-        border: none;
-        padding: 6px 18px;
-        border-radius: 40px;
-        cursor: pointer;
-        font-size: 0.7rem;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-
-    .select-all-btn {
-        background: linear-gradient(135deg, var(--success), #6b8a32);
-        color: white;
-    }
-
-    .deselect-all-btn {
-        background: rgba(220, 134, 134, 0.2);
-        color: var(--danger);
-        border: 1px solid rgba(220, 134, 134, 0.3);
-    }
-
-    .students-list {
-        max-height: 350px;
-        overflow-y: auto;
-        border: 1px solid rgba(120, 190, 185, 0.3);
-        border-radius: 24px;
-        background: rgba(255, 255, 255, 0.6);
-    }
-
-    .student-item {
-        padding: 12px 16px;
-        border-bottom: 1px solid rgba(120, 190, 185, 0.2);
-        display: flex;
-        align-items: center;
-        transition: background 0.2s;
-    }
-
-    .student-item:hover {
-        background: rgba(120, 190, 185, 0.1);
-    }
-
-    .student-item input {
-        width: 18px;
-        height: 18px;
-        margin-left: 14px;
-        cursor: pointer;
-        accent-color: var(--primary);
-    }
-
-    .student-item label {
-        margin: 0;
-        cursor: pointer;
-        flex: 1;
-        font-weight: normal;
-        font-size: 0.8rem;
-    }
-
-    .student-name {
-        font-weight: 700;
-        color: var(--gray-800);
-    }
-
-    .student-code {
-        color: var(--gray-500);
-        font-size: 0.72rem;
-        margin-right: 10px;
-    }
-
-    .student-grade {
-        color: var(--primary);
-        font-size: 0.72rem;
-        margin-right: 10px;
-        background: rgba(46, 196, 182, 0.15);
-        padding: 2px 10px;
-        border-radius: 20px;
-    }
-
-    .btn-submit {
-        background: linear-gradient(135deg, var(--success), #6b8a32);
-        color: white;
-        padding: 14px;
-        border: none;
-        border-radius: 40px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        width: 100%;
-        margin-top: 28px;
-        font-weight: 700;
-        transition: all 0.3s;
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(122, 156, 62, 0.3);
-    }
-
-    .back-link {
-        display: block;
-        text-align: center;
-        margin-top: 16px;
-        color: var(--gray-500);
-        text-decoration: none;
-        font-size: 0.75rem;
-        transition: all 0.2s;
-    }
-
-    .back-link:hover {
-        color: var(--primary);
-    }
-
-    .info-note {
-        background: rgba(74, 107, 114, 0.08);
-        padding: 14px 18px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        color: var(--gray-600);
-        margin-top: 20px;
-        border-right: 3px solid var(--info);
-    }
-
-    .loading {
-        text-align: center;
-        padding: 40px;
-        color: var(--gray-500);
-    }
-
-    @media (max-width: 640px) {
-        .container {
-            padding: 12px;
-        }
-        .card {
-            padding: 20px;
-        }
-        .filter-row {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .filter-row button {
-            width: 100%;
-        }
-        .students-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        .setting-item {
-            flex-wrap: wrap;
-        }
-        .setting-item select {
-            width: 100%;
-            margin-right: 0 !important;
-        }
-    }
-</style>
-{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="glass-card">
-        <div class="card">
-            <h2>
-                📝 ساخت آزمون جدید
-                <span class="selected-count" id="selectedCount">0 دانش‌آموز</span>
-            </h2>
+<style>
+    .ce { max-width: 860px; margin: 0 auto; }
+    .ce-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .ce-head h1 { font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--ink); }
+    .ce-head a { font-size: .82rem; font-weight: 700; color: var(--gold3); text-decoration: none; }
+    .ce-steps { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+    .ce-steps span { font-size: .74rem; font-weight: 700; color: var(--ink3); background: var(--card2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }
+    .ce-steps span.on { color: var(--gold3); border-color: var(--gold); background: var(--goldsoft); }
+    .ce-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 14px; }
+    .ce-card > h2 { font-size: .95rem; font-weight: 800; margin: 0 0 14px; color: var(--ink); display: flex; gap: 8px; align-items: center; }
+    .ce-card > h2 .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--gold2); color: #fff; font-size: .8rem; }
+    .ce-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .ce-grid .full { grid-column: 1 / -1; }
+    .ce-f label { display: block; font-size: .8rem; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
+    .ce-f label .req { color: var(--err); }
+    .ce-f input, .ce-f select { width: 100%; }
+    .ce-hint { font-size: .74rem; color: var(--ink3); margin-top: 5px; min-height: 1.2em; }
+    .ce-hint b { color: var(--gold3); }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+    .chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: .75rem; font-weight: 700; color: var(--ink2); cursor: pointer; min-height: 32px; }
+    .chip:hover, .chip.on { border-color: var(--gold2); color: var(--gold3); background: var(--goldsoft); }
+    .ce-err { background: var(--errsoft); border: 1px solid var(--errline); color: var(--err); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; font-size: .86rem; }
+    .ce-err ul { margin: 6px 18px 0 0; padding: 0; }
+    .field-err input, .field-err select { border-color: var(--err) !important; }
+    .field-err .ce-hint { color: var(--err); }
 
-            <div class="date-note">
-                📅 توجه: تاریخ و ساعت را به صورت میلادی وارد کنید. زمان معادل شمسی در زیر هر فیلد نمایش داده می‌شود.
+    details.more { border: 1px solid var(--line); border-radius: 16px; background: var(--card2); }
+    details.more > summary { cursor: pointer; list-style: none; padding: 14px 16px; font-weight: 800; font-size: .88rem; color: var(--ink); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    details.more > summary::-webkit-details-marker { display: none; }
+    details.more > summary small { font-weight: 600; color: var(--ink3); font-size: .74rem; }
+    details.more > summary::after { content: '▾'; color: var(--gold3); transition: transform .2s; }
+    details.more[open] > summary::after { transform: rotate(180deg); }
+    .more-body { padding: 0 16px 16px; display: grid; gap: 16px; }
+    .opt-group h3 { font-size: .8rem; font-weight: 800; color: var(--ink2); margin: 0 0 8px; }
+    .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .seg label { cursor: pointer; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg span { display: block; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; background: #fff; font-size: .8rem; font-weight: 700; color: var(--ink); height: 100%; }
+    .seg span small { display: block; font-weight: 500; color: var(--ink3); font-size: .7rem; margin-top: 2px; line-height: 1.7; }
+    .seg input:checked + span { border-color: var(--gold2); background: var(--goldsoft); box-shadow: 0 0 0 3px rgba(46,196,182,.15); }
+    .seg input:focus-visible + span { outline: 2px solid var(--gold2); }
+    .sw { display: flex; align-items: center; gap: 10px; padding: 8px 0; cursor: pointer; font-size: .84rem; color: var(--ink); }
+    .sw input { width: 18px; height: 18px; accent-color: var(--gold2); flex: 0 0 auto; }
+    .sw.sub { padding-right: 28px; }
+    .sw.disabled { opacity: .45; }
+
+    .st-tools { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 10px; }
+    .st-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; font-size: .8rem; color: var(--ink2); }
+    .st-bar .links { display: flex; gap: 12px; }
+    .st-bar button { background: none; border: none; font: inherit; font-weight: 700; color: var(--gold3); cursor: pointer; padding: 4px 0; }
+    .st-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; max-height: 340px; overflow: auto; padding: 2px; }
+    .st { display: flex; gap: 8px; align-items: center; padding: 9px 10px; border: 1px solid var(--line2); border-radius: 12px; background: var(--card2); cursor: pointer; font-size: .8rem; min-height: 44px; }
+    .st:has(input:checked) { border-color: var(--gold2); background: var(--goldsoft); }
+    .st input { width: 17px; height: 17px; accent-color: var(--gold2); flex: 0 0 auto; }
+    .st .nm { font-weight: 700; color: var(--ink); }
+    .st .cd { color: var(--ink3); font-size: .7rem; }
+    .st-empty { padding: 18px; text-align: center; color: var(--ink3); font-size: .82rem; grid-column: 1 / -1; }
+
+    .ce-submit { position: sticky; bottom: 10px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+        background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 18px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(8,45,52,.10); }
+    .ce-submit .sum { font-size: .8rem; color: var(--ink2); }
+    .ce-submit .sum b { color: var(--ink); }
+    .ce-submit .btn { min-width: 170px; min-height: 44px; }
+
+    @media (max-width: 640px) {
+        .ce-grid, .seg { grid-template-columns: 1fr; }
+        .ce-card { padding: 16px; }
+        .ce-submit .btn { width: 100%; }
+    }
+</style>
+
+<div class="ce">
+    <div class="ce-head">
+        <h1>📝 ساخت آزمون جدید</h1>
+        <a href="{% url 'teacher_dashboard' %}">انصراف و بازگشت</a>
+    </div>
+    <div class="ce-steps" aria-hidden="true">
+        <span class="on">۱. مشخصات و زمان</span><span class="on">۲. شرکت‌کنندگان</span><span>۳. افزودن سوال‌ها (صفحهٔ بعد)</span>
+    </div>
+
+    {% if errors %}
+    <div class="ce-err" role="alert">
+        ⚠️ <strong>امکان ذخیره آزمون وجود ندارد؛ این موارد را اصلاح کنید:</strong>
+        <ul>{% for err in errors %}<li>{{ err }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    <form method="post" id="examForm" novalidate>
+        {% csrf_token %}
+
+        <section class="ce-card">
+            <h2><span class="n">۱</span> مشخصات و زمان</h2>
+            <div class="ce-grid">
+                <div class="ce-f full">
+                    <label for="fTitle">عنوان آزمون <span class="req">*</span></label>
+                    <input type="text" id="fTitle" name="title" maxlength="200" placeholder="مثلاً: ریاضی نهم — فصل ۳" value="{{ form.title|default:'' }}" required autofocus>
+                    <div class="ce-hint" data-hint="title"></div>
+                </div>
+                <div class="ce-f">
+                    <label for="gradeSelect">پایه <span class="req">*</span></label>
+                    <select name="grade" id="gradeSelect" required>
+                        <option value="">انتخاب کنید</option>
+                        {% for grade in grades %}
+                        <option value="{{ grade.id }}" {% if form.grade == grade.id|stringformat:"s" %}selected{% endif %}>{{ grade.get_name_display }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="ce-hint" data-hint="grade">دانش‌آموزان همین پایه در بخش ۲ نمایش داده می‌شوند.</div>
+                </div>
+                <div class="ce-f">
+                    <label for="fDuration">مدت پاسخ‌گویی (دقیقه) <span class="req">*</span></label>
+                    <input type="number" id="fDuration" name="duration" inputmode="numeric" min="1" max="600" value="{{ form.duration|default:'60' }}" required>
+                    <div class="chips" role="group" aria-label="مدت‌های رایج">
+                        <button type="button" class="chip" data-min="20">۲۰</button>
+                        <button type="button" class="chip" data-min="30">۳۰</button>
+                        <button type="button" class="chip" data-min="45">۴۵</button>
+                        <button type="button" class="chip" data-min="60">۶۰</button>
+                        <button type="button" class="chip" data-min="90">۹۰</button>
+                    </div>
+                    <div class="ce-hint" data-hint="duration"></div>
+                </div>
+                <div class="ce-f">
+                    <label for="startTime">باز شدن آزمون <span class="req">*</span></label>
+                    <input type="datetime-local" name="start_time" id="startTime" value="{{ default_start }}" required>
+                    <div class="chips">
+                        <button type="button" class="chip" data-start="now">همین الان</button>
+                        <button type="button" class="chip" data-start="tomorrow8">فردا ساعت ۸</button>
+                    </div>
+                    <div class="ce-hint" id="startJalali"></div>
+                </div>
+                <div class="ce-f">
+                    <label for="endTime">بسته شدن آزمون <span class="req">*</span></label>
+                    <input type="datetime-local" name="end_time" id="endTime" value="{{ default_end }}" required>
+                    <div class="ce-hint" id="endJalali"></div>
+                </div>
             </div>
+        </section>
 
-            {% if errors %}
-            <div class="form-errors">
-                ⚠️ <strong>امکان ذخیره آزمون وجود ندارد:</strong>
-                <ul>
-                    {% for err in errors %}<li>{{ err }}</li>{% endfor %}
-                </ul>
+        <section class="ce-card">
+            <h2><span class="n">۲</span> چه کسانی شرکت می‌کنند؟</h2>
+            <div class="st-tools">
+                <input type="search" id="searchName" placeholder="🔎 جستجوی نام یا کد دانش‌آموزی" aria-label="جستجوی دانش‌آموز">
+                <select id="filterGrade" aria-label="فیلتر پایه">
+                    <option value="">همهٔ پایه‌ها</option>
+                    {% for grade in grades %}<option value="{{ grade.id }}">{{ grade.get_name_display }}</option>{% endfor %}
+                </select>
+            </div>
+            {% if groups %}
+            <div class="chips" style="margin:0 0 10px;" aria-label="انتخاب سریع گروه">
+                {% for g in groups %}<button type="button" class="chip" data-group="{{ g.id }}">👥 {{ g.name }} ({{ g.students|length }})</button>{% endfor %}
             </div>
             {% endif %}
-
-            <form method="post" id="examForm">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label class="required">عنوان آزمون</label>
-                    <input type="text" name="title" placeholder="مثال: امتحان ریاضی دی ماه"
-                           value="{{ form.title|default:'' }}" required>
-                </div>
-
-                <div class="row">
-                    <div class="form-group">
-                        <label class="required">پایه تحصیلی</label>
-                        <select name="grade" id="gradeSelect" required>
-                            <option value="">--- انتخاب کنید ---</option>
-                            {% for grade in grades %}
-                                <option value="{{ grade.id }}"
-                                        {% if form.grade == grade.id|stringformat:"s" %}selected{% endif %}>
-                                    {{ grade.get_name_display }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="required">مدت زمان (دقیقه)</label>
-                        <input type="number" name="duration" placeholder="مثال: 60" required min="1" max="180"
-                               value="{{ form.duration|default:'' }}">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="form-group">
-                        <label class="required">زمان شروع آزمون (میلادی)</label>
-                        <input type="datetime-local" name="start_time" id="startTime" value="{{ default_start }}" required>
-                        <div class="jalali-display" id="startJalali">
-                            {% if start_jalali %}🏛️ معادل شمسی: <span>{{ start_jalali }}</span>{% endif %}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="required">زمان پایان آزمون (میلادی)</label>
-                        <input type="datetime-local" name="end_time" id="endTime" value="{{ default_end }}" required>
-                        <div class="jalali-display" id="endJalali">
-                            {% if end_jalali %}🏛️ معادل شمسی: <span>{{ end_jalali }}</span>{% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- تنظیمات تایمر -->
-                <div class="settings-section">
-                    <h3>⏱️ تنظیمات زمان (تایمر)</h3>
-                    <div class="setting-item">
-                        <label>نوع تایمر:</label>
-                        <select name="timer_type">
-                            <option value="floating" selected>🏃 تایم شناور - از لحظه شروع هر دانش‌آموز</option>
-                            <option value="fixed">🔒 تایم ثابت - همه تا زمان پایان مشخص</option>
-                        </select>
-                    </div>
-                    <div class="help-text" style="margin-right: 0; margin-top: 8px;">
-                        🏃 <strong>تایم شناور:</strong> هر دانش‌آموز از لحظه ورودش به آزمون، به اندازه مدت زمان تعیین شده زمان دارد.<br>
-                        🔒 <strong>تایم ثابت:</strong> همه دانش‌آموزان تا زمان پایان مشخص شده فرصت دارند.
-                    </div>
-                </div>
-
-                <!-- تنظیمات امنیتی -->
-                <div class="settings-section">
-                    <h3>🛡️ تنظیمات امنیتی و جلوگیری از تقلب</h3>
-                    <div class="setting-item">
-                        <input type="checkbox" name="enable_anti_cheat" id="enable_anti_cheat" checked>
-                        <label for="enable_anti_cheat">✅ فعال کردن سیستم تشخیص تقلب</label>
-                    </div>
-                    <div class="setting-item">
-                        <input type="checkbox" name="prevent_tab_switch" id="prevent_tab_switch" checked>
-                        <label for="prevent_tab_switch">🚫 جلوگیری از تغییر تب</label>
-                    </div>
-                    <div class="setting-item">
-                        <input type="checkbox" name="prevent_copy_paste" id="prevent_copy_paste" checked>
-                        <label for="prevent_copy_paste">📋 جلوگیری از کپی/پیست</label>
-                    </div>
-                    <div class="setting-item">
-                        <input type="checkbox" name="track_ip" id="track_ip" checked>
-                        <label for="track_ip">🌐 ردیابی IP دانش‌آموزان</label>
-                    </div>
-                </div>
-
-                <!-- تنظیمات نمایش سوالات -->
-                <div class="settings-section">
-                    <h3>📄 تنظیمات نمایش سوالات</h3>
-                    <div class="setting-item">
-                        <label>نحوه نمایش سوالات:</label>
-                        <select name="show_questions_mode">
-                            <option value="all">📑 همه سوالات در یک صفحه</option>
-                            <option value="one_by_one" selected>📄 هر سوال در یک صفحه جداگانه</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <input type="checkbox" name="show_back_button" id="show_back_button" checked>
-                        <label for="show_back_button">🔙 نمایش دکمه بازگشت به سوال قبلی</label>
-                    </div>
-                </div>
-
-                <!-- تنظیمات پاسخ تشریحی -->
-                <div class="settings-section">
-                    <h3>📝 تنظیمات پاسخ تشریحی</h3>
-                    <div class="setting-item">
-                        <input type="checkbox" name="allow_teacher_answer" id="allow_teacher_answer" checked>
-                        <label for="allow_teacher_answer">👨‍🏫 معلم می‌تواند پاسخ تشریحی وارد کند</label>
-                    </div>
-                    <div class="setting-item">
-                        <input type="checkbox" name="show_answers_after_exam" id="show_answers_after_exam">
-                        <label for="show_answers_after_exam">📖 نمایش پاسخ صحیح به دانش‌آموز بعد از اتمام آزمون</label>
-                    </div>
-                </div>
-
-                <div class="setting-item" style="background: rgba(120, 190, 185, 0.1); margin-top: 8px;">
-                    <input type="checkbox" name="show_score" id="show_score">
-                    <label for="show_score">📊 نمایش نمره به دانش‌آموز بعد از اتمام آزمون</label>
-                </div>
-
-                <!-- فیلتر دانش‌آموزان -->
-                <div class="filter-section">
-                    <div class="filter-row">
-                        <div class="form-group">
-                            <label>🔍 فیلتر بر اساس پایه</label>
-                            <select id="filterGrade">
-                                <option value="">همه پایه‌ها</option>
-                                {% for grade in grades %}
-                                    <option value="{{ grade.id }}">{{ grade.get_name_display }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>🔎 جستجوی نام</label>
-                            <input type="text" id="searchName" placeholder="نام یا نام خانوادگی...">
-                        </div>
-                        <button type="button" id="applyFilterBtn">اعمال فیلتر</button>
-                        <button type="button" id="resetFilterBtn" class="reset-btn">🔄 Reset</button>
-                    </div>
-                </div>
-
-                <div class="students-header">
-                    <span>📋 دانش‌آموزان شرکت‌کننده</span>
-                    <div class="select-buttons">
-                        <button type="button" class="select-all-btn" id="selectAllBtn">✅ انتخاب همه</button>
-                        <button type="button" class="deselect-all-btn" id="deselectAllBtn">❌ لغو همه</button>
-                    </div>
-                </div>
-                <div class="students-list" id="studentsList">
-                    <div class="loading">⏳ در حال بارگذاری دانش‌آموزان...</div>
-                </div>
-
-                <button type="submit" class="btn-submit" id="submitBtn">✅ ایجاد آزمون</button>
-                <a href="{% url 'teacher_dashboard' %}" class="back-link">← بازگشت به داشبورد</a>
-            </form>
-
-            <div class="info-note">
-                💡 <strong>نکات مهم:</strong><br>
-                • فقط دانش‌آموزانی که در این لیست انتخاب شوند، می‌توانند در آزمون شرکت کنند.<br>
-                • تنظیمات امنیتی را می‌توانید بعداً در صفحه تنظیمات آزمون تغییر دهید.<br>
-                • در تایم ثابت، زمان پایان برای همه دانش‌آموزان یکسان است.
+            <div class="st-bar">
+                <span id="selectedCount" aria-live="polite">هیچ دانش‌آموزی انتخاب نشده</span>
+                <span class="links">
+                    <button type="button" id="selectAllBtn">انتخاب همهٔ موارد فهرست</button>
+                    <button type="button" id="deselectAllBtn">پاک کردن انتخاب</button>
+                </span>
             </div>
+            <div class="st-list" id="studentsList"><div class="st-empty">⏳ در حال بارگذاری…</div></div>
+            <div class="ce-hint" data-hint="students"></div>
+        </section>
+
+        <details class="more ce-card" style="padding:0;" {% if is_post %}open{% endif %}>
+            <summary>⚙️ تنظیمات بیشتر <small id="moreSummary">پیش‌فرض‌های پیشنهادی فعال است — بعداً هم قابل تغییر است</small></summary>
+            <div class="more-body">
+                <div class="opt-group">
+                    <h3>زمان‌بندی</h3>
+                    <div class="seg">
+                        <label><input type="radio" name="timer_type" value="floating" {% if form.timer_type != 'fixed' %}checked{% endif %}><span>🏃 از لحظهٔ ورود هر دانش‌آموز<small>هر نفر به اندازهٔ «مدت پاسخ‌گویی» وقت دارد.</small></span></label>
+                        <label><input type="radio" name="timer_type" value="fixed" {% if form.timer_type == 'fixed' %}checked{% endif %}><span>🔒 تا ساعت بسته شدن<small>همه تا زمان بسته شدن آزمون فرصت دارند.</small></span></label>
+                    </div>
+                </div>
+                <div class="opt-group">
+                    <h3>نمایش سوال‌ها</h3>
+                    <div class="seg">
+                        <label><input type="radio" name="show_questions_mode" value="one_by_one" {% if form.show_questions_mode != 'all' %}checked{% endif %}><span>📄 یکی‌یکی<small>تمرکز بیشتر؛ مناسب گوشی.</small></span></label>
+                        <label><input type="radio" name="show_questions_mode" value="all" {% if form.show_questions_mode == 'all' %}checked{% endif %}><span>📑 همه در یک صفحه<small>مرور سریع همهٔ سوال‌ها.</small></span></label>
+                    </div>
+                    <label class="sw"><input type="checkbox" name="show_back_button" {% if is_post %}{% if form.show_back_button %}checked{% endif %}{% else %}checked{% endif %}> امکان برگشت به سوال قبلی</label>
+                    <label class="sw"><input type="checkbox" name="random_questions" {% if form.random_questions %}checked{% endif %}> ترتیب تصادفی سوال‌ها برای هر دانش‌آموز</label>
+                </div>
+                <div class="opt-group">
+                    <h3>جلوگیری از تقلب</h3>
+                    <label class="sw"><input type="checkbox" name="enable_anti_cheat" id="enable_anti_cheat" {% if is_post %}{% if form.enable_anti_cheat %}checked{% endif %}{% else %}checked{% endif %}> فعال باشد</label>
+                    <label class="sw sub"><input type="checkbox" name="prevent_tab_switch" class="ac-sub" {% if is_post %}{% if form.prevent_tab_switch %}checked{% endif %}{% else %}checked{% endif %}> ثبت خروج از صفحه یا تغییر تب</label>
+                    <label class="sw sub"><input type="checkbox" name="prevent_copy_paste" class="ac-sub" {% if is_post %}{% if form.prevent_copy_paste %}checked{% endif %}{% else %}checked{% endif %}> جلوگیری از کپی و پیست</label>
+                    <label class="sw sub"><input type="checkbox" name="track_ip" class="ac-sub" {% if is_post %}{% if form.track_ip %}checked{% endif %}{% else %}checked{% endif %}> ثبت IP دانش‌آموز</label>
+                </div>
+                <div class="opt-group">
+                    <h3>بعد از آزمون</h3>
+                    <label class="sw"><input type="checkbox" name="show_score" {% if form.show_score %}checked{% endif %}> دانش‌آموز نمرهٔ خود را ببیند</label>
+                    <label class="sw"><input type="checkbox" name="show_answers_after_exam" {% if form.show_answers_after_exam %}checked{% endif %}> پاسخ‌های صحیح به دانش‌آموز نمایش داده شود</label>
+                    <label class="sw"><input type="checkbox" name="allow_teacher_answer" {% if is_post %}{% if form.allow_teacher_answer %}checked{% endif %}{% else %}checked{% endif %}> امکان ثبت پاسخ تشریحی معلم</label>
+                </div>
+            </div>
+        </details>
+
+        <div class="ce-submit">
+            <span class="sum" id="submitSummary">عنوان، پایه و دانش‌آموزان را مشخص کنید.</span>
+            <button type="submit" class="btn btn-gold" id="submitBtn">ساخت آزمون و افزودن سوال ←</button>
         </div>
-    </div>
+    </form>
 </div>
 
+{{ selected_ids|json_script:"selectedIds" }}
+{{ groups|json_script:"groupsData" }}
 <script>
-    let allStudents = [];
-    let selectedStudents = new Set();
-    let filteredStudents = [];
+(function () {
+    const $ = id => document.getElementById(id);
+    const FA = '۰۱۲۳۴۵۶۷۸۹';
+    const fa = n => String(n).replace(/\d/g, d => FA[d]);
+    const toEn = s => String(s || '').replace(/[۰-۹]/g, d => FA.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const form = $('examForm');
+    let all = [];
+    const selected = new Set(JSON.parse($('selectedIds').textContent));
+    const groups = JSON.parse($('groupsData').textContent);
 
-    async function loadStudents() {
+    /* ---------- تاریخ شمسی دقیق با تقویم خود مرورگر ---------- */
+    const pad = n => String(n).padStart(2, '0');
+    const toLocalInput = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    const parseInput = v => v ? new Date(v) : null;
+    function jalali(d) {
+        if (!d || isNaN(d)) return '';
         try {
-            const response = await fetch('/teacher/api/students/');
-            const data = await response.json();
-            allStudents = data.students;
-            filteredStudents = [...allStudents];
-            renderStudentsList();
-            updateSelectedCount();
-        } catch (error) {
-            document.getElementById('studentsList').innerHTML = '<div class="loading">❌ خطا در بارگذاری</div>';
-        }
+            return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
+        } catch (e) { return ''; }
     }
+    function human(mins) {
+        const h = Math.floor(mins / 60), m = mins % 60;
+        return (h ? fa(h) + ' ساعت' : '') + (h && m ? ' و ' : '') + (m ? fa(m) + ' دقیقه' : '');
+    }
+    function paintDates() {
+        const s = parseInput($('startTime').value), e = parseInput($('endTime').value);
+        $('startJalali').innerHTML = s ? '📅 <b>' + esc(jalali(s)) + '</b>' : '';
+        let endTxt = e ? '📅 <b>' + esc(jalali(e)) + '</b>' : '';
+        if (s && e) {
+            const diff = Math.round((e - s) / 60000);
+            endTxt += diff > 0 ? ' — آزمون ' + human(diff) + ' باز است' : ' — <span style="color:var(--err)">باید بعد از زمان باز شدن باشد</span>';
+        }
+        $('endJalali').innerHTML = endTxt;
+    }
+    // اگر بازهٔ باز بودن از مدت آزمون کوتاه‌تر شد، زمان بسته شدن خودکار جلو می‌رود
+    function ensureWindow() {
+        const s = parseInput($('startTime').value), e = parseInput($('endTime').value);
+        const dur = parseInt(toEn($('fDuration').value), 10) || 0;
+        if (s && (!e || e - s < dur * 60000)) $('endTime').value = toLocalInput(new Date(s.getTime() + Math.max(dur, 60) * 60000));
+        paintDates();
+    }
+    $('startTime').addEventListener('change', ensureWindow);
+    $('endTime').addEventListener('change', paintDates);
+    $('fDuration').addEventListener('change', ensureWindow);
+    document.querySelectorAll('[data-min]').forEach(b => b.addEventListener('click', () => {
+        $('fDuration').value = b.dataset.min; syncChips(); ensureWindow(); summary();
+    }));
+    function syncChips() { document.querySelectorAll('[data-min]').forEach(b => b.classList.toggle('on', b.dataset.min === toEn($('fDuration').value))); }
+    $('fDuration').addEventListener('input', syncChips);
+    document.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click', () => {
+        const d = new Date(); d.setSeconds(0, 0);
+        if (b.dataset.start === 'tomorrow8') { d.setDate(d.getDate() + 1); d.setHours(8, 0); }
+        const oldS = parseInput($('startTime').value), oldE = parseInput($('endTime').value);
+        const span = oldS && oldE && oldE > oldS ? oldE - oldS : 2 * 3600000;
+        $('startTime').value = toLocalInput(d);
+        $('endTime').value = toLocalInput(new Date(d.getTime() + span));
+        ensureWindow();
+    }));
 
-    function renderStudentsList() {
-        const container = document.getElementById('studentsList');
-        if (filteredStudents.length === 0) {
-            container.innerHTML = '<div class="loading">📭 دانش‌آموزی یافت نشد</div>';
+    /* ---------- دانش‌آموزان ---------- */
+    function filtered() {
+        const g = $('filterGrade').value, q = toEn($('searchName').value.trim()).toLowerCase();
+        return all.filter(s => (!g || String(s.grade_id) === g) &&
+            (!q || (s.full_name || '').toLowerCase().includes(q) || toEn(s.student_code || '').includes(q)));
+    }
+    function render() {
+        const list = filtered(), host = $('studentsList');
+        if (!all.length) { host.innerHTML = '<div class="st-empty">هنوز دانش‌آموزی در سامانه ثبت نشده است.</div>'; return; }
+        if (!list.length) { host.innerHTML = '<div class="st-empty">📭 دانش‌آموزی با این مشخصات پیدا نشد.</div>'; return; }
+        host.innerHTML = list.map(s => '<label class="st"><input type="checkbox" value="' + s.id + '"' + (selected.has(s.id) ? ' checked' : '') + '>' +
+            '<span><span class="nm">' + esc(s.full_name) + '</span><br><span class="cd">' + esc(s.grade_name) + (s.student_code ? ' · ' + esc(s.student_code) : '') + '</span></span></label>').join('');
+    }
+    $('studentsList').addEventListener('change', e => {
+        if (e.target.type !== 'checkbox') return;
+        const id = parseInt(e.target.value, 10);
+        e.target.checked ? selected.add(id) : selected.delete(id);
+        count();
+    });
+    function count() {
+        $('selectedCount').textContent = selected.size ? fa(selected.size) + ' دانش‌آموز انتخاب شده' : 'هیچ دانش‌آموزی انتخاب نشده';
+        summary();
+    }
+    $('searchName').addEventListener('input', render);
+    $('filterGrade').addEventListener('change', render);
+    $('selectAllBtn').addEventListener('click', () => { filtered().forEach(s => selected.add(s.id)); render(); count(); });
+    $('deselectAllBtn').addEventListener('click', () => { selected.clear(); render(); count(); });
+    document.querySelectorAll('[data-group]').forEach(b => b.addEventListener('click', () => {
+        const g = groups.find(x => String(x.id) === b.dataset.group);
+        if (!g) return;
+        const allIn = g.students.every(id => selected.has(id));
+        g.students.forEach(id => allIn ? selected.delete(id) : selected.add(id));
+        b.classList.toggle('on', !allIn);
+        render(); count();
+    }));
+    // انتخاب پایه: فهرست فیلتر می‌شود و اگر هنوز کسی انتخاب نشده، همهٔ دانش‌آموزان آن پایه انتخاب می‌شوند
+    $('gradeSelect').addEventListener('change', function () {
+        $('filterGrade').value = this.value;
+        if (this.value && !selected.size) filtered().forEach(s => selected.add(s.id));
+        render(); count(); clearErr(this);
+    });
+
+    fetch('{% url "get_students_api" %}', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(d => {
+            all = d.students || [];
+            if ($('gradeSelect').value) $('filterGrade').value = $('gradeSelect').value;
+            render(); count();
+        })
+        .catch(() => { $('studentsList').innerHTML = '<div class="st-empty">❌ فهرست دانش‌آموزان بارگذاری نشد. صفحه را دوباره باز کنید.</div>'; });
+
+    /* ---------- تنظیمات ضدتقلب ---------- */
+    function syncAC() {
+        const on = $('enable_anti_cheat').checked;
+        document.querySelectorAll('.ac-sub').forEach(cb => { cb.disabled = !on; cb.closest('.sw').classList.toggle('disabled', !on); });
+    }
+    $('enable_anti_cheat').addEventListener('change', syncAC);
+
+    /* ---------- خلاصه و اعتبارسنجی درجا ---------- */
+    function summary() {
+        const t = $('fTitle').value.trim(), g = $('gradeSelect');
+        const parts = [];
+        if (t) parts.push('<b>' + esc(t) + '</b>');
+        if (g.value) parts.push(esc(g.options[g.selectedIndex].text.trim()));
+        const d = parseInt(toEn($('fDuration').value), 10);
+        if (d) parts.push(fa(d) + ' دقیقه');
+        parts.push(selected.size ? fa(selected.size) + ' دانش‌آموز' : 'بدون دانش‌آموز');
+        $('submitSummary').innerHTML = parts.join(' · ');
+    }
+    function setErr(name, msg) {
+        const hint = form.querySelector('[data-hint="' + name + '"]');
+        if (!hint) return;
+        hint.dataset.orig = hint.dataset.orig ?? hint.textContent;
+        hint.textContent = msg;
+        hint.closest('.ce-f, .ce-card').classList.add('field-err');
+    }
+    function clearErr(elm) {
+        const box = elm.closest('.ce-f'); if (!box) return;
+        box.classList.remove('field-err');
+        const hint = box.querySelector('.ce-hint[data-orig]');
+        if (hint) hint.textContent = hint.dataset.orig;
+    }
+    form.addEventListener('input', e => { clearErr(e.target); summary(); });
+    form.addEventListener('submit', e => {
+        form.querySelectorAll('.field-err').forEach(x => x.classList.remove('field-err'));
+        let first = null;
+        const fail = (name, msg, elm) => { setErr(name, msg); first = first || elm; };
+        if (!$('fTitle').value.trim()) fail('title', 'عنوان آزمون را بنویسید.', $('fTitle'));
+        if (!$('gradeSelect').value) fail('grade', 'پایه را انتخاب کنید.', $('gradeSelect'));
+        const d = parseInt(toEn($('fDuration').value), 10);
+        if (!(d >= 1 && d <= 600)) fail('duration', 'مدت باید بین ۱ تا ۶۰۰ دقیقه باشد.', $('fDuration'));
+        const s = parseInput($('startTime').value), en = parseInput($('endTime').value);
+        if (!s || !en || en <= s) { first = first || $('endTime'); }
+        if (!selected.size) fail('students', 'حداقل یک دانش‌آموز انتخاب کنید (یا پایه را انتخاب کنید تا همه انتخاب شوند).', $('searchName'));
+        if (first) {
+            e.preventDefault();
+            first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => first.focus({ preventScroll: true }), 300);
             return;
         }
-        let html = '';
-        filteredStudents.forEach(student => {
-            const isSelected = selectedStudents.has(student.id);
-            html += `<div class="student-item">
-                        <input type="checkbox" name="students" value="${student.id}" id="student_${student.id}" ${isSelected ? 'checked' : ''}>
-                        <label for="student_${student.id}">
-                            <span class="student-name">${escapeHtml(student.full_name)}</span>
-                            <span class="student-code">(${student.student_code || 'بدون کد'})</span>
-                            <span class="student-grade">${student.grade_name}</span>
-                        </label>
-                    </div>`;
-        });
-        container.innerHTML = html;
-
-        document.querySelectorAll('#studentsList input[type="checkbox"]').forEach(cb => {
-            cb.addEventListener('change', function() {
-                const studentId = parseInt(this.value);
-                if (this.checked) selectedStudents.add(studentId);
-                else selectedStudents.delete(studentId);
-                updateSelectedCount();
-            });
-        });
-    }
-
-    function updateSelectedCount() {
-        document.getElementById('selectedCount').innerText = `${selectedStudents.size} دانش‌آموز`;
-    }
-
-    function applyFilters() {
-        const filterGrade = document.getElementById('filterGrade').value;
-        const searchName = document.getElementById('searchName').value.toLowerCase();
-        filteredStudents = allStudents.filter(student => {
-            if (filterGrade && student.grade_id != filterGrade) return false;
-            if (searchName && !student.full_name.toLowerCase().includes(searchName)) return false;
-            return true;
-        });
-        renderStudentsList();
-    }
-
-    function resetFilters() {
-        document.getElementById('filterGrade').value = '';
-        document.getElementById('searchName').value = '';
-        applyFilters();
-    }
-
-    function selectAll() {
-        document.querySelectorAll('#studentsList input[type="checkbox"]').forEach(cb => {
-            cb.checked = true;
-            selectedStudents.add(parseInt(cb.value));
-        });
-        updateSelectedCount();
-    }
-
-    function deselectAll() {
-        document.querySelectorAll('#studentsList input[type="checkbox"]').forEach(cb => {
-            cb.checked = false;
-            selectedStudents.delete(parseInt(cb.value));
-        });
-        updateSelectedCount();
-    }
-
-    function toJalali(datetimeLocal) {
-        if (!datetimeLocal) return '';
-        let [date, time] = datetimeLocal.split('T');
-        if (!date) return '';
-        let [year, month, day] = date.split('-').map(Number);
-        let [hour, minute] = time ? time.split(':').map(Number) : [0, 0];
-        let jd = new Date(Date.UTC(year, month - 1, day, hour, minute));
-        let jy = jd.getFullYear() - 621;
-        let jm = jd.getMonth() + 1;
-        let jdDay = jd.getDate();
-        let jalaliMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
-        return `${jy}/${jm.toString().padStart(2,'0')}/${jdDay.toString().padStart(2,'0')} ${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')} (${jalaliMonths[jm-1]})`;
-    }
-
-    function updateJalaliDisplays() {
-        const startTime = document.getElementById('startTime').value;
-        const endTime = document.getElementById('endTime').value;
-        if (startTime) document.getElementById('startJalali').innerHTML = `🏛️ معادل شمسی: <span>${toJalali(startTime)}</span>`;
-        if (endTime) document.getElementById('endJalali').innerHTML = `🏛️ معادل شمسی: <span>${toJalali(endTime)}</span>`;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
-    }
-
-    document.getElementById('examForm').addEventListener('submit', function(e) {
-        const title = document.querySelector('input[name="title"]').value.trim();
-        if (!title) {
-            e.preventDefault();
-            alert('❌ لطفا عنوان آزمون را وارد کنید!');
-            return false;
-        }
-        const startTime = document.getElementById('startTime').value;
-        const endTime = document.getElementById('endTime').value;
-        if (startTime && endTime && startTime >= endTime) {
-            e.preventDefault();
-            alert('❌ زمان پایان باید بعد از زمان شروع باشد!');
-            return false;
-        }
-        if (selectedStudents.size === 0) {
-            e.preventDefault();
-            alert('❌ لطفا حداقل یک دانش‌آموز را انتخاب کنید!');
-            return false;
-        }
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.innerHTML = '⏳ در حال ایجاد آزمون...';
-        submitBtn.disabled = true;
+        $('fDuration').value = toEn($('fDuration').value);
+        // همهٔ انتخاب‌ها ارسال شوند، حتی آن‌هایی که با جستجو پنهان شده‌اند
+        form.querySelectorAll('input[name=students]').forEach(i => i.remove());
+        selected.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'students'; i.value = id; form.appendChild(i); });
+        const btn = $('submitBtn'); btn.disabled = true; btn.textContent = '⏳ در حال ساخت…';
     });
 
-    document.getElementById('gradeSelect').addEventListener('change', function() {
-        document.getElementById('filterGrade').value = this.value;
-        applyFilters();
-    });
-    document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
-    document.getElementById('resetFilterBtn').addEventListener('click', resetFilters);
-    document.getElementById('selectAllBtn').addEventListener('click', selectAll);
-    document.getElementById('deselectAllBtn').addEventListener('click', deselectAll);
-    document.getElementById('searchName').addEventListener('keyup', function(e) {
-        if (e.key === 'Enter') applyFilters();
-    });
-    document.getElementById('startTime').addEventListener('change', updateJalaliDisplays);
-    document.getElementById('endTime').addEventListener('change', updateJalaliDisplays);
-
-    loadStudents();
+    syncAC(); syncChips(); paintDates(); summary();
+})();
 </script>
 {% endblock %}
