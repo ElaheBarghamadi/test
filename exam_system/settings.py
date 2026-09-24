@@ -133,6 +133,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT.mkdir(parents=True, exist_ok=True)  # prevents WhiteNoise 'No directory' warning
 
 # Django 5.2 فقط STORAGES را می‌شناسد (STATICFILES_STORAGE حذف شده است).
 # ذخیره‌ساز بدون manifest: اگر collectstatic اجرا نشده باشد هم صفحه‌ها خطا نمی‌دهند.
