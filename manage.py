@@ -27,6 +27,16 @@ def apply_pending_migrations():
         print(f'⚠️ بررسی مایگریشن ناموفق بود (نیاز به اجرای دستی migrate): {exc}', flush=True)
 
 
+def ensure_default_users():
+    """هر بار اجرای runserver: کاربران admin/teacher/student اگر نباشند ساخته می‌شوند."""
+    try:
+        from django.core.management import call_command
+        call_command('ensure_default_users')
+        sys.stdout.flush()
+    except Exception as exc:
+        print(f'⚠️ ساخت کاربران پیش‌فرض ناموفق بود: {exc}', flush=True)
+
+
 def main():
     """Run administrative commands."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "exam_system.settings")
@@ -38,8 +48,10 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-    if len(sys.argv) > 1 and sys.argv[1] == 'runserver':
+    # فقط در فرایند اصلی runserver (نه فرایند autoreload) تا دوبار اجرا نشود
+    if len(sys.argv) > 1 and sys.argv[1] == 'runserver' and os.environ.get('RUN_MAIN') != 'true':
         apply_pending_migrations()
+        ensure_default_users()
     execute_from_command_line(sys.argv)
 
 

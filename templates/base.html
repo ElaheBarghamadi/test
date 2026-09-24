@@ -451,73 +451,87 @@
     </style>
     {% block extra_css %}{% endblock %}
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=1">
 </head>
 <body>
 
-<!-- Navbar Glassmorphism -->
-<div class="navbar">
+<!-- ================== Header ================== -->
+{% with p=request.path %}
+<header class="navbar site-header" id="siteHeader">
     <div class="nav-container">
-        <div class="logo">
-            <span class="logo-icon">📚</span>
-            <div>
-                <div class="logo-text">سامانه آزمون</div>
-                <div class="logo-sub">آزمون غیرحضوری</div>
-            </div>
-        </div>
+        <a class="logo" href="{% if user.is_authenticated %}{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'teacher' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}{% else %}{% url 'login' %}{% endif %}" aria-label="صفحه اصلی">
+            <span class="logo-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg>
+            </span>
+            <span class="logo-texts">
+                <span class="logo-text">سامانه آزمون</span>
+                <span class="logo-sub">آزمون غیرحضوری</span>
+            </span>
+        </a>
 
-        <!-- Desktop Menu -->
-        <div class="nav-links">
+        <nav class="nav-links" aria-label="منوی اصلی">
             {% if user.is_authenticated %}
                 {% if user.role == 'admin' %}
-                    <a href="{% url 'admin_dashboard' %}" class="nav-link">🏠 داشبورد</a>
-                    <a href="{% url 'manage_users' %}" class="nav-link">👥 مدیریت کاربران</a>
-                    <a href="{% url 'manage_exams' %}" class="nav-link">📋 مدیریت آزمون‌ها</a>
-                    <a href="{% url 'system_logs' %}" class="nav-link">📜 لاگ سیستم</a>
+                    {% url 'admin_dashboard' as u1 %}{% url 'manage_users' as u2 %}{% url 'manage_exams' as u3 %}{% url 'system_logs' as u4 %}
+                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
+                    <a href="{{ u2 }}" class="nav-link {% if p == u2 %}active{% endif %}">کاربران</a>
+                    <a href="{{ u3 }}" class="nav-link {% if p == u3 %}active{% endif %}">آزمون‌ها</a>
+                    <a href="{{ u4 }}" class="nav-link {% if p == u4 %}active{% endif %}">لاگ سیستم</a>
                 {% elif user.role == 'teacher' %}
-                    <a href="{% url 'teacher_dashboard' %}" class="nav-link">🏠 داشبورد</a>
-                    <a href="{% url 'create_exam' %}" class="nav-link">➕ آزمون جدید</a>
-                    <a href="{% url 'question_bank' %}" class="nav-link">📚 بانک سوال</a>
-                    <a href="{% url 'groups' %}" class="nav-link">👥 گروه‌ها</a>
+                    {% url 'teacher_dashboard' as u1 %}{% url 'create_exam' as u2 %}{% url 'question_bank' as u3 %}{% url 'groups' as u4 %}
+                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
+                    <a href="{{ u2 }}" class="nav-link {% if p == u2 %}active{% endif %}">آزمون جدید</a>
+                    <a href="{{ u3 }}" class="nav-link {% if p == u3 %}active{% endif %}">بانک سوال</a>
+                    <a href="{{ u4 }}" class="nav-link {% if p == u4 %}active{% endif %}">گروه‌ها</a>
                 {% elif user.role == 'student' %}
-                    <a href="{% url 'student_dashboard' %}" class="nav-link">🏠 داشبورد</a>
-                    <details class="bell-menu">
-                        <summary title="اطلاعیه‌ها">🔔{% if bell_count %}<b>{{ bell_count }}</b>{% endif %}</summary>
-                        <div class="bell-items">
-                            {% if bell_announcements %}
-                                {% for a in bell_announcements %}
-                                <div class="bell-item">
-                                    <div class="bell-title">{{ a.title }}</div>
-                                    {% if a.body %}<div class="bell-body">{{ a.body|truncatewords:18 }}</div>{% endif %}
-                                    <div class="bell-time">{{ a.created_at|date:"Y/m/d H:i" }}</div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="bell-empty">📭 اطلاعیه‌ای نیست</div>
-                            {% endif %}
-                        </div>
-                    </details>
+                    {% url 'student_dashboard' as u1 %}
+                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
+                    <a href="{{ u1 }}#results" class="nav-link">نتایج من</a>
+                {% endif %}
+            {% endif %}
+        </nav>
+
+        <div class="nav-actions">
+            {% if user.is_authenticated %}
+                {% if user.role == 'student' %}
+                <details class="bell-menu">
+                    <summary title="اطلاعیه‌ها" aria-label="اطلاعیه‌ها">
+                        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                        {% if bell_count %}<b>{{ bell_count }}</b>{% endif %}
+                    </summary>
+                    <div class="bell-items">
+                        {% if bell_announcements %}
+                            {% for a in bell_announcements %}
+                            <div class="bell-item">
+                                <div class="bell-title">{{ a.title }}</div>
+                                {% if a.body %}<div class="bell-body">{{ a.body|truncatewords:18 }}</div>{% endif %}
+                                <div class="bell-time">{{ a.created_at|date:"Y/m/d H:i" }}</div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="bell-empty">📭 اطلاعیه‌ای نیست</div>
+                        {% endif %}
+                    </div>
+                </details>
                 {% endif %}
 
                 <div class="dropdown" id="userDropdown">
-                    <button class="dropdown-btn" id="dropdownBtn">
-                        {% if user.role == 'admin' %}🛡️
-                        {% elif user.role == 'teacher' %}👨‍🏫
-                        {% else %}👤{% endif %}
-                        {{ user.get_full_name|default:user.username }}
-                        <span style="font-size: 11px; opacity: 0.7;">
-                            ({% if user.role == 'admin' %}ادمین{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %})
+                    <button class="dropdown-btn user-chip" id="dropdownBtn" type="button" aria-haspopup="true">
+                        <span class="avatar">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
+                        <span class="user-meta">
+                            <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="user-role">{% if user.role == 'admin' %}مدیر سیستم{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %}</span>
                         </span>
-                        ▼
+                        <svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     <div class="dropdown-content" id="dropdownContent">
-                        <a href="#">👤 پروفایل</a>
                         {% if user.role == 'admin' %}
                             <a href="{% url 'admin_dashboard' %}">🏠 داشبورد ادمین</a>
-                            <a href="{% url 'manage_users' %}">👥 مدیریت کاربران</a>
-                            <a href="{% url 'manage_exams' %}">📋 مدیریت آزمون‌ها</a>
+                            <a href="{% url 'system_settings' %}">⚙️ تنظیمات سیستم</a>
                         {% elif user.role == 'teacher' %}
                             <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
+                            <a href="{% url 'question_bank' %}">📚 بانک سوال</a>
                         {% elif user.role == 'student' %}
                             <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
                         {% endif %}
@@ -527,19 +541,15 @@
                         </form>
                     </div>
                 </div>
-            {% else %}
-                <a href="{% url 'login' %}" class="nav-link">🔐 ورود</a>
             {% endif %}
-        </div>
 
-        <!-- Hamburger Button -->
-        <div class="hamburger" id="hamburger">
-            <span></span>
-            <span></span>
-            <span></span>
+            <button class="hamburger" id="hamburger" type="button" aria-label="باز کردن منو">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </div>
-</div>
+</header>
+{% endwith %}
 
 <!-- Sidebar Overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -575,11 +585,12 @@
             {% elif user.role == 'teacher' %}
                 <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
                 <a href="{% url 'create_exam' %}" class="sidebar-link">➕ آزمون جدید</a>
+                <a href="{% url 'question_bank' %}" class="sidebar-link">📚 بانک سوال</a>
+                <a href="{% url 'groups' %}" class="sidebar-link">👥 گروه‌ها</a>
             {% elif user.role == 'student' %}
                 <a href="{% url 'student_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
                 <a href="{% url 'student_dashboard' %}#results" class="sidebar-link">📊 نتایج من</a>
             {% endif %}
-            <a href="#" class="sidebar-link">👤 پروفایل</a>
             <form method="post" action="{% url 'logout_view' %}" class="logout-form">
                 {% csrf_token %}
                 <button type="submit" class="sidebar-link logout">🚪 خروج از حساب</button>
@@ -604,13 +615,71 @@
     {% block content %}{% endblock %}
 </div>
 
-<div class="footer">
-    <div class="footer-content">
-        <span>📚 سامانه آزمون غیرحضوری</span>
-        <span>© ۱۴۰۵ - تمامی حقوق محفوظ است</span>
-        <span>📧 پشتیبانی: واحد فناوری اطلاعات</span>
+<footer class="footer site-footer">
+    <div class="footer-wave" aria-hidden="true">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0 30c240 30 480 30 720 0s480-30 720 0v30H0z" fill="currentColor"/></svg>
     </div>
-</div>
+    <div class="footer-inner">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <span class="logo-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg></span>
+                    <span>سامانه آزمون غیرحضوری</span>
+                </div>
+                <p>برگزاری، تصحیح و تحلیل آزمون‌های آنلاین؛ ساده، امن و در دسترس از هر دستگاه.</p>
+                <div class="footer-badges">
+                    <span>🔒 امن</span><span>📱 ریسپانسیو</span><span>⚡ سریع</span>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>دسترسی سریع</h4>
+                <ul>
+                {% if user.is_authenticated %}
+                    {% if user.role == 'admin' %}
+                        <li><a href="{% url 'admin_dashboard' %}">داشبورد</a></li>
+                        <li><a href="{% url 'manage_users' %}">مدیریت کاربران</a></li>
+                        <li><a href="{% url 'manage_exams' %}">مدیریت آزمون‌ها</a></li>
+                    {% elif user.role == 'teacher' %}
+                        <li><a href="{% url 'teacher_dashboard' %}">داشبورد</a></li>
+                        <li><a href="{% url 'create_exam' %}">ساخت آزمون</a></li>
+                        <li><a href="{% url 'question_bank' %}">بانک سوال</a></li>
+                    {% else %}
+                        <li><a href="{% url 'student_dashboard' %}">آزمون‌های من</a></li>
+                        <li><a href="{% url 'student_dashboard' %}#results">نتایج من</a></li>
+                    {% endif %}
+                {% else %}
+                    <li><a href="{% url 'login' %}">ورود به سامانه</a></li>
+                {% endif %}
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>راهنما</h4>
+                <ul>
+                    <li><span>پیش از آزمون اتصال اینترنت را بررسی کنید</span></li>
+                    <li><span>پاسخ‌ها خودکار ذخیره می‌شوند</span></li>
+                    <li><span>از خروج از صفحه آزمون خودداری کنید</span></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>پشتیبانی</h4>
+                <ul>
+                    <li><span>🛠️ واحد فناوری اطلاعات</span></li>
+                    <li><span>🕘 شنبه تا چهارشنبه، ۸ تا ۱۴</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© ۱۴۰۵ سامانه آزمون غیرحضوری — تمامی حقوق محفوظ است.</span>
+            <button type="button" class="to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="بازگشت به بالا">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m18 15-6-6-6 6"/></svg>
+            </button>
+        </div>
+    </div>
+</footer>
 
 <script>
     // ========== Sidebar Menu (از راست باز می‌شود) ==========
@@ -679,6 +748,13 @@
                 dropdownOpen = false;
             }
         });
+    }
+
+    // سایه هدر هنگام اسکرول
+    const siteHeader = document.getElementById('siteHeader');
+    if (siteHeader) {
+        const onScroll = () => siteHeader.classList.toggle('scrolled', window.scrollY > 8);
+        window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     }
 </script>
 </body>

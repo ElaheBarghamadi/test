@@ -11,6 +11,7 @@ import os
 
 from django.core.asgi import get_asgi_application
 
+os.environ.setdefault('EXAM_SYSTEM_SERVING', '1')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "exam_system.settings")
 
 application = get_asgi_application()

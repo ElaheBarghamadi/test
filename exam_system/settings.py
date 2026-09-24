@@ -5,10 +5,6 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 🔐 SECRET KEY (برای production بهتره از ENV بخونی)
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    "django-insecure-change-this-in-production"
-)
 
 # ⚠️ حالت توسعه / تولید
 # اگر متغیر محیطی DEBUG تنظیم نشده باشد: اجرای با `runserver` یعنی توسعه،
@@ -26,6 +22,19 @@ def _env_flag(name, default):
 
 _RUNNING_DEV_SERVER = any(a.startswith('runserver') for a in sys.argv[1:])
 DEBUG = _env_flag('DEBUG', _RUNNING_DEV_SERVER)
+TESTING = 'test' in sys.argv
+
+# 🔐 SECRET KEY: در تولید حتماً باید از متغیر محیطی خوانده شود
+SECRET_KEY = os.getenv('SECRET_KEY', '').strip()
+if not SECRET_KEY:
+    # دستورات manage.py (migrate، ساخت کاربر و…) بدون کلید هم اجرا شوند؛
+    # ولی سرور تولید (gunicorn/wsgi) بدون SECRET_KEY بالا نمی‌آید.
+    _SERVING = os.getenv('EXAM_SYSTEM_SERVING') == '1'   # در wsgi.py/asgi.py تنظیم می‌شود
+    if DEBUG or TESTING or not _SERVING:
+        SECRET_KEY = 'django-insecure-dev-only-key-do-not-use-in-production'
+    else:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured('در حالت تولید متغیر محیطی SECRET_KEY باید تنظیم شود.')
 
 # 🔒 کوکی‌ها و نشست‌ها
 SESSION_COOKIE_HTTPONLY = True          # جاوااسکریپت به کوکی نشست دسترسی ندارد
@@ -38,8 +47,6 @@ X_FRAME_OPTIONS = 'DENY'                # جلوگیری از قرارگیری �
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
-# هنگام اجرای تست‌ها اجبار HTTPS غیرفعال باشد تا کلاینت تست درست کار کند
-TESTING = 'test' in sys.argv
 
 if not DEBUG and not TESTING:
     # فقط در حالت تولید: اجبار HTTPS و کوکی‌های امن
@@ -50,10 +57,14 @@ if not DEBUG and not TESTING:
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-ALLOWED_HOSTS = ["*"]
-# در توسعه (runserver) هر هاستی مجاز است؛ در تولید همان فهرست بالا اعمال می‌شود
-if DEBUG:
-    ALLOWED_HOSTS = ["*"]
+# در تولید فقط هاست‌های تعریف‌شده در ALLOWED_HOSTS (جدا با ویرگول) مجازند
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
+if DEBUG or TESTING:
+    ALLOWED_HOSTS = ['*']
+elif not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# برای فرم‌ها پشت HTTPS/پروکسی (مثلاً https://example.com)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 # 🧩 Apps
 INSTALLED_APPS = [
     'django.contrib.admin',
