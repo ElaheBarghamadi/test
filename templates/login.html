@@ -1,357 +1,306 @@
-{% extends 'base.html' %}
-{% block title %}ورود به سامانه آزمون{% endblock %}
+{% load static %}<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a3440">
+    <title>ورود به سامانه آزمون</title>
+    <style>
+        @font-face{font-family:'Vazirmatn';src:url('{% static "fonts/Vazirmatn-Regular.woff2" %}') format('woff2');font-weight:400;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('{% static "fonts/Vazirmatn-Medium.woff2" %}') format('woff2');font-weight:500;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('{% static "fonts/Vazirmatn-Bold.woff2" %}') format('woff2');font-weight:700;font-display:swap}
+        @font-face{font-family:'Vazirmatn';src:url('{% static "fonts/Vazirmatn-ExtraBold.woff2" %}') format('woff2');font-weight:800;font-display:swap}
 
-{% block extra_css %}
-<style>
-    /* صفحهٔ ورود در حالت ریسپانسیو منو نمی‌خواهد: فقط لوگو ماند */
-    @media (max-width: 768px) {
-        .hamburger { display: none !important; }
-        .nav-links { display: none !important; }
-    }
-    /* ========== توکن‌های رنگی مشترک با بقیه سامانه ========== */
-    :root {
-        --primary: #0f7078;
-        --primary-light: #2ec4b6;
-        --primary-dark: #0b4a52;
-        --danger: #dc8686;
-        --gray-50: #f7fcfb;
-        --gray-100: #eef7f5;
-        --gray-200: #dcefeb;
-        --gray-300: #bcd9d5;
-        --gray-500: #6f9499;
-        --gray-600: #4a6b72;
-        --gray-700: #35565d;
-        --gray-800: #16404a;
-    }
-
-    body {
-        background: linear-gradient(145deg, #f5efe6 0%, #e8ddce 100%);
-        position: relative;
-    }
-
-    /* افکت لیکویید ملایم - یکسان با داشبوردها */
-    body::before {
-        content: '';
-        position: fixed;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle at 40% 50%, rgba(160, 120, 80, 0.08) 0%, transparent 60%);
-        animation: liquidFloat 20s ease-in-out infinite;
-        pointer-events: none;
-        z-index: 0;
-    }
-
-    @keyframes liquidFloat {
-        0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
-        33% { transform: translate(3%, 2%) rotate(1deg); opacity: 0.6; }
-        66% { transform: translate(-2%, 3%) rotate(-1deg); opacity: 0.4; }
-        100% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
-    }
-
-    .main-content {
-        position: relative;
-        z-index: 2;
-    }
-
-    /* ========== کارت ورود - Glassmorphism ========== */
-    .login-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 0 60px;
-        min-height: calc(100vh - 220px);
-    }
-
-    .login-card {
-        background: rgba(240, 252, 250, 0.9);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border-radius: 28px;
-        padding: 38px 34px;
-        width: 100%;
-        max-width: 450px;
-        border: 1px solid rgba(120, 190, 185, 0.4);
-        box-shadow: 0 12px 30px rgba(11, 60, 70, 0.08);
-        transition: all 0.3s ease;
-    }
-
-    .login-card:hover {
-        border-color: rgba(120, 190, 185, 0.6);
-        box-shadow: 0 16px 35px rgba(11, 60, 70, 0.12);
-    }
-
-    .login-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .login-icon {
-        width: 84px;
-        height: 84px;
-        margin: 0 auto 16px;
-        background: linear-gradient(135deg, #8fc4c0, #5e9ca0);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 40px;
-        box-shadow: 0 5px 15px rgba(11, 60, 70, 0.15);
-    }
-
-    .login-title {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--gray-800);
-        margin-bottom: 8px;
-    }
-
-    .login-sub {
-        color: var(--gray-600);
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-
-    /* ========== فرم ========== */
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: var(--gray-700);
-        font-size: 0.8rem;
-    }
-
-    .input-box {
-        position: relative;
-        display: flex;
-        align-items: center;
-    }
-
-    .input-box .field-icon {
-        position: absolute;
-        right: 16px;
-        font-size: 16px;
-        opacity: 0.55;
-        pointer-events: none;
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 12px 44px 12px 16px;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(120, 190, 185, 0.5);
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-family: inherit;
-        color: var(--gray-800);
-        transition: all 0.2s ease;
-    }
-
-    .form-group input:focus {
-        outline: none;
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 3px rgba(46, 196, 182, 0.12);
-        background: #fff;
-    }
-
-    .form-group input::placeholder {
-        color: var(--gray-400, #7fa8ad);
-        font-size: 0.8rem;
-    }
-
-    .toggle-password {
-        position: absolute;
-        left: 10px;
-        background: rgba(120, 190, 185, 0.18);
-        border: 1px solid rgba(120, 190, 185, 0.3);
-        color: var(--gray-700);
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-    }
-
-    .toggle-password:hover {
-        background: rgba(120, 190, 185, 0.35);
-    }
-
-    .login-btn {
-        width: 100%;
-        padding: 13px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: #fff;
-        border: none;
-        border-radius: 40px;
-        font-size: 0.95rem;
-        font-weight: 700;
-        font-family: inherit;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin-top: 8px;
-    }
-
-    .login-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(11, 74, 82, 0.3);
-    }
-
-    .login-btn:active {
-        transform: translateY(0);
-    }
-
-    /* ========== پیام خطا ========== */
-    .error-msg {
-        background: rgba(220, 134, 134, 0.12);
-        color: #a94442;
-        padding: 12px 16px;
-        border-radius: 16px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        margin-bottom: 22px;
-        text-align: center;
-        border: 1px solid rgba(220, 134, 134, 0.35);
-        border-right: 3px solid var(--danger);
-    }
-
-    /* ========== نقش‌ها ========== */
-    .roles-info {
-        margin-top: 26px;
-        padding-top: 20px;
-        border-top: 1px dashed #e0ceb0;
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .role-chip {
-        background: rgba(120, 190, 185, 0.2);
-        border: 1px solid rgba(120, 190, 185, 0.3);
-        padding: 7px 16px;
-        border-radius: 60px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        color: var(--gray-700);
-        transition: all 0.2s;
-    }
-
-    .role-chip:hover {
-        background: rgba(120, 190, 185, 0.32);
-        transform: translateY(-2px);
-    }
-
-    .login-footer-note {
-        margin-top: 18px;
-        text-align: center;
-        font-size: 0.7rem;
-        color: var(--gray-600);
-    }
-
-    /* ========== ریسپانسیو ========== */
-    @media (max-width: 640px) {
-        .login-wrapper {
-            padding: 20px 0 40px;
-            min-height: auto;
+        :root {
+            --ink: #0f2f36; --ink2: #4a6b72; --ink3: #8aa3a8;
+            --teal: #2ec4b6; --teal2: #0f7078; --deep: #0a3440;
+            --line: #d6ebe7; --err: #c0392b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+            color: var(--ink);
+            background: #eef7f5;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
         }
 
-        .login-card {
-            padding: 28px 22px;
-            border-radius: 24px;
+        /* ---------------- سمت هنری ---------------- */
+        .hero {
+            position: relative; overflow: hidden;
+            background: radial-gradient(1200px 600px at 110% -10%, #2ec4b6 0%, transparent 55%),
+                        radial-gradient(900px 500px at -20% 120%, #1a8f95 0%, transparent 55%),
+                        linear-gradient(160deg, #0a3440 0%, #0d4e58 55%, #0f6670 100%);
+            color: #fff;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 48px 56px;
         }
-
-        .login-title {
-            font-size: 1.2rem;
+        .hero::before {            /* شبکهٔ نقطه‌ای */
+            content: ""; position: absolute; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+            background-size: 22px 22px;
+            mask-image: linear-gradient(180deg, #000 30%, transparent 90%);
+            -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 90%);
         }
-
-        .login-icon {
-            width: 70px;
-            height: 70px;
-            font-size: 32px;
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(2px); opacity: .55;
+            animation: float 14s ease-in-out infinite;
         }
-
-        .form-group input {
-            padding: 11px 40px 11px 14px;
+        .blob.b1 { width: 280px; height: 280px; top: 12%; left: -80px;
+                   background: radial-gradient(circle at 30% 30%, #7ff0e0, #2ec4b6 60%, transparent 70%); }
+        .blob.b2 { width: 180px; height: 180px; bottom: 16%; right: 8%; animation-delay: -5s;
+                   background: radial-gradient(circle at 30% 30%, #b4fff4, #1fa89c 60%, transparent 70%); }
+        .blob.b3 { width: 90px; height: 90px; top: 55%; left: 38%; animation-delay: -9s;
+                   background: radial-gradient(circle at 30% 30%, #fff, #5fe0d2 60%, transparent 72%); }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(18px, -26px) scale(1.06); }
         }
-
-        .roles-info {
-            gap: 8px;
+        .brand { position: relative; display: flex; align-items: center; gap: 12px; z-index: 1; }
+        .brand-icon {
+            width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center;
+            background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28);
+            backdrop-filter: blur(6px);
         }
-    }
-</style>
-{% endblock %}
+        .brand b { font-size: 1.1rem; font-weight: 800; display: block; }
+        .brand small { font-size: .78rem; opacity: .75; }
 
-{% block content %}
-<div class="login-wrapper">
-    <div class="login-card">
-        <div class="login-header">
-            <div class="login-icon">📚</div>
-            <div class="login-title">سامانه آزمون غیرحضوری</div>
-            <div class="login-sub">ورود معلمان و دانش‌آموزان</div>
+        .hero-text { position: relative; z-index: 1; max-width: 460px; }
+        .hero-text h1 { font-size: 2.3rem; line-height: 1.5; font-weight: 800; margin-bottom: 14px; }
+        .hero-text h1 span {
+            background: linear-gradient(90deg, #7ff0e0, #ffffff);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .hero-text p { font-size: .95rem; line-height: 2; opacity: .82; }
+
+        .features { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .feat {
+            background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+            border-radius: 16px; padding: 14px; backdrop-filter: blur(8px);
+            transition: transform .25s, background .25s;
+        }
+        .feat:hover { transform: translateY(-4px); background: rgba(255,255,255,.13); }
+        .feat .fi { font-size: 1.4rem; margin-bottom: 6px; }
+        .feat b { font-size: .85rem; display: block; margin-bottom: 2px; }
+        .feat span { font-size: .72rem; opacity: .72; line-height: 1.7; }
+
+        /* ---------------- فرم ---------------- */
+        .panel {
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px 24px; position: relative;
+        }
+        .card {
+            width: 100%; max-width: 410px;
+            animation: rise .55s cubic-bezier(.2,.9,.3,1.1) both;
+        }
+        @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+        .greet { font-size: 1.75rem; font-weight: 800; margin-bottom: 6px; }
+        .greet-sub { color: var(--ink2); font-size: .9rem; margin-bottom: 26px; }
+
+        .error-msg {
+            display: flex; gap: 8px; align-items: flex-start;
+            background: #fdecec; color: var(--err); border: 1px solid #f3c7c2;
+            border-radius: 14px; padding: 12px 14px; font-size: .85rem; font-weight: 600;
+            margin-bottom: 18px; animation: shake .4s;
+        }
+        @keyframes shake { 0%,100%{transform:none} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: .82rem; font-weight: 700; color: var(--ink2); margin-bottom: 7px; }
+        .input-box { position: relative; }
+        .input-box svg.ic {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: var(--ink3); pointer-events: none; transition: color .2s;
+        }
+        .input-box input {
+            width: 100%; font-family: inherit; font-size: .95rem; color: var(--ink);
+            background: #fff; border: 1.5px solid var(--line); border-radius: 14px;
+            padding: 14px 46px 14px 46px; outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .input-box input::placeholder { color: #a9bcc0; }
+        .input-box input:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(46,196,182,.16); }
+        .input-box:focus-within svg.ic { color: var(--teal2); }
+        .toggle-password {
+            position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+            width: 34px; height: 34px; border: none; background: transparent; cursor: pointer;
+            color: var(--ink3); border-radius: 10px; display: grid; place-items: center;
+        }
+        .toggle-password:hover { background: #eef7f5; color: var(--teal2); }
+        .caps { display: none; font-size: .75rem; color: #b96c07; margin-top: 6px; font-weight: 600; }
+        .caps.on { display: block; }
+
+        .login-btn {
+            width: 100%; margin-top: 8px; border: none; cursor: pointer;
+            font-family: inherit; font-size: 1rem; font-weight: 800; color: #fff;
+            padding: 15px; border-radius: 14px; position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #0f7078, #2ec4b6);
+            box-shadow: 0 12px 26px rgba(15,112,120,.3);
+            transition: transform .2s, box-shadow .2s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(15,112,120,.38); }
+        .login-btn:active { transform: none; }
+        .login-btn::after {        /* درخشش */
+            content: ""; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+            transform: skewX(-20deg); transition: left .6s;
+        }
+        .login-btn:hover::after { left: 120%; }
+        .login-btn .spin {
+            width: 18px; height: 18px; border-radius: 50%; display: none;
+            border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; animation: sp .7s linear infinite;
+        }
+        .login-btn.loading .spin { display: inline-block; }
+        .login-btn.loading .arrow { display: none; }
+        @keyframes sp { to { transform: rotate(360deg); } }
+
+        .roles { display: flex; gap: 8px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+        .roles span {
+            font-size: .74rem; font-weight: 700; color: var(--ink2);
+            background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
+        }
+        .copy { text-align: center; color: var(--ink3); font-size: .72rem; margin-top: 22px; }
+
+        .mobile-brand { display: none; }
+
+        /* ---------------- ریسپانسیو ---------------- */
+        @media (max-width: 960px) {
+            body { grid-template-columns: 1fr; }
+            .hero { display: none; }
+            body {
+                background: radial-gradient(700px 380px at 100% 0%, rgba(46,196,182,.35), transparent 60%),
+                            radial-gradient(600px 380px at 0% 100%, rgba(15,112,120,.25), transparent 60%),
+                            #eef7f5;
+            }
+            .card {
+                background: rgba(255,255,255,.82); backdrop-filter: blur(14px);
+                border: 1px solid rgba(255,255,255,.9); border-radius: 26px;
+                padding: 30px 24px; box-shadow: 0 24px 60px rgba(10,52,64,.14);
+            }
+            .mobile-brand { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px; text-align: center; }
+            .mobile-brand .brand-icon {
+                width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; color: #fff;
+                background: linear-gradient(135deg, #0f7078, #2ec4b6); box-shadow: 0 12px 26px rgba(15,112,120,.3);
+            }
+            .mobile-brand b { font-size: 1.05rem; font-weight: 800; }
+            .greet, .greet-sub { text-align: center; }
+            .greet { font-size: 1.4rem; }
+        }
+        @media (max-width: 400px) {
+            .panel { padding: 20px 12px; }
+            .card { padding: 24px 16px; }
+        }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    </style>
+</head>
+<body>
+
+<aside class="hero" aria-hidden="true">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+    <div class="brand">
+        <span class="brand-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg>
+        </span>
+        <span><b>سامانه آزمون</b><small>آزمون غیرحضوری</small></span>
+    </div>
+
+    <div class="hero-text">
+        <h1>آزمون آنلاین،<br><span>ساده، سریع و امن</span></h1>
+        <p>ساخت آزمون، بانک سوال پوشه‌بندی‌شده، تصحیح خودکار و گزارش نتایج — همه در یک جا، از هر دستگاهی.</p>
+    </div>
+
+    <div class="features">
+        <div class="feat"><div class="fi">⚡</div><b>تصحیح خودکار</b><span>نتیجهٔ سوالات عینی بلافاصله</span></div>
+        <div class="feat"><div class="fi">📚</div><b>بانک سوال</b><span>پوشه‌بندی درختی و مرتب</span></div>
+        <div class="feat"><div class="fi">🛡️</div><b>ضد تقلب</b><span>پایش خروج از صفحهٔ آزمون</span></div>
+    </div>
+</aside>
+
+<main class="panel">
+    <div class="card">
+        <div class="mobile-brand">
+            <span class="brand-icon">
+                <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg>
+            </span>
+            <b>سامانه آزمون غیرحضوری</b>
         </div>
 
+        <h2 class="greet">خوش آمدید 👋</h2>
+        <p class="greet-sub">برای ادامه، وارد حساب کاربری خود شوید.</p>
+
+        {% for m in messages %}
+        <div class="error-msg" style="{% if m.tags != 'error' %}background:#e7f6ec;color:#157a3b;border-color:#b9e2c6;animation:none;{% endif %}">{{ m }}</div>
+        {% endfor %}
         {% if error %}
-        <div class="error-msg">
-            ⚠️ {{ error }}
-        </div>
+        <div class="error-msg" role="alert">⚠️ <span>{{ error }}</span></div>
         {% endif %}
 
-        <form method="post">
+        <form method="post" id="loginForm" novalidate>
             {% csrf_token %}
-            <div class="form-group">
+            <div class="field">
                 <label for="id_username">نام کاربری</label>
                 <div class="input-box">
-                    <span class="field-icon">👤</span>
+                    <svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
                     <input type="text" id="id_username" name="username" placeholder="نام کاربری خود را وارد کنید"
-                           autocomplete="username" required autofocus>
+                           autocomplete="username" value="{{ request.POST.username|default:'' }}" required autofocus>
                 </div>
             </div>
-            <div class="form-group">
+            <div class="field">
                 <label for="id_password">رمز عبور</label>
                 <div class="input-box">
-                    <span class="field-icon">🔒</span>
+                    <svg class="ic" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                     <input type="password" id="id_password" name="password" placeholder="رمز عبور خود را وارد کنید"
                            autocomplete="current-password" required>
-                    <button type="button" class="toggle-password" id="togglePassword" aria-label="نمایش رمز عبور">👁</button>
+                    <button type="button" class="toggle-password" id="togglePassword" aria-label="نمایش رمز عبور">
+                        <svg id="eyeIcon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
                 </div>
+                <div class="caps" id="capsWarn">⇪ کلید Caps Lock روشن است</div>
             </div>
-            <button type="submit" class="login-btn">
-                ورود به سامانه
+            <button type="submit" class="login-btn" id="loginBtn">
+                <span class="spin"></span>
+                <span>ورود به سامانه</span>
+                <svg class="arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
             </button>
         </form>
 
-        <div class="roles-info">
-            <span class="role-chip">🛡️ ادمین</span>
-            <span class="role-chip">👨‍🏫 معلم</span>
-            <span class="role-chip">🎓 دانش‌آموز</span>
+        <div class="roles">
+            <span>🛡️ مدیر</span><span>👨‍🏫 معلم</span><span>🎓 دانش‌آموز</span>
         </div>
-
-        <div class="login-footer-note">
-            تمامی حقوق محفوظ است
-        </div>
+        <div class="copy">© ۱۴۰۵ سامانه آزمون غیرحضوری</div>
     </div>
-</div>
+</main>
 
 <script>
-    // نمایش / مخفی کردن رمز عبور
-    (function () {
-        var btn = document.getElementById('togglePassword');
-        var input = document.getElementById('id_password');
-        if (!btn || !input) return;
-        btn.addEventListener('click', function () {
-            var isHidden = input.type === 'password';
-            input.type = isHidden ? 'text' : 'password';
-            btn.textContent = isHidden ? '🙈' : '👁';
-        });
-    })();
+(function () {
+    var btn = document.getElementById('togglePassword');
+    var input = document.getElementById('id_password');
+    var eye = document.getElementById('eyeIcon');
+    var open = eye.innerHTML;
+    var closed = '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a10 10 0 0 0 5.4-1.6"/>';
+    btn.addEventListener('click', function () {
+        var hidden = input.type === 'password';
+        input.type = hidden ? 'text' : 'password';
+        eye.innerHTML = hidden ? closed : open;
+        btn.setAttribute('aria-label', hidden ? 'مخفی کردن رمز عبور' : 'نمایش رمز عبور');
+        input.focus();
+    });
+    var caps = document.getElementById('capsWarn');
+    input.addEventListener('keyup', function (e) {
+        caps.classList.toggle('on', e.getModifierState && e.getModifierState('CapsLock'));
+    });
+    var form = document.getElementById('loginForm');
+    form.addEventListener('submit', function (e) {
+        var u = document.getElementById('id_username');
+        if (!u.value.trim()) { e.preventDefault(); u.focus(); return; }
+        if (!input.value) { e.preventDefault(); input.focus(); return; }
+        document.getElementById('loginBtn').classList.add('loading');
+    });
+})();
 </script>
-{% endblock %}
+</body>
+</html>
