@@ -27,12 +27,14 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
 
-if not DEBUG and not TESTING:
-    # فقط در حالت تولید: اجبار HTTPS و کوکی‌های امن
+# 🔒 HTTPS: فقط وقتی سایت واقعاً روی https است True کنید.
+# اگر روی http باشد و True باشد، کوکی ورود/CSRF ارسال نمی‌شود و ورود کار نمی‌کند.
+HTTPS_ONLY = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if HTTPS_ONLY and not DEBUG and not TESTING:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
@@ -63,14 +65,11 @@ INSTALLED_APPS = [
 # 🧱 Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise همیشه فعال است: CSS/فونت‌ها در هر حالتی (runserver یا gunicorn) سرو می‌شوند
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'exam_system.middleware.SecurityHeadersMiddleware',
     'exam_system.middleware.BrandedNotFoundMiddleware',
 ]
-
-if not DEBUG and not TESTING:
-    # سرویس فایل‌های استاتیک با WhiteNoise فقط در تولید؛
-    # در توسعه خودِ django.contrib.staticfiles بدون هشدار missing-dir سرو می‌کند.
-    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
 
 MIDDLEWARE += [
     'corsheaders.middleware.CorsMiddleware',
@@ -135,11 +134,16 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-if not DEBUG and not TESTING:
-    # فقط در تولید: فشرده‌سازی + هش‌زدن نام فایل‌ها (نیازمند collectstatic)
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# Django 5.2 فقط STORAGES را می‌شناسد (STATICFILES_STORAGE حذف شده است).
+# ذخیره‌ساز بدون manifest: اگر collectstatic اجرا نشده باشد هم صفحه‌ها خطا نمی‌دهند.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+}
+# فایل‌ها مستقیم از پوشهٔ static/ هم سرو می‌شوند؛ اجرای collectstatic اختیاری است
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_MAX_AGE = 60 * 60 * 24 * 7
 
 # 📸 Media (for exam images)
 MEDIA_URL = '/media/'

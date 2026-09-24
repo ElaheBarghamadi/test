@@ -19,10 +19,14 @@ application = get_wsgi_application()
 # 🚀 هنگام بالا آمدن سرور تولید (gunicorn/uwsgi): مایگریشن‌ها اعمال و کاربران پیش‌فرض ساخته می‌شوند.
 # روی هاست‌هایی مثل Render که دیسک با هر deploy پاک می‌شود، بدون این کار کاربری وجود ندارد.
 def _bootstrap():
+    from django.core.management import call_command
     try:
-        from django.core.management import call_command
         call_command('migrate', interactive=False, verbosity=0)   # post_migrate کاربران را می‌سازد
         call_command('ensure_default_users', verbosity=0)
+    except Exception as exc:
+        print('⚠️ bootstrap:', exc)
+    try:
+        call_command('collectstatic', interactive=False, verbosity=0)   # فشرده‌سازی و کش بهتر
     except Exception as exc:   # اگر چند worker هم‌زمان اجرا کنند، یکی موفق می‌شود
         print('⚠️ bootstrap:', exc)
 
