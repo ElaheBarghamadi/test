@@ -106,7 +106,8 @@
     .qf-more summary::after, .pv-details summary::after { content: '▾'; float: left; transition: transform .2s; }
     .qf-more[open] summary::after, .pv-details[open] summary::after { transform: rotate(180deg); }
     .qf-more-body { padding-bottom: 12px; }
-    .pv-details summary { padding: 0; }
+    .pv-details summary { padding: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .pv-details summary::after { float: none; }
     .pv-details summary h3 { display: inline-flex; margin: 0; }
     .pv-details[open] summary { margin-bottom: 12px; }
     .qf-row > div:first-child { grid-column: auto; }
@@ -118,6 +119,7 @@
         .qf-grid { display: flex; flex-direction: column; gap: 0; }
         .preview { order: 3; }
         .qf-savebar { order: 10; }
+        .qf-grid > div > *, .qf-grid > aside, .qf-card { min-width: 0; max-width: 100%; }
     }
     @media (max-width: 600px) {
         .qf-wrap { padding-bottom: 8px; }
@@ -136,7 +138,7 @@
         .type-card i { display: none; }
         .qf-row { grid-template-columns: 1fr 1fr; gap: 10px; }
         /* دکمه‌های ذخیره: چسبیده به پایین صفحه، در دسترس انگشت */
-        .qf-savebar { position: sticky; bottom: 0; z-index: 20; margin: 0 -12px -1px; border-radius: 18px 18px 0 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -6px 24px rgba(8,45,52,.10); }
+        .qf-savebar { position: sticky; bottom: 0; z-index: 20; margin: 0; border-radius: 18px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -6px 24px rgba(8,45,52,.10); }
         .qf-actions .grow { display: none; }
         .qf-actions .chk { width: 100%; }
         .qf-actions select { max-width: none !important; width: 100%; }

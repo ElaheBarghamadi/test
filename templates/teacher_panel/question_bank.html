@@ -49,6 +49,17 @@
     .bank-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-top: 4px; border-top: 1px dashed var(--line); }
     .bank-actions form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .bank-actions select { min-width: 150px; }
+    .bank-actions { gap: 8px; border-top: 1px solid var(--line2); padding-top: 12px; margin-top: 4px; }
+    .bank-actions > form:last-child { margin-inline-start: auto; }
+    .btn-sm { padding: 7px 14px !important; font-size: .78rem !important; min-height: 0 !important; }
+    .more-act { display: contents; }
+    .more-act > summary { list-style: none; cursor: pointer; }
+    .more-act > summary::-webkit-details-marker { display: none; }
+    .more-act .more-body { flex-basis: 100%; order: 5; display: grid; gap: 8px; background: var(--card2); border-radius: 12px; padding: 12px; }
+    .more-act .more-body form { display: flex; gap: 8px; }
+    .more-act .more-body select { flex: 1; min-width: 0; }
+    .btn-del { width: 36px; height: 36px; border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--ink3); cursor: pointer; display: grid; place-items: center; }
+    .btn-del:hover { color: var(--err); background: var(--errsoft); }
     /* بخش‌های نوع‌محور فرم سوال */
     .qsec { background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 10px 12px; display: grid; gap: 10px; }
     .qsec[hidden] { display: none; }
@@ -78,7 +89,7 @@
     .bstat span { font-size: .72rem; color: var(--ink3); font-weight: 700; }
     .bstat.main { background: linear-gradient(135deg, var(--gold2), var(--gold)); border: none; }
     .bstat.main b, .bstat.main span { color: #fff; }
-    .bank-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+    .bank-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 16px; align-items: start; }
     .bank-main { display: grid; gap: 14px; min-width: 0; }
     .bank-main > .card { margin: 0; }
     .folder-tree { position: sticky; top: 80px; padding: 12px; margin: 0; max-height: calc(100vh - 100px); overflow: auto; }
@@ -125,7 +136,7 @@
     .bank-meta .tag.d-hard { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
     .bank-meta .tag.ans { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 900px) {
-        .bank-layout { grid-template-columns: 1fr; }
+        .bank-layout { grid-template-columns: minmax(0, 1fr); }
         .folder-tree { position: static; max-height: none; }
         .tree-toggle { display: inline-block; }
         .folder-tree .tree-body { display: none; }
@@ -139,8 +150,7 @@
     @media (max-width: 640px) {
         .opt-cols { grid-template-columns: 1fr; }
         .bank-form { grid-template-columns: 1fr; }
-        .bank-actions form { width: 100%; }
-        .bank-actions select, .bank-actions .btn { flex: 1 1 46%; min-width: 0; }
+        .bank-layout { grid-template-columns: minmax(0, 1fr); }
         .folder-row input[type=text] { max-width: 100%; flex: 1; }
         /* موبایل: شلوغی کمتر، دکمه‌های بزرگ‌تر */
         .bank-topbar .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
@@ -343,14 +353,17 @@
                         {% endif %}
                     </div>
                     <div class="bank-actions">
-                        <a class="btn btn-secondary" href="{% url 'bank_question_form' b.id %}">✏️ ویرایش</a>
+                        <a class="btn btn-secondary btn-sm" href="{% url 'bank_question_form' b.id %}">ویرایش</a>
+                        <details class="more-act">
+                        <summary class="btn btn-secondary btn-sm">بیشتر ⋯</summary>
+                        <div class="more-body">
                         <form method="post" action="{% url 'import_bank_question' b.id %}">
                             {% csrf_token %}<input type="hidden" name="back" value="{{ folder_id }}">
                             <select name="exam_id" required>
                                 <option value="">افزودن به آزمون…</option>
                                 {% for e in exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
                             </select>
-                            <button type="submit" class="btn btn-gold">📥</button>
+                            <button type="submit" class="btn btn-gold btn-sm">افزودن</button>
                         </form>
                         <form method="post" action="{% url 'bank_question_move' b.id %}">
                             {% csrf_token %}<input type="hidden" name="back" value="{{ folder_id }}">
@@ -358,11 +371,13 @@
                                 <option value="">ریشهٔ بانک</option>
                                 {% for f in folders %}<option value="{{ f.id }}" {% if b.folder_id == f.id %}selected{% endif %}>{{ f.path }}</option>{% endfor %}
                             </select>
-                            <button type="submit" class="btn btn-secondary">🚚</button>
+                            <button type="submit" class="btn btn-secondary btn-sm">انتقال</button>
                         </form>
+                        </div>
+                        </details>
                         <form method="post" action="{% url 'delete_bank_question' b.id %}" onsubmit="return confirm('سوال از بانک حذف شود؟');">
                             {% csrf_token %}<input type="hidden" name="back" value="{{ folder_id }}">
-                            <button type="submit" class="btn btn-danger">🗑️</button>
+                            <button type="submit" class="btn-del" title="حذف" aria-label="حذف سوال"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
                         </form>
                     </div>
                 </div>
