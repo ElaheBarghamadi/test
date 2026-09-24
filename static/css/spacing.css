@@ -77,3 +77,67 @@ body .site-messages { margin-bottom: var(--gap-l); }
     body .bank-item { padding: 16px; }
     body table th, body table td { padding: 12px 10px; }
 }
+
+/* =====================================================================
+   تم مینیمال — سطوح تخت، رنگ آرام، تزئین کمتر
+   ===================================================================== */
+:root {
+    --bg1: #f6f8f8; --bg2: #f6f8f8;
+    --card: #ffffff; --card2: #f7f9f9;
+    --ink: #1c2b2e; --ink2: #51666a; --ink3: #93a4a7;
+    --line: #e6ecec; --line2: #eef2f2;
+    --goldsoft: #edf8f6;
+    --sh1: none;
+}
+html body { background: #f6f8f8 !important; background-image: none !important; }
+
+/* سطوح: بدون سایه‌ی سنگین، فقط یک خط نازک */
+body .card, body .panel, body .box, body .filter-card, body .report-card, body .welcome-card,
+body .settings-section, body .filter-section, body .qf-card, body .exam-card, body .exam-item,
+body .stat-card, body .stat-tile, body .info-stat, body .bstat, body .bank-item, body .subfolder {
+    background: #fff; border: 1px solid var(--line); box-shadow: none;
+}
+body .welcome-card { background: #fff !important; }
+body .exam-card:hover, body .subfolder:hover { transform: none; box-shadow: 0 4px 16px rgba(20,40,45,.06); border-color: #d5e0e0; }
+
+/* حذف نوارهای رنگی و گرادیان‌های تزئینی */
+body .stat-card::before, body .info-stat::before, body .exam-card::before { display: none; }
+body .bstat.main { background: #fff; border: 1px solid var(--line); }
+body .bstat.main b { color: var(--gold2); } body .bstat.main span { color: var(--ink3); }
+body .stat-number, body .info-stat .value, body .stat-card b { color: var(--ink); font-weight: 700; }
+body .stat-label, body .info-stat .label { color: var(--ink3); }
+
+/* تایپوگرافی آرام‌تر */
+body .page-title, body h1 { font-weight: 700; letter-spacing: -.2px; color: var(--ink); }
+body .section-title, body .card h3, body .qf-card h3 { font-weight: 700; color: var(--ink); }
+
+/* دکمه‌ها: تخت، یک رنگ اصلی، بدون پرش */
+body .btn { box-shadow: none; transform: none !important; filter: none !important; border-radius: 12px; font-weight: 600; padding: 10px 18px; }
+body .btn-primary, body .btn-gold, body .btn-start, body .btn-questions, body .btn-edit,
+body .btn-filter, body .filters .btn, body .filters button {
+    background: var(--gold2) !important; background-image: none !important; color: #fff; border-color: transparent;
+}
+body .btn-primary:hover, body .btn-gold:hover, body .btn-start:hover { background: var(--gold3) !important; }
+body .btn-secondary { background: #fff; border: 1px solid var(--line); color: var(--ink2); }
+body .btn-secondary:hover { background: var(--card2); border-color: #d5e0e0; color: var(--ink); }
+
+/* ورودی‌ها */
+body input[type=text], body input[type=number], body input[type=search], body input[type=password],
+body input[type=email], body select, body textarea {
+    border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: none;
+}
+body input:focus, body select:focus, body textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(46,196,182,.12); outline: none; }
+
+/* برچسب‌ها و تگ‌ها کم‌رنگ‌تر */
+body .tag, body .badge, body .chip { background: var(--card2); border-color: var(--line); font-weight: 600; }
+
+/* فرم سوال: انتخاب‌ها و ردیف‌ها ساده‌تر */
+body .type-card span { background: #fff; border: 1px solid var(--line); }
+body .type-card input:checked + span { background: var(--goldsoft); border-color: var(--gold2); box-shadow: none; }
+body .rows > .row { background: #fff; border-color: var(--line); }
+body .pv-box { background: var(--card2); border: 1px solid var(--line); }
+body .add-row { border: 1px dashed #d5e0e0; }
+body .bank-bar, body .bulk-bar { background: var(--ink); box-shadow: none; }
+
+/* هدر سبک‌تر */
+body .site-header, body .navbar { box-shadow: none !important; border-bottom: 1px solid var(--line); }
