@@ -210,14 +210,29 @@ class BankFolder(models.Model):
                                 related_name='bank_folders',
                                 limit_choices_to={'role': 'teacher'})
     name = models.CharField(max_length=80)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
+                               related_name='children', verbose_name='پوشه والد')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['name']
-        unique_together = [('teacher', 'name')]
+        unique_together = [('teacher', 'parent', 'name')]
 
     def __str__(self):
-        return self.name
+        return self.full_path
+
+    def ancestors(self):
+        """زنجیرهٔ والدها از ریشه تا خود پوشه (برای مسیر/breadcrumb)"""
+        chain, node, seen = [], self, set()
+        while node is not None and node.id not in seen:
+            seen.add(node.id)
+            chain.append(node)
+            node = node.parent
+        return list(reversed(chain))
+
+    @property
+    def full_path(self):
+        return ' / '.join(f.name for f in self.ancestors())
 
 
 class QuestionBank(models.Model):
@@ -234,6 +249,9 @@ class QuestionBank(models.Model):
     image = models.ImageField(upload_to='question_images/', null=True, blank=True)
     max_score = models.DecimalField(max_digits=10, decimal_places=2, default=1.0)
     use_count = models.PositiveIntegerField(default=0)
+    DIFFICULTY_CHOICES = [('easy', 'آسان'), ('medium', 'متوسط'), ('hard', 'دشوار')]
+    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium',
+                                  verbose_name='سطح دشواری')
     folder = models.ForeignKey('BankFolder', on_delete=models.SET_NULL, null=True, blank=True,
                                related_name='questions', verbose_name='پوشه')
     created_at = models.DateTimeField(auto_now_add=True)

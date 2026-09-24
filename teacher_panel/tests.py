@@ -737,3 +737,101 @@ class BankDynamicFormTests(TestCase):
         r = self.client.post(reverse('bank_question_edit', args=[q.id]),
                              {'text': 'هک', 'question_type': 'true_false', 'correct_answer': 'true'})
         self.assertEqual(r.status_code, 404)
+
+
+class BankTreeTests(TestCase):
+    """بانک سوال درختی: زیرپوشه، فیلتر نوادگان، حذف/جابجایی پوشه، عملیات گروهی، بانک نمونه"""
+
+    def setUp(self):
+        from accounts.models import User
+        from exams.models import Exam, BankFolder, QuestionBank
+        from django.utils import timezone
+        from accounts.models import Grade
+        grade, _ = Grade.objects.get_or_create(name='7')
+        self.t = User.objects.create_user(username='tt', password='test12345', role='teacher')
+        self.o = User.objects.create_user(username='oo', password='test12345', role='teacher')
+        self.client.login(username='tt', password='test12345')
+        self.root = BankFolder.objects.create(teacher=self.t, name='ریاضی')
+        self.child = BankFolder.objects.create(teacher=self.t, name='فصل ۱', parent=self.root)
+        self.q1 = QuestionBank.objects.create(teacher=self.t, text='سوال ریشه', question_type='short_answer',
+                                              correct_answer='x', folder=self.root)
+        self.q2 = QuestionBank.objects.create(teacher=self.t, text='سوال فرزند', question_type='true_false',
+                                              correct_answer='true', folder=self.child, difficulty='hard')
+        now = timezone.now()
+        self.exam = Exam.objects.create(teacher=self.t, title='آزمون', grade=grade, duration_minutes=30,
+                                        start_time=now, end_time=now + timezone.timedelta(hours=1))
+
+    def test_subfolder_create_and_same_name_in_other_parent(self):
+        from exams.models import BankFolder
+        self.client.post('/teacher/bank/folder/add/', {'name': 'فصل ۱', 'parent': ''})
+        self.assertEqual(BankFolder.objects.filter(teacher=self.t, name='فصل ۱').count(), 2)
+        self.client.post('/teacher/bank/folder/add/', {'name': 'فصل ۱', 'parent': str(self.root.id)})
+        self.assertEqual(BankFolder.objects.filter(teacher=self.t, name='فصل ۱').count(), 2)
+
+    def test_parent_filter_includes_descendants(self):
+        r = self.client.get(f'/teacher/bank/?folder={self.root.id}')
+        self.assertContains(r, 'سوال ریشه')
+        self.assertContains(r, 'سوال فرزند')
+        r = self.client.get(f'/teacher/bank/?folder={self.child.id}')
+        self.assertNotContains(r, 'سوال ریشه')
+
+    def test_search_and_filters(self):
+        r = self.client.get('/teacher/bank/?q=فرزند')
+        self.assertContains(r, 'سوال فرزند')
+        self.assertNotContains(r, 'سوال ریشه')
+        r = self.client.get('/teacher/bank/?difficulty=hard')
+        self.assertNotContains(r, 'سوال ریشه')
+        r = self.client.get('/teacher/bank/?type=short_answer')
+        self.assertNotContains(r, 'سوال فرزند')
+
+    def test_cannot_move_folder_into_descendant(self):
+        self.client.post(f'/teacher/bank/folder/{self.root.id}/rename/',
+                         {'name': 'ریاضی', 'parent': str(self.child.id)})
+        self.root.refresh_from_db()
+        self.assertIsNone(self.root.parent_id)
+
+    def test_delete_folder_moves_children_to_parent(self):
+        self.client.post(f'/teacher/bank/folder/{self.root.id}/delete/')
+        self.child.refresh_from_db()
+        self.q1.refresh_from_db()
+        self.assertIsNone(self.child.parent_id)
+        self.assertIsNone(self.q1.folder_id)
+
+    def test_folder_import_to_exam(self):
+        self.client.post(f'/teacher/bank/folder/{self.root.id}/import/', {'exam_id': self.exam.id})
+        self.assertEqual(self.exam.questions.count(), 2)
+
+    def test_bulk_actions(self):
+        from exams.models import QuestionBank
+        ids = [self.q1.id, self.q2.id]
+        self.client.post('/teacher/bank/bulk/', {'ids': ids, 'action': 'move', 'folder': ''})
+        self.assertEqual(QuestionBank.objects.filter(folder__isnull=True).count(), 2)
+        self.client.post('/teacher/bank/bulk/', {'ids': ids, 'action': 'import', 'exam_id': self.exam.id})
+        self.assertEqual(self.exam.questions.count(), 2)
+        self.client.post('/teacher/bank/bulk/', {'ids': ids, 'action': 'delete'})
+        self.assertFalse(QuestionBank.objects.filter(teacher=self.t).exists())
+
+    def test_bulk_ignores_other_teacher_questions(self):
+        from exams.models import QuestionBank
+        other_q = QuestionBank.objects.create(teacher=self.o, text='مال دیگری', question_type='short_answer',
+                                              correct_answer='x')
+        self.client.post('/teacher/bank/bulk/', {'ids': [other_q.id], 'action': 'delete'})
+        self.assertTrue(QuestionBank.objects.filter(id=other_q.id).exists())
+
+    def test_seed_sample_bank_idempotent(self):
+        from exams.models import QuestionBank
+        from exams.bank_seed import iter_bank
+        before = QuestionBank.objects.filter(teacher=self.t).count()
+        self.client.post('/teacher/bank/seed-sample/')
+        n = QuestionBank.objects.filter(teacher=self.t).count()
+        self.assertEqual(n - before, sum(1 for _ in iter_bank()))
+        self.client.post('/teacher/bank/seed-sample/')
+        self.assertEqual(QuestionBank.objects.filter(teacher=self.t).count(), n)
+        # همهٔ انواع سوال موجود است و پاسخ تستی معتبر است
+        types = set(QuestionBank.objects.filter(teacher=self.t).values_list('question_type', flat=True))
+        self.assertEqual(types, {'multiple_choice', 'true_false', 'fill_blank', 'short_answer', 'long_answer'})
+        for b in QuestionBank.objects.filter(teacher=self.t, question_type='multiple_choice'):
+            self.assertTrue(1 <= int(b.correct_answer) <= len(b.options))
+        for b in QuestionBank.objects.filter(teacher=self.t, question_type='fill_blank'):
+            self.assertEqual(len(b.blanks), len(b.correct_answer.split(',')), b.text)
+        self.assertEqual(self.client.get('/teacher/bank/').status_code, 200)

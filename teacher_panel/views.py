@@ -8,7 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
 from django.utils import timezone
-from django.db.models import Count, Q, Max
+from django.db.models import Count, Q, Max, F
+from django.db import transaction
 from django.core.files.storage import default_storage
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import PermissionDenied
@@ -1361,6 +1362,9 @@ def _parse_bank_payload(request):
         'max_score': validate_decimal_score(request.POST.get('max_score', '1'), max_value=None) or 1,
         'folder': folder,
     }
+    difficulty = request.POST.get('difficulty')
+    if difficulty in dict(QuestionBank.DIFFICULTY_CHOICES):
+        data['difficulty'] = difficulty
     return data, None
 
 
@@ -1380,75 +1384,255 @@ def question_bank(request):
             image=request.FILES.get('image') or None,
             **data)
         messages.success(request, 'سوال به بانک اضافه شد.')
+        back = bank.folder_id or ''
         if request.POST.get('stay'):
-            return redirect(reverse('question_bank') + '?new=1')
-        return redirect('question_bank')
+            return redirect(reverse('question_bank') + '?new=1' + ('&folder=%s' % back if back else ''))
+        return _bank_redirect(request, back)
     folder_id = request.GET.get('folder', '').strip()
     return render(request, 'teacher_panel/question_bank.html',
                   _bank_render_context(request, folder_id))
 
 
+def _folder_tree(teacher):
+    """پوشه‌های معلم به‌صورت درختی (پیمایش عمق‌اول).
+    خروجی: (flat_list, by_id, descendants)
+      flat_list: هر پوشه با ویژگی‌های depth، own_cnt، cnt (شامل زیرپوشه‌ها) و path
+      descendants: {folder_id: set(ids خودش و همهٔ نوادگان)}"""
+    folders = list(BankFolder.objects.filter(teacher=teacher)
+                   .annotate(own_cnt=Count('questions')).order_by('name'))
+    by_id = {f.id: f for f in folders}
+    children = {}
+    for f in folders:
+        pid = f.parent_id if f.parent_id in by_id else None
+        children.setdefault(pid, []).append(f)
+    flat, descendants = [], {}
+
+    def walk(node, depth, trail, seen):
+        node.depth = depth
+        node.indent = depth * 18
+        node.path = ' / '.join(trail + [node.name])
+        node.child_count = len(children.get(node.id, []))
+        flat.append(node)
+        ids = {node.id}
+        for ch in children.get(node.id, []):
+            if ch.id in seen:
+                continue
+            ids |= walk(ch, depth + 1, trail + [node.name], seen | {ch.id})
+        descendants[node.id] = ids
+        node.cnt = sum(by_id[i].own_cnt for i in ids)
+        return ids
+
+    for root in children.get(None, []):
+        walk(root, 0, [], {root.id})
+    return flat, by_id, descendants
+
+
 def _bank_render_context(request, folder_id=''):
-    folders = BankFolder.objects.filter(teacher=request.user).annotate(cnt=Count('questions'))
-    banks = QuestionBank.objects.filter(teacher=request.user)
+    flat, by_id, descendants = _folder_tree(request.user)
+    all_banks = QuestionBank.objects.filter(teacher=request.user)
+    banks = all_banks.select_related('folder')
+    current = None
     if folder_id == 'none':
         banks = banks.filter(folder__isnull=True)
-    elif folder_id.isdigit():
-        banks = banks.filter(folder_id=int(folder_id))
+    elif folder_id.isdigit() and int(folder_id) in by_id:
+        current = by_id[int(folder_id)]
+        # سوال‌های خود پوشه + همهٔ زیرپوشه‌ها
+        banks = banks.filter(folder_id__in=descendants[current.id])
+
+    q = (request.GET.get('q') or '').strip()
+    qtype = request.GET.get('type', '')
+    diff = request.GET.get('difficulty', '')
+    if q:
+        banks = banks.filter(Q(text__icontains=q) | Q(correct_answer__icontains=q))
+    if qtype:
+        banks = banks.filter(question_type=qtype)
+    if diff:
+        banks = banks.filter(difficulty=diff)
+
+    if current:
+        subfolders = [f for f in flat if f.parent_id == current.id]
+        breadcrumb = [by_id[a.id] for a in current.ancestors() if a.id in by_id]
+    else:
+        subfolders = [f for f in flat if f.depth == 0] if folder_id != 'none' else []
+        breadcrumb = []
+
+    type_stats = {k: 0 for k, _ in QuestionBank._meta.get_field('question_type').choices}
+    for row in all_banks.values('question_type').annotate(n=Count('id')):
+        type_stats[row['question_type']] = row['n']
+
     return {
         'banks': banks,
-        'folders': folders,
+        'folders': flat,
         'folder_id': folder_id,
-        'total_count': QuestionBank.objects.filter(teacher=request.user).count(),
+        'current_folder': current,
+        'subfolders': subfolders,
+        'breadcrumb': breadcrumb,
+        'unfiled_count': all_banks.filter(folder__isnull=True).count(),
+        'total_count': all_banks.count(),
         'exams': Exam.objects.filter(teacher=request.user),
         'type_choices': QuestionBank._meta.get_field('question_type').choices,
+        'difficulty_choices': QuestionBank.DIFFICULTY_CHOICES,
+        'type_stats': [(label, type_stats.get(k, 0)) for k, label in
+                       QuestionBank._meta.get_field('question_type').choices],
+        'q': q, 'qtype': qtype, 'diff': diff,
+        'filtered': bool(q or qtype or diff),
     }
+
+
+def _bank_redirect(request, folder_id=None):
+    """بازگشت به همان پوشه‌ای که کاربر در آن بود"""
+    fid = folder_id if folder_id is not None else (request.POST.get('back') or '')
+    url = reverse('question_bank')
+    return redirect(url + ('?folder=%s' % fid if str(fid).strip() else ''))
+
+
+def _get_parent_folder(request, raw):
+    raw = (raw or '').strip()
+    if raw.isdigit():
+        return get_object_or_404(BankFolder, id=int(raw), teacher=request.user)
+    return None
 
 
 @login_required
 @require_http_methods(["POST"])
 def bank_folder_add(request):
-    """ساخت پوشه جدید در بانک سوال"""
+    """ساخت پوشه یا زیرپوشه در بانک سوال"""
     check_teacher_access(request.user)
-    name = (request.POST.get('name') or '').strip()
+    name = (request.POST.get('name') or '').strip()[:80]
+    parent = _get_parent_folder(request, request.POST.get('parent'))
     if not name:
         messages.error(request, 'نام پوشه الزامی است.')
-    elif BankFolder.objects.filter(teacher=request.user, name=name).exists():
-        messages.error(request, 'پوشه‌ای با این نام دارید.')
+    elif BankFolder.objects.filter(teacher=request.user, parent=parent, name=name).exists():
+        messages.error(request, 'پوشه‌ای با این نام در همین مسیر دارید.')
     else:
-        BankFolder.objects.create(teacher=request.user, name=name)
-        messages.success(request, 'پوشه ساخته شد.')
-    return redirect('question_bank')
+        folder = BankFolder.objects.create(teacher=request.user, name=name, parent=parent)
+        messages.success(request, 'پوشه «%s» ساخته شد.' % folder.full_path)
+    return _bank_redirect(request, parent.id if parent else '')
 
 
 @login_required
 @require_http_methods(["POST"])
 def bank_folder_rename(request, folder_id):
-    """تغییر نام پوشه"""
+    """تغییر نام و/یا جابجایی پوشه (تغییر والد)"""
     check_teacher_access(request.user)
     folder = get_object_or_404(BankFolder, id=folder_id, teacher=request.user)
-    name = (request.POST.get('name') or '').strip()
+    name = (request.POST.get('name') or '').strip()[:80]
+    parent = folder.parent
+    if 'parent' in request.POST:
+        parent = _get_parent_folder(request, request.POST.get('parent'))
+        if parent is not None:
+            _, _, descendants = _folder_tree(request.user)
+            if parent.id in descendants.get(folder.id, {folder.id}):
+                messages.error(request, 'پوشه را نمی‌توان داخل خودش یا زیرپوشه‌هایش برد.')
+                return _bank_redirect(request)
     if not name:
         messages.error(request, 'نام پوشه الزامی است.')
-    elif BankFolder.objects.filter(teacher=request.user, name=name).exclude(id=folder.id).exists():
-        messages.error(request, 'پوشه‌ای با این نام دارید.')
+    elif BankFolder.objects.filter(teacher=request.user, parent=parent, name=name).exclude(id=folder.id).exists():
+        messages.error(request, 'پوشه‌ای با این نام در همین مسیر دارید.')
     else:
         folder.name = name
+        folder.parent = parent
         folder.save()
-        messages.success(request, 'نام پوشه تغییر کرد.')
-    return redirect('question_bank')
+        messages.success(request, 'پوشه به‌روزرسانی شد.')
+    return _bank_redirect(request)
 
 
 @login_required
 @require_http_methods(["POST"])
 def bank_folder_delete(request, folder_id):
-    """حذف پوشه؛ سوال‌ها به ریشه بانک برمی‌گردند"""
+    """حذف پوشه؛ سوال‌ها و زیرپوشه‌ها به پوشهٔ والد منتقل می‌شوند (چیزی پاک نمی‌شود)"""
     check_teacher_access(request.user)
     folder = get_object_or_404(BankFolder, id=folder_id, teacher=request.user)
+    parent = folder.parent
     name = folder.name
-    folder.delete()
-    messages.success(request, 'پوشه «%s» حذف شد؛ سوال‌ها به ریشه بانک رفتند.' % name)
+    with transaction.atomic():
+        QuestionBank.objects.filter(folder=folder).update(folder=parent)
+        for child in folder.children.all():
+            new_name, i = child.name, 2
+            while BankFolder.objects.filter(teacher=request.user, parent=parent, name=new_name).exists():
+                new_name = '%s (%d)' % (child.name, i)
+                i += 1
+            child.name, child.parent = new_name, parent
+            child.save()
+        folder.delete()
+    where = 'پوشهٔ «%s»' % parent.name if parent else 'ریشه بانک'
+    messages.success(request, 'پوشه «%s» حذف شد؛ محتوایش به %s رفت.' % (name, where))
+    return _bank_redirect(request, parent.id if parent else '')
+
+
+def _copy_bank_to_exam(bank, exam, order):
+    Question.objects.create(
+        exam=exam, text=bank.text, question_type=bank.question_type,
+        options=list(bank.options or []), correct_answer=bank.correct_answer,
+        blanks=list(bank.blanks or []), image=bank.image or None,
+        max_score=bank.max_score, order=order)
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_folder_import(request, folder_id):
+    """افزودن همهٔ سوال‌های یک پوشه (و زیرپوشه‌هایش) به یک آزمون"""
+    check_teacher_access(request.user)
+    folder = get_object_or_404(BankFolder, id=folder_id, teacher=request.user)
+    exam = get_object_or_404(Exam, id=request.POST.get('exam_id') or 0, teacher=request.user)
+    _, _, descendants = _folder_tree(request.user)
+    banks = list(QuestionBank.objects.filter(teacher=request.user,
+                                             folder_id__in=descendants.get(folder.id, {folder.id}))
+                 .order_by('folder_id', 'created_at'))
+    with transaction.atomic():
+        order = exam.questions.aggregate(m=Max('order'))['m'] or 0
+        for b in banks:
+            order += 1
+            _copy_bank_to_exam(b, exam, order)
+        QuestionBank.objects.filter(id__in=[b.id for b in banks]).update(use_count=F('use_count') + 1)
+    messages.success(request, '%d سوال از پوشه «%s» به آزمون «%s» اضافه شد.' % (len(banks), folder.name, exam.title))
+    return _bank_redirect(request, folder.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_seed_sample(request):
+    """بارگذاری بانک سوال نمونهٔ پوشه‌بندی‌شده برای معلم جاری (قابل تکرار، بدون تکراری)"""
+    check_teacher_access(request.user)
+    from exams.bank_seed import seed_question_bank
+    nf, nq = seed_question_bank(request.user)
+    if nq or nf:
+        messages.success(request, 'بانک نمونه بارگذاری شد: %d پوشه و %d سوال جدید.' % (nf, nq))
+    else:
+        messages.info(request, 'بانک نمونه از قبل کامل بارگذاری شده است.')
     return redirect('question_bank')
+
+
+@login_required
+@require_http_methods(["POST"])
+def bank_bulk_action(request):
+    """عملیات گروهی روی سوال‌های انتخاب‌شده: جابجایی، افزودن به آزمون، حذف"""
+    check_teacher_access(request.user)
+    ids = [int(i) for i in request.POST.getlist('ids') if str(i).isdigit()]
+    banks = QuestionBank.objects.filter(teacher=request.user, id__in=ids)
+    n = banks.count()
+    action = request.POST.get('action', '')
+    if not n:
+        messages.error(request, 'هیچ سوالی انتخاب نشده است.')
+    elif action == 'move':
+        target = _get_parent_folder(request, request.POST.get('folder'))
+        banks.update(folder=target)
+        messages.success(request, '%d سوال به %s منتقل شد.' % (n, '«%s»' % target.name if target else 'ریشه'))
+    elif action == 'import':
+        exam = get_object_or_404(Exam, id=request.POST.get('exam_id') or 0, teacher=request.user)
+        with transaction.atomic():
+            order = exam.questions.aggregate(m=Max('order'))['m'] or 0
+            for b in banks.order_by('created_at'):
+                order += 1
+                _copy_bank_to_exam(b, exam, order)
+            banks.update(use_count=F('use_count') + 1)
+        messages.success(request, '%d سوال به آزمون «%s» اضافه شد.' % (n, exam.title))
+    elif action == 'delete':
+        banks.delete()
+        messages.success(request, '%d سوال از بانک حذف شد.' % n)
+    else:
+        messages.error(request, 'عملیات نامعتبر است.')
+    return _bank_redirect(request)
 
 
 @login_required
@@ -1470,7 +1654,7 @@ def bank_question_edit(request, bank_id):
         bank.image = None
     bank.save()
     messages.success(request, 'سوال ویرایش شد.')
-    return redirect('question_bank')
+    return _bank_redirect(request)
 
 
 @login_required
@@ -1486,7 +1670,7 @@ def bank_question_move(request, bank_id):
         bank.folder = None
     bank.save()
     messages.success(request, 'سوال جابجا شد.')
-    return redirect('question_bank')
+    return _bank_redirect(request)
 
 
 @login_required
@@ -1495,7 +1679,7 @@ def delete_bank_question(request, bank_id):
     bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
     bank.delete()
     messages.success(request, 'سوال بانکی حذف شد.')
-    return redirect('question_bank')
+    return _bank_redirect(request)
 
 
 @login_required
@@ -1505,15 +1689,11 @@ def import_bank_question(request, bank_id):
     bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
     exam = get_object_or_404(Exam, id=request.POST.get('exam_id'), teacher=request.user)
     last = exam.questions.aggregate(m=Max('order'))['m'] or 0
-    Question.objects.create(
-        exam=exam, text=bank.text, question_type=bank.question_type,
-        options=list(bank.options or []), correct_answer=bank.correct_answer,
-        blanks=list(bank.blanks or []), image=bank.image or None,
-        max_score=bank.max_score, order=last + 1)
+    _copy_bank_to_exam(bank, exam, last + 1)
     bank.use_count += 1
     bank.save(update_fields=['use_count'])
     messages.success(request, f'سوال به آزمون «{exam.title}» اضافه شد.')
-    return redirect('question_bank')
+    return _bank_redirect(request)
 
 
 # =====================================================================
