@@ -483,3 +483,39 @@ class BrandedNotFoundTests(TestCase):
         r = self.client.get('/no-such-page-xyz/', HTTP_ACCEPT='text/html')
         self.assertEqual(r.status_code, 404)
         self.assertContains(r, '۴۰۴', status_code=404)
+
+
+class ErrorPagesTests(TestCase):
+    """صفحه‌های خطا: مستقل، فارسی، با کد وضعیت درست و بدون وابستگی به دیتابیس"""
+
+    def test_all_error_pages_render(self):
+        from django.test import RequestFactory
+        from accounts.views import render_error
+        rf = RequestFactory()
+        for code, status in [(400, 400), (403, 403), (404, 404), (405, 405), (500, 500), ('csrf', 403)]:
+            with self.subTest(code=code):
+                r = render_error(rf.get('/x/'), code)
+                self.assertEqual(r.status_code, status)
+                html = r.content.decode()
+                self.assertIn('dir="rtl"', html)
+                self.assertNotIn('site-header', html)   # به base.html وابسته نیست
+
+    def test_500_page_does_not_touch_database(self):
+        from django.test import RequestFactory
+        from accounts.views import server_error
+        with self.assertNumQueries(0):
+            self.assertEqual(server_error(RequestFactory().get('/')).status_code, 500)
+
+    def test_404_via_middleware(self):
+        from django.test import override_settings
+        with override_settings(DEBUG=True):
+            r = self.client.get('/no-such-page/', HTTP_ACCEPT='text/html')
+        self.assertEqual(r.status_code, 404)
+        self.assertContains(r, 'این صفحه پیدا نشد', status_code=404)
+
+    def test_csrf_failure_page(self):
+        from django.test import Client, override_settings
+        with override_settings(DEBUG=True):
+            r = Client(enforce_csrf_checks=True).post('/login/', {'username': 'a', 'password': 'b'})
+        self.assertEqual(r.status_code, 403)
+        self.assertContains(r, 'اعتبار صفحه', status_code=403)

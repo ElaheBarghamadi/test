@@ -182,21 +182,80 @@ def protected_media(request, path):
 
 # ========== صفحات خطا ==========
 
+_FA_DIGITS = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
+
+ERROR_PAGES = {
+    400: {'title': 'درخواست قابل پردازش نبود',
+          'message': 'اطلاعات ارسال‌شده ناقص یا نادرست بود. معمولاً با تازه‌کردن صفحه و تلاش دوباره حل می‌شود.',
+          'tips': ['صفحه را تازه کنید و دوباره امتحان کنید.', 'اگر از لینکی آمده‌اید، آدرس آن را بررسی کنید.'],
+          'accent': '#e0a526', 'primary_label': '↻ تلاش دوباره'},
+    403: {'title': 'به این صفحه دسترسی ندارید',
+          'message': 'این بخش برای نقش کاربری شما در دسترس نیست یا مربوط به حساب دیگری است.',
+          'tips': ['مطمئن شوید با حساب درست وارد شده‌اید.', 'اگر فکر می‌کنید باید دسترسی داشته باشید، با مدیر سامانه تماس بگیرید.'],
+          'accent': '#e05a4f', 'primary_label': '🏠 رفتن به صفحهٔ من'},
+    404: {'title': 'این صفحه پیدا نشد',
+          'message': 'ممکن است آدرس اشتباه تایپ شده باشد، یا این آزمون و صفحه حذف یا جابه‌جا شده باشد.',
+          'tips': ['آدرس را دوباره بررسی کنید.', 'از منوی صفحهٔ اصلی به بخش موردنظر بروید.'],
+          'accent': '#2ec4b6', 'primary_label': '🏠 رفتن به صفحهٔ من'},
+    405: {'title': 'این کار از این راه ممکن نیست',
+          'message': 'این عملیات فقط از داخل فرم مربوط به خودش انجام می‌شود، نه با باز کردن مستقیم آدرس.',
+          'tips': ['به صفحهٔ قبل برگردید و از دکمهٔ مربوط استفاده کنید.'],
+          'accent': '#8b6cf0', 'primary_label': '🏠 رفتن به صفحهٔ من'},
+    500: {'title': 'مشکلی در سرور پیش آمد',
+          'message': 'تقصیر شما نیست؛ خطا ثبت شد. اگر وسط آزمون هستید نگران نباشید — پاسخ‌های ذخیره‌شده از بین نمی‌روند.',
+          'tips': ['چند لحظه صبر کنید و صفحه را تازه کنید.', 'اگر مشکل ادامه داشت، به معلم یا مدیر سامانه اطلاع دهید.'],
+          'accent': '#e05a4f', 'primary_label': '↻ تلاش دوباره'},
+    'csrf': {'title': 'اعتبار صفحه تمام شده است',
+             'message': 'این صفحه مدت زیادی باز مانده یا از تب دیگری خارج شده‌اید؛ برای امنیت، فرم پذیرفته نشد.',
+             'tips': ['صفحه را تازه کنید و دوباره ارسال کنید.', 'اگر خارج شده‌اید، دوباره وارد حساب شوید.'],
+             'accent': '#e0a526', 'primary_label': '↻ تازه‌کردن صفحه'},
+}
+
+
+def _home_url(request):
+    """آدرس صفحهٔ اصلی هر نقش — بدون کوئری اضافه و بدون احتمال خطا"""
+    try:
+        user = getattr(request, 'user', None)
+        if user is not None and user.is_authenticated:
+            return {'admin': '/admin-panel/', 'teacher': '/teacher/dashboard/'}.get(
+                getattr(user, 'role', ''), '/student/dashboard/')
+    except Exception:
+        pass
+    return '/login/'
+
+
+def render_error(request, code, status=None):
+    """صفحهٔ خطای مستقل؛ بدون base.html و context processorها تا در خطای ۵۰۰ (مثلاً قطعی دیتابیس) خودش خراب نشود"""
+    from django.http import HttpResponse
+    from django.template import loader
+    info = ERROR_PAGES[code]
+    status = status or (403 if code == 'csrf' else code)
+    home = _home_url(request)
+    ctx = dict(info, code=status, code_fa=str(status).translate(_FA_DIGITS), home_url=home,
+               primary_url=None if info['primary_label'].startswith('↻') else home,
+               request_path=getattr(request, 'path', '') if status == 404 else '')
+    try:
+        html = loader.get_template('errors/error.html').render(ctx)
+    except Exception:
+        html = '<h1 style="font-family:tahoma;text-align:center;margin-top:20vh">خطای %s</h1>' % status
+    return HttpResponse(html, status=status)
+
+
 def bad_request(request, exception=None):
-    """خطای 400 - درخواست نادرست"""
-    return render(request, '400.html', status=400)
+    return render_error(request, 400)
 
 
 def permission_denied(request, exception=None):
-    """خطای 403 - دسترسی غیرمجاز"""
-    return render(request, '403.html', status=403)
+    return render_error(request, 403)
 
 
 def page_not_found(request, exception=None):
-    """خطای 404 - صفحه یافت نشد"""
-    return render(request, '404.html', status=404)
+    return render_error(request, 404)
 
 
 def server_error(request):
-    """خطای 500 - خطای داخلی سرور"""
-    return render(request, '500.html', status=500)
+    return render_error(request, 500)
+
+
+def csrf_failure(request, reason=''):
+    return render_error(request, 'csrf')

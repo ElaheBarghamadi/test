@@ -74,8 +74,19 @@ class BrandedNotFoundMiddleware:
             response = self.get_response(request)
         except Http404:
             if self._wants_html(request):
-                return render(request, '404.html', status=404)
+                return _page_not_found(request)
             raise
         if response.status_code == 404 and self._wants_html(request):
-            return render(request, '404.html', status=404)
+            return _page_not_found(request)
+        if response.status_code == 405 and self._wants_html(request) and not response.content.strip():
+            from accounts.views import render_error
+            new = render_error(request, 405)
+            if response.has_header('Allow'):
+                new['Allow'] = response['Allow']
+            return new
         return response
+
+
+def _page_not_found(request):
+    from accounts.views import page_not_found
+    return page_not_found(request)
