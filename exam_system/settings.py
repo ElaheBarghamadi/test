@@ -51,10 +51,7 @@ if not DEBUG and not TESTING:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".onrender.com",
-    "USERNAME.pythonanywhere.com"
+    *
 ]
 # در توسعه (runserver) هر هاستی مجاز است؛ در تولید همان فهرست بالا اعمال می‌شود
 if DEBUG:
