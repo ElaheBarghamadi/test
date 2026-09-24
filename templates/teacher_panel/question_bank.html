@@ -142,6 +142,18 @@
         .bank-actions form { width: 100%; }
         .bank-actions select, .bank-actions .btn { flex: 1 1 46%; min-width: 0; }
         .folder-row input[type=text] { max-width: 100%; flex: 1; }
+        /* موبایل: شلوغی کمتر، دکمه‌های بزرگ‌تر */
+        .bank-topbar .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+        .bank-topbar .actions > a.btn-gold { grid-column: 1 / -1; }
+        .bank-topbar .actions form, .bank-topbar .actions .btn { width: 100%; justify-content: center; min-height: 44px; font-size: .8rem; }
+        .bank-stats { display: flex; overflow-x: auto; gap: 8px; scrollbar-width: none; margin-inline: -4px; padding-inline: 4px; }
+        .bank-stats::-webkit-scrollbar { display: none; }
+        .bstat { flex: 0 0 auto; display: flex; align-items: baseline; gap: 6px; padding: 8px 12px; border-radius: 999px; }
+        .bstat b { font-size: 1rem; }
+        .subfolders { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .subfolder { padding: 10px 12px; }
+        .bank-filter input, .bank-filter select, .newf-form input, .newf-form select { font-size: 16px; }
+        .bank-opts { padding-right: 12px; }
     }
 </style>
 {% endblock %}

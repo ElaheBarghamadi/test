@@ -430,8 +430,8 @@
     </style>
     {% block extra_css %}{% endblock %}
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=3">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=4">
 </head>
 <body>
 <a class="skip-to-content" href="#mainContent">پرش به محتوای اصلی</a>
@@ -597,45 +597,30 @@
 </main>
 
 <footer class="footer site-footer">
-    <div class="sf-card">
-        <div class="sf-top">
-            <a class="sf-brand" href="{% if user.is_authenticated %}{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'teacher' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}{% else %}{% url 'login' %}{% endif %}">
-                <span class="sf-mark"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg></span>
-                <span><b>سامانه آزمون</b><small>برگزاری و تصحیح آزمون آنلاین</small></span>
-            </a>
-
-            <nav class="sf-links" aria-label="پیوندهای پایین صفحه">
-            {% if user.is_authenticated %}
-                {% if user.role == 'admin' %}
-                    <a href="{% url 'admin_dashboard' %}">داشبورد</a>
-                    <a href="{% url 'manage_users' %}">کاربران</a>
-                    <a href="{% url 'manage_exams' %}">آزمون‌ها</a>
-                {% elif user.role == 'teacher' %}
-                    <a href="{% url 'teacher_dashboard' %}">آزمون‌های من</a>
-                    <a href="{% url 'create_exam' %}">آزمون جدید</a>
-                    <a href="{% url 'question_bank' %}">بانک سوال</a>
-                    <a href="{% url 'groups' %}">گروه‌ها</a>
-                {% else %}
-                    <a href="{% url 'student_dashboard' %}">آزمون‌های من</a>
-                    <a href="{% url 'student_dashboard' %}#results">نتایج من</a>
-                {% endif %}
+    <div class="sf-inner">
+        <div class="sf-brand">
+            <span class="sf-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg></span>
+            <b>سامانه آزمون</b>
+        </div>
+        <nav class="sf-links" aria-label="پیوندهای پایین صفحه">
+        {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+                <a href="{% url 'admin_dashboard' %}">داشبورد</a>
+                <a href="{% url 'manage_users' %}">کاربران</a>
+                <a href="{% url 'manage_exams' %}">آزمون‌ها</a>
+            {% elif user.role == 'teacher' %}
+                <a href="{% url 'teacher_dashboard' %}">آزمون‌ها</a>
+                <a href="{% url 'question_bank' %}">بانک سوال</a>
+                <a href="{% url 'groups' %}">گروه‌ها</a>
             {% else %}
-                <a href="{% url 'login' %}">ورود به سامانه</a>
+                <a href="{% url 'student_dashboard' %}">آزمون‌های من</a>
+                <a href="{% url 'student_dashboard' %}#results">نتایج</a>
             {% endif %}
-            </nav>
-
-            <div class="sf-status" title="پاسخ‌های آزمون هنگام تایپ ذخیره می‌شوند">
-                <span class="sf-dot" aria-hidden="true"></span> ذخیرهٔ خودکار پاسخ‌ها فعال است
-            </div>
-        </div>
-
-        <div class="sf-bottom">
-            <span>© ۱۴۰۵ سامانه آزمون غیرحضوری</span>
-            <span class="sf-help">پشتیبانی: واحد فناوری اطلاعات · شنبه تا چهارشنبه ۸ تا ۱۴</span>
-            <button type="button" class="sf-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="بازگشت به بالای صفحه">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m18 15-6-6-6 6"/></svg>
-            </button>
-        </div>
+        {% else %}
+            <a href="{% url 'login' %}">ورود</a>
+        {% endif %}
+        </nav>
+        <span class="sf-copy">© ۱۴۰۵ · همهٔ حقوق محفوظ است</span>
     </div>
 </footer>
 

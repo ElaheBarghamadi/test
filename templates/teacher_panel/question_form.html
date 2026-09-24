@@ -100,19 +100,60 @@
     .bank-row .m span { font-size: .68rem; font-weight: 700; color: var(--ink2); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
     .bank-bar { position: sticky; bottom: 0; display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #0f5f68; color: #fff; }
 
+    .qf-more { grid-column: 1 / -1; border: 1px dashed var(--line); border-radius: 14px; padding: 0 12px; }
+    .qf-more summary, .pv-details summary { cursor: pointer; list-style: none; font-size: .8rem; font-weight: 700; color: var(--gold3); padding: 11px 0; }
+    .qf-more summary::-webkit-details-marker, .pv-details summary::-webkit-details-marker { display: none; }
+    .qf-more summary::after, .pv-details summary::after { content: '▾'; float: left; transition: transform .2s; }
+    .qf-more[open] summary::after, .pv-details[open] summary::after { transform: rotate(180deg); }
+    .qf-more-body { padding-bottom: 12px; }
+    .pv-details summary { padding: 0; }
+    .pv-details summary h3 { display: inline-flex; margin: 0; }
+    .pv-details[open] summary { margin-bottom: 12px; }
+    .qf-row > div:first-child { grid-column: auto; }
+
     @media (max-width: 980px) {
         .qf-grid { grid-template-columns: 1fr; }
         .preview { position: static; }
+        .qf-grid > div { display: contents; }   /* پیش‌نمایش بین کارت‌ها جا می‌گیرد */
+        .qf-grid { display: flex; flex-direction: column; gap: 0; }
+        .preview { order: 3; }
+        .qf-savebar { order: 10; }
     }
     @media (max-width: 600px) {
-        .qf-card { padding: 14px; border-radius: 16px; }
-        .row.opt { grid-template-columns: auto 1fr auto; }
+        .qf-wrap { padding-bottom: 8px; }
+        .qf-top h1 { font-size: 1.05rem; }
+        .qf-card { padding: 14px; border-radius: 16px; margin-bottom: 10px; }
+        .qf-card h3 { font-size: .86rem; margin-bottom: 10px; }
+        .qf-card input[type=text], .qf-card input[type=number], .qf-card select, .qf-card textarea, .bank-filter input, .bank-filter select { font-size: 16px; } /* جلوگیری از زوم iOS */
+        .qf-tabs { display: flex; width: 100%; }
+        .qf-tab { flex: 1; padding: 10px 8px; }
+        /* انتخاب نوع: نوار افقی قابل اسکرول به‌جای شبکهٔ شلوغ */
+        .types { display: flex; overflow-x: auto; gap: 8px; margin: 0 -14px; padding: 2px 14px 6px; scroll-snap-type: x proximity; scrollbar-width: none; }
+        .types::-webkit-scrollbar { display: none; }
+        .type-card { flex: 0 0 auto; scroll-snap-align: start; }
+        .type-card span { display: flex; align-items: center; gap: 6px; padding: 9px 13px; border-radius: 999px; white-space: nowrap; }
+        .type-card b { font-size: 1rem; }
+        .type-card i { display: none; }
+        .qf-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+        /* دکمه‌های ذخیره: چسبیده به پایین صفحه، در دسترس انگشت */
+        .qf-savebar { position: sticky; bottom: 0; z-index: 20; margin: 0 -12px -1px; border-radius: 18px 18px 0 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -6px 24px rgba(8,45,52,.10); }
+        .qf-actions .grow { display: none; }
+        .qf-actions .chk { width: 100%; }
+        .qf-actions select { max-width: none !important; width: 100%; }
+        .qf-actions .btn { flex: 1; min-height: 46px; justify-content: center; font-size: .85rem; padding-inline: 10px; }
+        .row { padding: 8px; }
+        .row.opt { grid-template-columns: 1fr auto auto; grid-template-areas: "text media del" "pick pick pick"; }
+        .row.opt .js-text { grid-area: text; }
+        .row.opt .opt-media { grid-area: media; }
+        .row.opt .js-del { grid-area: del; }
+        .row.opt .correct-pick { grid-area: pick; font-size: .74rem; }
+        .icon-btn { width: 40px; height: 40px; }
+        .bank-bar { flex-direction: column; align-items: stretch; }
+        .bank-bar .btn { min-height: 46px; justify-content: center; }
         .row.opt .num { display: none; }
-        .row.opt .opt-media { grid-column: 1 / -1; order: 5; }
-        .row.blank, .row.pair { grid-template-columns: 1fr auto; }
+        .row.blank, .row.pair { grid-template-columns: 1fr 1fr auto; gap: 6px; }
         .row.blank .num, .row.pair .num, .row.pair .arrow { display: none; }
         .bank-filter { grid-template-columns: 1fr; }
-        .types { grid-template-columns: repeat(2, 1fr); }
     }
 </style>
 {% endblock %}
@@ -170,7 +211,9 @@
                             <label class="qf-label">بارم (نمره) *</label>
                             <input type="number" name="max_score" id="qScore" step="0.25" min="0.25" value="{{ initial.max_score }}" required>
                         </div>
-                        <div>
+                        <details class="qf-more" {% if initial.image_url or initial.allow_image_answer %}open{% endif %}>
+                            <summary>📎 تصویر و تنظیمات بیشتر</summary>
+                            <div class="qf-more-body">
                             <label class="qf-label">تصویر سوال (اختیاری)</label>
                             <input type="file" name="image" id="qImage" accept="image/*">
                             {% if initial.image_url %}
@@ -179,7 +222,12 @@
                                 <label class="chk"><input type="checkbox" name="remove_image" value="1" id="removeImg"> حذف تصویر</label>
                             </div>
                             {% endif %}
-                        </div>
+                            <label class="chk" style="margin-top:12px;" id="allowImgWrap">
+                                <input type="checkbox" name="allow_image_answer" value="1" {% if initial.allow_image_answer %}checked{% endif %}>
+                                📷 دانش‌آموز بتواند عکس هم به‌عنوان پاسخ بفرستد
+                            </label>
+                            </div>
+                        </details>
                         {% if mode == 'bank' %}
                         <div>
                             <label class="qf-label">پوشه</label>
@@ -196,10 +244,6 @@
                         </div>
                         {% endif %}
                     </div>
-                    <label class="chk" style="margin-top:12px;" id="allowImgWrap">
-                        <input type="checkbox" name="allow_image_answer" value="1" {% if initial.allow_image_answer %}checked{% endif %}>
-                        📷 دانش‌آموز بتواند عکس هم به‌عنوان پاسخ بفرستد
-                    </label>
                 </div>
 
                 <div class="qf-card">
@@ -251,7 +295,7 @@
                     </div>
                 </div>
 
-                <div class="qf-card">
+                <div class="qf-card qf-savebar">
                     <div class="qf-actions">
                         {% if mode == 'exam' %}
                             <label class="chk"><input type="checkbox" name="save_to_bank" value="1" id="saveToBank"> 📚 یک نسخه در بانک سوال هم ذخیره شود</label>
@@ -272,10 +316,10 @@
             </div>
 
             <aside class="preview">
-                <div class="qf-card">
-                    <h3>👁️ پیش‌نمایش برای دانش‌آموز</h3>
+                <details class="qf-card pv-details" id="pvDetails" open>
+                    <summary><h3>👁️ پیش‌نمایش برای دانش‌آموز</h3></summary>
                     <div class="pv-box" id="preview" aria-live="polite"></div>
-                </div>
+                </details>
             </aside>
         </div>
     </form>
@@ -564,6 +608,7 @@
     form.addEventListener('input', sync);
     form.addEventListener('change', sync);
     sync();
+    if (window.matchMedia('(max-width: 980px)').matches) $('#pvDetails').open = false;
 
     // اعتبارسنجی سریع سمت کاربر (سرور همیشه دوباره بررسی می‌کند)
     form.addEventListener('submit', e => {

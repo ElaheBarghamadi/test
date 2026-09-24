@@ -52,3 +52,16 @@ class Command(BaseCommand):
             user.save()
             if not quiet:
                 self.stdout.write(self.style.SUCCESS(f'✓ {username}: ساخته شد (رمز: {username})'))
+
+        # بانک سوال شروع (~۲۰ سوال پوشه‌بندی‌شده) برای اکانت teacher، اگر بانکش خالی باشد
+        try:
+            from exams.bank_seed import STARTER_BANK, seed_question_bank
+            from exams.models import BankFolder, QuestionBank
+            teacher = User.objects.filter(username='teacher', role='teacher').first()
+            if teacher and not QuestionBank.objects.filter(teacher=teacher).exists() \
+                    and not BankFolder.objects.filter(teacher=teacher).exists():
+                nf, nq = seed_question_bank(teacher, bank=STARTER_BANK)
+                if not quiet:
+                    self.stdout.write(self.style.SUCCESS(f'✓ بانک سوال teacher: {nq} سوال در {nf} پوشه'))
+        except Exception as exc:
+            self.stderr.write(f'⚠️ ساخت بانک سوال شروع ناموفق بود: {exc}')
