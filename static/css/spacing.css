@@ -1,0 +1,79 @@
+/* =====================================================================
+   فضای تنفس — لایهٔ نهایی فاصله‌ها برای کل سایت (موبایل + دسکتاپ)
+   بعد از همهٔ استایل‌ها لود می‌شود؛ پیشوند body برای غلبه بر استایل صفحه‌ها.
+   ===================================================================== */
+:root { --gap-xs: 8px; --gap-s: 12px; --gap-m: 18px; --gap-l: 24px; --gap-xl: 32px; }
+
+body { line-height: 1.85; }
+body .main-content { margin: 32px auto 0; padding: 0 28px; max-width: 1240px; }
+body .container, body .container-custom, body .container-dashboard { padding: 0 0 56px; }
+
+/* تیترها */
+body .page-title, body h1, body h2 { margin-bottom: var(--gap-l); }
+body .section-title, body .card h3, body .qf-card h3 { margin-bottom: var(--gap-m); }
+
+/* کارت‌ها و باکس‌ها */
+body .card, body .panel, body .box, body .filter-card, body .report-card, body .welcome-card,
+body .settings-section, body .filter-section, body .qf-card {
+    padding: 24px; margin-bottom: var(--gap-l); border-radius: 20px;
+    box-shadow: 0 1px 2px rgba(8,45,52,.04), 0 6px 20px rgba(8,45,52,.04);
+}
+body .card:last-child, body .qf-card:last-child { margin-bottom: 0; }
+
+/* شبکه‌ها */
+body .stats { gap: var(--gap-m); margin-bottom: var(--gap-xl); }
+body .stat-card, body .stat-tile, body .info-stat { padding: 20px 16px; }
+body .exams-grid { gap: var(--gap-l); }
+body .exam-card, body .exam-item { padding: 20px; gap: 14px; }
+body .admin-cols, body .form-row { gap: var(--gap-m); }
+body .form-group { margin-bottom: var(--gap-m); }
+body .filters, body .filter-bar, body .filter-row, body .filters-row { gap: var(--gap-s); padding: 18px; margin-bottom: var(--gap-l); }
+
+/* فرم سوال */
+body .qf-wrap { max-width: 1120px; }
+body .qf-top { margin-bottom: var(--gap-l); }
+body .qf-grid { gap: var(--gap-l); }
+body .qf-row { gap: var(--gap-m); }
+body .rows { gap: var(--gap-s); }
+body .rows > .row { padding: 12px 14px; }
+body .types { gap: var(--gap-s); }
+body .qf-tabs { margin-bottom: var(--gap-l); }
+body .add-row { margin-top: var(--gap-s); }
+body .qf-hint { margin-top: 10px; }
+
+/* بانک سوال */
+body .bank-topbar { margin-bottom: var(--gap-l); }
+body .bank-stats { gap: var(--gap-s); margin-bottom: var(--gap-l); }
+body .bank-layout { gap: var(--gap-l); }
+body .bank-main { gap: var(--gap-l); }
+body .subfolders { gap: var(--gap-s); }
+body .bank-item { margin-bottom: var(--gap-s); padding: 18px 20px; }
+body .bank-filter { padding: 18px; gap: var(--gap-s); }
+
+/* جدول‌ها */
+body table th, body table td { padding: 14px 16px; }
+
+/* پیام‌ها */
+body .site-messages { margin-bottom: var(--gap-l); }
+
+/* ---------- موبایل ---------- */
+@media (max-width: 720px) {
+    body .main-content { margin-top: 20px; padding: 0 16px; }
+    body .container, body .container-custom, body .container-dashboard { padding: 0 0 40px; }
+    body .page-title, body h1, body h2 { margin-bottom: var(--gap-m); }
+    body .card, body .panel, body .box, body .filter-card, body .report-card, body .welcome-card,
+    body .settings-section, body .filter-section, body .qf-card {
+        padding: 18px; margin-bottom: var(--gap-m); border-radius: 18px;
+    }
+    body .stats { gap: var(--gap-s); margin-bottom: var(--gap-l); }
+    body .stat-card, body .stat-tile, body .info-stat { padding: 16px 12px; }
+    body .exams-grid { gap: var(--gap-m); }
+    body .exam-card, body .exam-item { padding: 18px; }
+    body .filters, body .filter-bar, body .filter-row, body .filters-row { padding: 14px; gap: 10px; }
+    body .form-group { margin-bottom: 16px; }
+    body .qf-grid, body .bank-layout, body .bank-main { gap: var(--gap-m); }
+    body .qf-savebar { margin-bottom: 0; }
+    body .rows > .row { padding: 10px; }
+    body .bank-item { padding: 16px; }
+    body table th, body table td { padding: 12px 10px; }
+}
