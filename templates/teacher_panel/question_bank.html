@@ -150,7 +150,7 @@
 <div class="bank-topbar">
     <div class="page-title" style="margin:0;">📚 بانک سوال مشترک</div>
     <div class="actions">
-        <button class="btn btn-gold" id="btnNewQ" type="button">➕ سوال جدید</button>
+        <a class="btn btn-gold" href="{% url 'bank_question_new' %}{% if folder_id %}?folder={{ folder_id }}{% endif %}">➕ سوال جدید</a>
         <button class="btn btn-secondary" id="btnNewF" type="button">📁 پوشه جدید</button>
         <form method="post" action="{% url 'bank_seed_sample' %}" style="display:inline;"
               onsubmit="return confirm('بانک آماده (پایه‌ها، درس‌ها و فصل‌ها با ده‌ها سوال) به بانک شما اضافه شود؟ سوال‌های فعلی دست نمی‌خورند.');">
@@ -158,217 +158,6 @@
             <button class="btn btn-secondary" type="submit">✨ بارگذاری بانک نمونه</button>
         </form>
     </div>
-</div>
-
-<!-- فرم افزودن سوال (با دکمه باز می‌شود) — فیلدها بر اساس نوع سوال -->
-<div class="card collapsible" id="newQBox">
-    <div class="section-title">➕ افزودن سوال به بانک</div>
-    <form method="post" class="bank-form qform" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="full">
-            <label>متن سوال *</label>
-            <textarea name="text" required placeholder="صورت سوال را بنویسید…">{{ fd.text|default:'' }}</textarea>
-        </div>
-        <div>
-            <label>نوع سوال</label>
-            <select name="question_type" data-qtype>
-                {% for value, label in type_choices %}
-                <option value="{{ value }}" {% if fd.question_type == value or not fd and value == 'multiple_choice' %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label>بارم سوال</label>
-            <input type="number" name="max_score" value="{{ fd.max_score|default:'1' }}" step="0.25" min="0.25">
-        </div>
-        <div>
-            <label>پوشه</label>
-            <select name="folder">
-                <option value="">بدون پوشه (ریشه)</option>
-                {% for f in folders %}
-                <option value="{{ f.id }}" {% if fd.folder == f.id|stringformat:'s' %}selected{% elif folder_id == f.id|stringformat:'s' and not fd %}selected{% endif %}>{{ f.path }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label>سطح دشواری</label>
-            <select name="difficulty">
-                {% for v, l in difficulty_choices %}<option value="{{ v }}" {% if fd.difficulty == v or not fd and v == 'medium' %}selected{% endif %}>{{ l }}</option>{% endfor %}
-            </select>
-        </div>
-        <div>
-            <label>تصویر سوال (اختیاری)</label>
-            <input type="file" name="image" accept="image/*">
-        </div>
-
-        <div class="full qsec qsec-mc" data-types="multiple_choice">
-            <div class="sec-hint">🔬 گزینه‌ها را بنویسید (حداقل ۲، حداکثر ۴) و شمارهٔ گزینهٔ صحیح را انتخاب کنید.</div>
-            <div class="opt-cols">
-                <div><label>گزینه ۱</label><input type="text" class="opt-input opt-1" name="option1" value="{{ fd.option1|default:'' }}" placeholder="متن گزینه ۱"></div>
-                <div><label>گزینه ۲</label><input type="text" class="opt-input opt-2" name="option2" value="{{ fd.option2|default:'' }}" placeholder="متن گزینه ۲"></div>
-                <div><label>گزینه ۳ (اختیاری)</label><input type="text" class="opt-input opt-3" name="option3" value="{{ fd.option3|default:'' }}" placeholder="متن گزینه ۳"></div>
-                <div><label>گزینه ۴ (اختیاری)</label><input type="text" class="opt-input opt-4" name="option4" value="{{ fd.option4|default:'' }}" placeholder="متن گزینه ۴"></div>
-            </div>
-            <div>
-                <label>✅ شمارهٔ گزینهٔ صحیح</label>
-                <select name="correct_answer" data-correct-select></select>
-            </div>
-        </div>
-
-        <div class="full qsec qsec-tf" data-types="true_false">
-            <div class="sec-hint">✅❌ دانش‌آموز دو گزینهٔ «صحیح» و «غلط» می‌بیند؛ پاسخ درست را انتخاب کنید.</div>
-            <div>
-                <label>پاسخ صحیح</label>
-                <select name="correct_answer">
-                    <option value="true" {% if fd.correct_answer == 'true' %}selected{% endif %}>✅ صحیح</option>
-                    <option value="false" {% if fd.correct_answer == 'false' %}selected{% endif %}>❌ غلط</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="full qsec qsec-fill" data-types="fill_blank">
-            <div class="sec-hint">＿ برچسب جاهای خالی و پاسخ هر جای خالی را به همان ترتیب با ویرگول بنویسید.</div>
-            <div>
-                <label>برچسب جاهای خالی (با ویرگول)</label>
-                <input type="text" name="blanks" value="{{ fd.blanks|default:'' }}" placeholder="پایتخت ایران, بزرگ‌ترین شهر">
-            </div>
-            <div>
-                <label>پاسخ جاهای خالی (به ترتیب، با ویرگول) *</label>
-                <input type="text" name="correct_answer" value="{{ fd.correct_answer|default:'' }}" placeholder="تهران, مشهد">
-            </div>
-        </div>
-
-        <div class="full qsec qsec-short" data-types="short_answer">
-            <div class="sec-hint">✍️ پاسخ مورد انتظار را بنویسید؛ تصحیح با مقایسهٔ نزدیک متن انجام می‌شود.</div>
-            <div>
-                <label>پاسخ مورد انتظار *</label>
-                <input type="text" name="correct_answer" value="{{ fd.correct_answer|default:'' }}" placeholder="مثلاً: جرم تقسیم بر حجم">
-            </div>
-        </div>
-
-        <div class="full qsec qsec-long" data-types="long_answer">
-            <div class="sec-hint">📝 دانش‌آموز پاسخ بلند آزاد می‌نویسد؛ پاسخ نمونه برای راهنمای تصحیح شماست.</div>
-            <div>
-                <label>پاسخ نمونه / معیار سنجش</label>
-                <textarea name="correct_answer" placeholder="نکات کلیدی پاسخ ایده‌آل…">{{ fd.correct_answer|default:'' }}</textarea>
-            </div>
-        </div>
-
-        <div class="full qpreview" data-qpreview aria-live="polite"></div>
-
-        <div class="full form-btns">
-            <button type="submit" class="btn btn-gold">💾 ذخیره در بانک</button>
-            <button type="submit" name="stay" value="1" class="btn btn-secondary">💾➕ ذخیره و سوال بعدی</button>
-            <button type="button" class="btn btn-secondary" id="btnCancelQ">انصراف</button>
-        </div>
-    </form>
-</div>
-
-<!-- فرم ویرایش سوال (با دکمهٔ ویرایش هر سوال باز می‌شود) -->
-<div class="card collapsible" id="editQBox">
-    <div class="section-title">✏️ ویرایش سوال بانک</div>
-    <form method="post" class="bank-form qform" id="editQForm" enctype="multipart/form-data"
-          data-url-template="{% url 'bank_question_edit' 987654321 %}">
-        {% csrf_token %}
-        <input type="hidden" name="back" value="{{ folder_id }}">
-        <div class="full">
-            <label>متن سوال *</label>
-            <textarea name="text" required placeholder="صورت سوال را بنویسید…"></textarea>
-        </div>
-        <div>
-            <label>نوع سوال</label>
-            <select name="question_type" data-qtype>
-                {% for value, label in type_choices %}
-                <option value="{{ value }}">{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label>بارم سوال</label>
-            <input type="number" name="max_score" value="1" step="0.25" min="0.25">
-        </div>
-        <div>
-            <label>پوشه</label>
-            <select name="folder">
-                <option value="">بدون پوشه (ریشه)</option>
-                {% for f in folders %}
-                <option value="{{ f.id }}">{{ f.path }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label>سطح دشواری</label>
-            <select name="difficulty">
-                {% for v, l in difficulty_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
-            </select>
-        </div>
-        <div>
-            <label>تصویر سوال</label>
-            <input type="file" name="image" accept="image/*">
-            <img class="cur-img" data-cur-img alt="" style="display:none;">
-            <label class="chk"><input type="checkbox" name="remove_image" value="1"> حذف تصویر فعلی</label>
-        </div>
-
-        <div class="full qsec qsec-mc" data-types="multiple_choice">
-            <div class="sec-hint">🔬 گزینه‌ها و شمارهٔ گزینهٔ صحیح.</div>
-            <div class="opt-cols">
-                <div><label>گزینه ۱</label><input type="text" class="opt-input opt-1" name="option1" placeholder="متن گزینه ۱"></div>
-                <div><label>گزینه ۲</label><input type="text" class="opt-input opt-2" name="option2" placeholder="متن گزینه ۲"></div>
-                <div><label>گزینه ۳ (اختیاری)</label><input type="text" class="opt-input opt-3" name="option3" placeholder="متن گزینه ۳"></div>
-                <div><label>گزینه ۴ (اختیاری)</label><input type="text" class="opt-input opt-4" name="option4" placeholder="متن گزینه ۴"></div>
-            </div>
-            <div>
-                <label>✅ شمارهٔ گزینهٔ صحیح</label>
-                <select name="correct_answer" data-correct-select></select>
-            </div>
-        </div>
-
-        <div class="full qsec qsec-tf" data-types="true_false">
-            <div class="sec-hint">✅❌ پاسخ درست را انتخاب کنید.</div>
-            <div>
-                <label>پاسخ صحیح</label>
-                <select name="correct_answer" data-tf-select>
-                    <option value="true">✅ صحیح</option>
-                    <option value="false">❌ غلط</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="full qsec qsec-fill" data-types="fill_blank">
-            <div class="sec-hint">＿ برچسب‌ها و پاسخ‌ها به ترتیب.</div>
-            <div>
-                <label>برچسب جاهای خالی (با ویرگول)</label>
-                <input type="text" name="blanks" placeholder="پایتخت ایران, بزرگ‌ترین شهر">
-            </div>
-            <div>
-                <label>پاسخ جاهای خالی (به ترتیب، با ویرگول) *</label>
-                <input type="text" name="correct_answer" placeholder="تهران, مشهد">
-            </div>
-        </div>
-
-        <div class="full qsec qsec-short" data-types="short_answer">
-            <div class="sec-hint">✍️ پاسخ مورد انتظار.</div>
-            <div>
-                <label>پاسخ مورد انتظار *</label>
-                <input type="text" name="correct_answer" data-plain-correct placeholder="مثلاً: جرم تقسیم بر حجم">
-            </div>
-        </div>
-
-        <div class="full qsec qsec-long" data-types="long_answer">
-            <div class="sec-hint">📝 پاسخ نمونه / معیار سنجش.</div>
-            <div>
-                <label>پاسخ نمونه / معیار سنجش</label>
-                <textarea name="correct_answer" data-plain-correct placeholder="نکات کلیدی پاسخ ایده‌آل…"></textarea>
-            </div>
-        </div>
-
-        <div class="full qpreview" data-qpreview aria-live="polite"></div>
-
-        <div class="full form-btns">
-            <button type="submit" class="btn btn-gold">💾 ذخیره تغییرات</button>
-            <button type="button" class="btn btn-secondary" id="btnCancelE">انصراف</button>
-        </div>
-    </form>
 </div>
 
 <!-- فرم پوشه جدید -->
@@ -526,6 +315,10 @@
                     <ol class="bank-opts">
                         {% for o in b.options %}<li class="{% if forloop.counter|stringformat:'s' == b.correct_answer %}ok{% endif %}">{{ o }}</li>{% endfor %}
                     </ol>
+                    {% elif b.question_type == 'matching' and b.matching_pairs %}
+                    <ul class="bank-opts bank-pairs">
+                        {% for p in b.matching_pairs %}<li>{{ p.left }} ⟵ <b>{{ p.right }}</b></li>{% endfor %}
+                    </ul>
                     {% endif %}
                     <div class="bank-meta">
                         {% if b.folder %}<a class="tag folder-tag" href="?folder={{ b.folder_id }}">📁 {{ b.folder.name }}</a>{% endif %}
@@ -533,14 +326,12 @@
                         <span class="tag d-{{ b.difficulty }}">{{ b.get_difficulty_display }}</span>
                         <span class="tag">⭐ بارم {{ b.max_score|floatformat:"-2" }}</span>
                         <span class="tag">🔁 {{ b.use_count }} بار</span>
-                        {% if b.correct_answer and b.question_type != 'multiple_choice' %}
+                        {% if b.correct_answer and b.question_type != 'multiple_choice' and b.question_type != 'matching' %}
                         <span class="tag ans">✅ {% if b.correct_answer == 'true' %}صحیح{% elif b.correct_answer == 'false' %}غلط{% else %}{{ b.correct_answer|truncatewords:8 }}{% endif %}</span>
                         {% endif %}
                     </div>
-                    <span class="qopts-json">{{ b.options|json_script:oid }}</span>
-                    <span class="qblanks-json">{{ b.blanks|json_script:bid }}</span>
                     <div class="bank-actions">
-                        <button type="button" class="btn btn-secondary btn-edit-q" data-id="{{ b.id }}">✏️ ویرایش</button>
+                        <a class="btn btn-secondary" href="{% url 'bank_question_form' b.id %}">✏️ ویرایش</a>
                         <form method="post" action="{% url 'import_bank_question' b.id %}">
                             {% csrf_token %}<input type="hidden" name="back" value="{{ folder_id }}">
                             <select name="exam_id" required>
@@ -577,135 +368,16 @@
 </div>
 
 <script>
-const newQ = document.getElementById('newQBox');
 const newF = document.getElementById('newFBox');
-const editQ = document.getElementById('editQBox');
 const FA = '۰۱۲۳۴۵۶۷۸۹';
 const faNum = n => String(n).replace(/\d/g, d => FA[d]);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* ---------- فرم پویا: نمایش فقط فیلدهای مرتبط با نوع سوال ---------- */
-function qformSync(root) {
-    const t = root.querySelector('[data-qtype]').value;
-    root.querySelectorAll('.qsec').forEach(sec => {
-        const on = (sec.dataset.types || '').split(',').includes(t);
-        sec.hidden = !on;
-        sec.querySelectorAll('input,select,textarea').forEach(el => el.disabled = !on);
-    });
-    if (t === 'multiple_choice') {
-        const sel = root.querySelector('[data-correct-select]');
-        const keep = sel.dataset.initial || sel.value || '';
-        const opts = [...root.querySelectorAll('.opt-input')].map(i => i.value.trim()).filter(Boolean);
-        sel.innerHTML = '';
-        if (!opts.length) {
-            const op = document.createElement('option'); op.value = ''; op.textContent = 'اول گزینه‌ها را بنویسید';
-            sel.appendChild(op);
-        }
-        opts.forEach((o, i) => {
-            const op = document.createElement('option');
-            op.value = String(i + 1);
-            op.textContent = 'گزینهٔ ' + faNum(i + 1) + ': ' + (o.length > 36 ? o.slice(0, 36) + '…' : o);
-            sel.appendChild(op);
-        });
-        if (keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;
-        sel.dataset.initial = '';
-    }
-    qpreview(root);
-}
-function qpreview(root) {
-    const box = root.querySelector('[data-qpreview]');
-    if (!box) return;
-    const tsel = root.querySelector('[data-qtype]');
-    const t = tsel.value;
-    const text = (root.querySelector('[name=text]').value || '').trim();
-    let h = '<div class="qp-head"><span class="tag">پیش‌نمایش: ' + esc(tsel.selectedOptions[0].textContent.trim()) + '</span></div>';
-    h += '<div class="qp-text">' + (text ? esc(text) : '<i>صورت سوال را بنویسید…</i>') + '</div>';
-    if (t === 'multiple_choice') {
-        const opts = [...root.querySelectorAll('.opt-input')].map(i => i.value.trim()).filter(Boolean);
-        h += '<div class="qp-opts">' + (opts.length
-            ? opts.map((o, i) => '<span>' + faNum(i + 1) + ') ' + esc(o) + '</span>').join('')
-            : '<i>گزینه‌ها را وارد کنید…</i>') + '</div>';
-    } else if (t === 'true_false') {
-        h += '<div class="qp-opts"><span>✅ صحیح</span><span>❌ غلط</span></div>';
-    } else if (t === 'fill_blank') {
-        const blanks = (root.querySelector('[name=blanks]').value || '').split(',').map(s => s.trim()).filter(Boolean);
-        h += '<div class="qp-opts">' + (blanks.length
-            ? blanks.map(b => '<span class="qp-blank">『 ' + esc(b) + ' 』</span>').join(' ')
-            : '<i>برچسب جاهای خالی…</i>') + '</div>';
-    } else if (t === 'long_answer') {
-        h += '<div class="qp-note">دانش‌آموز پاسخ بلند آزاد می‌نویسد؛ تصحیح دستی است.</div>';
-    } else {
-        h += '<div class="qp-note">دانش‌آموز پاسخ کوتاه متنی می‌نویسد.</div>';
-    }
-    box.innerHTML = h;
-}
-document.querySelectorAll('form.qform').forEach(form => {
-    ['input', 'change'].forEach(ev => form.addEventListener(ev, () => qformSync(form)));
-    qformSync(form);
-});
-
-/* ---------- باز/بسته کردن کارت‌ها ---------- */
 function showOnly(box) {
-    [newQ, newF, editQ].forEach(b => b.classList.remove('show'));
-    if (box) {
-        box.classList.add('show');
-        box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    newF.classList.remove('show');
+    if (box) { box.classList.add('show'); box.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 }
-document.getElementById('btnNewQ').addEventListener('click', () => {
-    const on = !newQ.classList.contains('show');
-    showOnly(on ? newQ : null);
-});
-document.getElementById('btnCancelQ').addEventListener('click', () => newQ.classList.remove('show'));
-document.getElementById('btnCancelE').addEventListener('click', () => editQ.classList.remove('show'));
-document.getElementById('btnNewF').addEventListener('click', () => {
-    const on = !newF.classList.contains('show');
-    showOnly(on ? newF : null);
-});
-
-/* ---------- پر کردن فرم ویرایش از دادهٔ سوال ---------- */
-function openEditForm(item) {
-    const f = document.getElementById('editQForm');
-    f.action = f.dataset.urlTemplate.replace('987654321', item.dataset.id);
-    f.querySelector('[name=text]').value = item.dataset.text || '';
-    f.querySelector('[data-qtype]').value = item.dataset.type || 'multiple_choice';
-    f.querySelector('[name=max_score]').value = item.dataset.score || '1';
-    f.querySelector('[name=folder]').value = item.dataset.folder || '';
-    f.querySelector('[name=difficulty]').value = item.dataset.difficulty || 'medium';
-    const opts = JSON.parse((item.querySelector('.qopts-json script') || {}).textContent || '[]');
-    ['.opt-1', '.opt-2', '.opt-3', '.opt-4'].forEach((s, i) => { f.querySelector(s).value = opts[i] || ''; });
-    const correct = item.dataset.correct || '';
-    f.querySelector('[data-correct-select]').dataset.initial = correct;
-    const tf = f.querySelector('[data-tf-select]');
-    if (correct === 'true' || correct === 'false') tf.value = correct;
-    f.querySelectorAll('[data-plain-correct]').forEach(el => el.value = correct);
-    const blanks = JSON.parse((item.querySelector('.qblanks-json script') || {}).textContent || '[]');
-    f.querySelector('[name=blanks]').value = blanks.join(', ');
-    const img = f.querySelector('[data-cur-img]');
-    if (item.dataset.image) { img.src = item.dataset.image; img.style.display = ''; }
-    else { img.removeAttribute('src'); img.style.display = 'none'; }
-    f.querySelector('[name=remove_image]').checked = false;
-    f.querySelector('[name=image]').value = '';
-    qformSync(f);
-    showOnly(editQ);
-}
-document.querySelectorAll('.btn-edit-q').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const item = btn.closest('.bank-item');
-        if (item) openEditForm(item);
-    });
-});
-
-/* ---------- پارامترهای URL: باز ماندن فرم بعد از خطا/دکمهٔ «سوال بعدی» ---------- */
-(function () {
-    const params = new URLSearchParams(location.search);
-    if (params.get('new')) showOnly(newQ);
-    const editId = params.get('edit');
-    if (editId) {
-        const item = document.querySelector('.bank-item[data-id="' + editId + '"]');
-        if (item) openEditForm(item);
-    }
-})();
+document.getElementById('btnNewF').addEventListener('click', () => showOnly(newF.classList.contains('show') ? null : newF));
 
 /* ---------- انتخاب گروهی ---------- */
 (function () {

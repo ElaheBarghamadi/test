@@ -60,25 +60,24 @@ def _normalize_fa_text(value):
     return ' '.join(text.split())
 
 
-def fill_blank_is_correct(answer_text, correct_answer):
-    """مقایسه پاسخ جاخالی («مقدار۱ | مقدار۲») با پاسخ صحیح («مقدار۱, مقدار۲»)"""
-    given = [_normalize_fa_text(p) for p in str(answer_text or '').split('|')]
-    expected = [_normalize_fa_text(p) for p in str(correct_answer or '').replace('،', ',').split(',') if p.strip()]
-    if not expected:
-        return False
-    if len(given) == 1 and len(expected) > 1:
-        # پاسخ قدیمی/تک‌متنی: مقایسه کلی
-        return given[0] == _normalize_fa_text(correct_answer)
-    return all(i < len(given) and given[i] == want for i, want in enumerate(expected))
+from exams.grading import fill_blank_is_correct  # noqa: E402 — یک پیاده‌سازی مشترک
 
 
 def _save_to_bank_if_requested(request, question):
-    """اگر معلم تیک «ذخیره در بانک سوال» را زده باشد، کپی سوال به بانک می‌رود"""
-    if request.POST.get('save_to_bank') and question.question_type in dict(QuestionBank._meta.get_field('question_type').choices):
-        QuestionBank.objects.create(
-            teacher=request.user, text=question.text, question_type=question.question_type,
-            options=list(question.options or []), correct_answer=question.correct_answer,
-            blanks=list(question.blanks or []), max_score=question.max_score)
+    """اگر معلم تیک «ذخیره در بانک سوال» را زده باشد، کپی کامل سوال به بانک می‌رود"""
+    if not request.POST.get('save_to_bank'):
+        return
+    folder = None
+    fid = request.POST.get('bank_folder') or ''
+    if fid.isdigit():
+        folder = BankFolder.objects.filter(id=int(fid), teacher=request.user).first()
+    QuestionBank.objects.create(
+        teacher=request.user, text=question.text, question_type=question.question_type,
+        options=list(question.options or []), options_type=question.options_type or 'text',
+        correct_answer=None if question.question_type == 'matching' else question.correct_answer,
+        blanks=list(question.blanks or []), matching_pairs=list(question.matching_pairs or []),
+        allow_image_answer=question.allow_image_answer, image=question.image or None,
+        max_score=question.max_score, folder=folder)
 
 
 def check_teacher_access(user, exam=None):
@@ -491,148 +490,138 @@ def toggle_exam_status(request, exam_id):
 
 
 # ========== مدیریت سوالات ==========
+from exams.question_forms import parse_question_post, apply_to_question, finalize_question  # noqa: E402
+
+
+def _question_initial(obj=None, post=None):
+    """دادهٔ اولیهٔ فرم پویای سوال (برای جاوااسکریپت) از شیء موجود یا POST ناموفق"""
+    if post is not None:
+        opts = []
+        for i in range(1, 7):
+            opts.append({'text': post.get('option_%d' % i, ''), 'image': post.get('option_keep_%d' % i, '')})
+        blanks = [{'label': post.get('blank_label_%d' % i, ''), 'answer': post.get('blank_answer_%d' % i, '')}
+                  for i in range(12) if post.get('blank_label_%d' % i) or post.get('blank_answer_%d' % i)]
+        pairs = [{'left': post.get('left_%d' % i, ''), 'right': post.get('right_%d' % i, '')}
+                 for i in range(24) if post.get('left_%d' % i) or post.get('right_%d' % i)]
+        return {
+            'question_type': post.get('question_type', 'multiple_choice'),
+            'text': post.get('text', ''), 'max_score': post.get('max_score', ''),
+            'options': [o for o in opts if o['text'] or o['image']] or None,
+            'correct_answer': post.get('correct_answer', ''),
+            'blanks': blanks, 'pairs': pairs,
+            'allow_image_answer': bool(post.get('allow_image_answer')),
+            'difficulty': post.get('difficulty', 'medium'), 'folder': post.get('folder', ''),
+            'image_url': post.get('keep_image_url', ''),
+        }
+    if obj is None:
+        return {'question_type': 'multiple_choice', 'text': '', 'max_score': '1', 'options': None,
+                'correct_answer': '', 'blanks': [], 'pairs': [], 'allow_image_answer': False,
+                'difficulty': 'medium', 'folder': '', 'image_url': ''}
+    from exams.question_forms import _is_image_value
+    labels = list(obj.blanks or [])
+    answers = [a.strip() for a in (obj.correct_answer or '').replace('،', ',').split(',') if a.strip()] \
+        if obj.question_type == 'fill_blank' else []
+    n = max(len(labels), len(answers))
+    return {
+        'question_type': obj.question_type, 'text': obj.text or '',
+        'max_score': str(obj.max_score.normalize() if hasattr(obj.max_score, 'normalize') else obj.max_score),
+        'options': [{'text': '' if _is_image_value(o) else o, 'image': o if _is_image_value(o) else ''}
+                    for o in (obj.options or [])] or None,
+        'correct_answer': '' if obj.question_type == 'matching' else (obj.correct_answer or ''),
+        'blanks': [{'label': labels[i] if i < len(labels) else '', 'answer': answers[i] if i < len(answers) else ''}
+                   for i in range(n)],
+        'pairs': list(obj.matching_pairs or []),
+        'allow_image_answer': bool(getattr(obj, 'allow_image_answer', False)),
+        'difficulty': getattr(obj, 'difficulty', 'medium'),
+        'folder': str(getattr(obj, 'folder_id', '') or ''),
+        'image_url': obj.image.url if getattr(obj, 'image', None) else '',
+    }
+
+
+def _render_question_form(request, *, mode, action, title, initial, exam=None, obj=None, error=None, status=200):
+    ctx = {
+        'mode': mode, 'form_action': action, 'form_title': title, 'exam': exam, 'obj': obj,
+        'initial': initial, 'form_error': error,
+        'type_choices': Question.QUESTION_TYPES,
+        'difficulty_choices': QuestionBank.DIFFICULTY_CHOICES,
+    }
+    if mode == 'bank':
+        ctx['folders'] = _folder_tree(request.user)[0]
+    if mode == 'exam' and obj is None:
+        flat, _, _ = _folder_tree(request.user)
+        ctx['folders'] = flat
+        ctx['bank_items'] = [{
+            'id': b.id, 'text': b.text[:220], 'type': b.question_type, 'type_label': b.get_question_type_display(),
+            'score': float(b.max_score), 'difficulty': b.difficulty, 'folder': b.folder_id or 0,
+            'folder_name': b.folder.name if b.folder_id else '', 'used': b.use_count,
+        } for b in QuestionBank.objects.filter(teacher=request.user).select_related('folder').order_by('folder_id', 'created_at')]
+    return render(request, 'teacher_panel/question_form.html', ctx, status=status)
+
+
+def _apply_question_image(request, obj):
+    if request.POST.get('remove_image') and obj.image:
+        # فایل حذف نمی‌شود؛ ممکن است بین سوال بانک و سوال آزمون مشترک باشد
+        obj.image = None
+    if request.FILES.get('image'):
+        obj.image = request.FILES['image']
+
+
 @login_required
 def add_question(request, exam_id):
-    """افزودن سوال جدید"""
+    """افزودن سوال جدید به آزمون (فرم پویای همهٔ انواع + افزودن از بانک سوال)"""
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
     check_teacher_access(request.user, exam)
+    action = reverse('add_question', args=[exam.id])
+    title = '➕ افزودن سوال به «%s»' % exam.title
 
     if request.method == 'POST':
-        q_type = request.POST.get('question_type')
-
-        # ⚠️ نوع سوال نامعتبر قبلاً باعث خطای 500 (نقض NOT NULL) می‌شد
-        if q_type not in dict(Question.QUESTION_TYPES):
-            messages.error(request, 'نوع سوال را به‌درستی انتخاب کنید.')
-            return redirect('add_question', exam_id=exam.id)
-
-        max_score = validate_decimal_score(request.POST.get('max_score', 0))
-        if max_score <= 0:
-            messages.error(request, 'بارم سوال باید عددی بزرگ‌تر از صفر باشد.')
-            return redirect('add_question', exam_id=exam.id)
-
-        question = Question.objects.create(
-            exam=exam,
-            text=request.POST.get('text', '').strip(),
-            question_type=q_type,
-            max_score=max_score,
-            # ⚠️ بزرگ‌ترین order موجود + ۱؛ با count()+1 بعد از ایمپورت اکسل
-            # سوال جدید وسط لیست قرار می‌گرفت
-            order=(exam.questions.aggregate(m=Max('order'))['m'] or 0) + 1,
-            allow_image_answer='allow_image_answer' in request.POST,
-        )
-
-        if 'image' in request.FILES:
-            question.image = request.FILES['image']
-
-        if q_type == 'multiple_choice':
-            options = [request.POST.get(f'option_{i}', f'گزینه {i}') for i in range(1, 5)]
-            question.options = options
-            question.options_type = request.POST.get('options_type', 'text')
-            question.correct_answer = request.POST.get('correct_answer')
-
-        elif q_type == 'true_false':
-            question.correct_answer = request.POST.get('correct_answer')
-
-        elif q_type == 'fill_blank':
-            blanks = request.POST.get('blanks', '').split(',')
-            question.blanks = [b.strip() for b in blanks if b.strip()]
-            question.correct_answer = request.POST.get('correct_answer')
-
-        elif q_type in ['short_answer', 'long_answer']:
-            question.correct_answer = request.POST.get('correct_answer')
-
-        elif q_type == 'matching':
-            pairs = []
-            i = 0
-            while True:
-                left = request.POST.get(f'left_{i}')
-                right = request.POST.get(f'right_{i}')
-                if left or right:
-                    pairs.append({'left': left or '', 'right': right or ''})
-                    i += 1
-                else:
-                    break
-            question.matching_pairs = pairs
-
+        data, err = parse_question_post(request)
+        if err:
+            messages.error(request, err)
+            return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
+                                         initial=_question_initial(post=request.POST), error=err)
+        question = Question(exam=exam, order=(exam.questions.aggregate(m=Max('order'))['m'] or 0) + 1)
+        apply_to_question(question, data)
+        _apply_question_image(request, question)
         question.save()
+        finalize_question(question)
         _save_to_bank_if_requested(request, question)
+        messages.success(request, 'سوال %d ذخیره شد.' % exam.questions.count())
+        if request.POST.get('add_another'):
+            return redirect(reverse('add_question', args=[exam.id]) + '?t=' + question.question_type)
         return redirect('edit_exam', exam_id=exam.id)
 
-    return render(request, 'teacher_panel/add_question.html', {'exam': exam})
+    initial = _question_initial()
+    if request.GET.get('t') in dict(Question.QUESTION_TYPES):
+        initial['question_type'] = request.GET['t']
+    return _render_question_form(request, mode='exam', action=action, title=title, exam=exam, initial=initial)
 
 
 @login_required
 def edit_question(request, exam_id, question_id):
-    """ویرایش سوال"""
+    """ویرایش سوال آزمون"""
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
     question = get_object_or_404(Question, id=question_id, exam=exam)
     check_teacher_access(request.user, exam)
+    action = reverse('edit_question', args=[exam.id, question.id])
+    title = '✏️ ویرایش سوال %d — %s' % (question.order, exam.title)
 
     if request.method == 'POST':
-        q_type = request.POST.get('question_type')
-        correct_val = request.POST.get('correct_answer', '')
-
-        # ⚠️ اعتبارسنجی نوع سوال و بارم (قبلاً مقدار نامعتبر باعث خطای 500 می‌شد)
-        if q_type not in dict(Question.QUESTION_TYPES):
-            messages.error(request, 'نوع سوال را به‌درستی انتخاب کنید.')
-            return redirect('edit_question', exam_id=exam.id, question_id=question.id)
-
-        new_max_score = validate_decimal_score(request.POST.get('max_score', 0))
-        if new_max_score <= 0:
-            messages.error(request, 'بارم سوال باید عددی بزرگ‌تر از صفر باشد.')
-            return redirect('edit_question', exam_id=exam.id, question_id=question.id)
-
-        question.text = request.POST.get('text', '').strip()
-        question.question_type = q_type
-        question.max_score = new_max_score
-        question.allow_image_answer = 'allow_image_answer' in request.POST
-
-        if 'remove_image' in request.POST and question.image:
-            question.image.delete(save=False)
-            question.image = None
-
-        if 'image' in request.FILES:
-            question.image = request.FILES['image']
-
-
-        if q_type == 'multiple_choice':
-            options = [request.POST.get(f'option_{i}', f'گزینه {i}') for i in range(1, 5)]
-            question.options = options
-            question.options_type = request.POST.get('options_type', 'text')
-            question.correct_answer = correct_val
-
-        elif q_type == 'true_false':
-            question.correct_answer = correct_val
-
-        elif q_type == 'fill_blank':
-            blanks = request.POST.get('blanks', '').split(',')
-            question.blanks = [b.strip() for b in blanks if b.strip()]
-            question.correct_answer = correct_val
-
-        elif q_type in ['short_answer', 'long_answer']:
-            question.correct_answer = correct_val
-
-        elif q_type == 'matching':
-            pairs = []
-            i = 0
-            while True:
-                left = request.POST.get(f'left_{i}')
-                right = request.POST.get(f'right_{i}')
-                if left or right:
-                    pairs.append({'left': left or '', 'right': right or ''})
-                    i += 1
-                else:
-                    break
-            question.matching_pairs = pairs
-
+        data, err = parse_question_post(request)
+        if err:
+            messages.error(request, err)
+            return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
+                                         obj=question, initial=_question_initial(post=request.POST), error=err)
+        apply_to_question(question, data)
+        _apply_question_image(request, question)
         question.save()
+        finalize_question(question)
         _save_to_bank_if_requested(request, question)
+        messages.success(request, 'سوال ویرایش شد.')
         return redirect('edit_exam', exam_id=exam.id)
 
-    return render(request, 'teacher_panel/edit_question.html', {
-        'exam': exam,
-        'question': question,
-    })
+    return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
+                                 obj=question, initial=_question_initial(question))
 
 
 @login_required
@@ -1319,52 +1308,20 @@ def question_analysis(exam):
 
 @login_required
 def _parse_bank_payload(request):
-    """استخراج فیلدهای فرم سوال بانک بر اساس نوع سوال.
-    خروجی: (data_dict, error_message|None)"""
-    qtype = request.POST.get('question_type', '')
-    text = (request.POST.get('text') or '').strip()
-    if not text or qtype not in dict(QuestionBank._meta.get_field('question_type').choices):
-        return None, 'متن سوال و نوع معتبر الزامی است.'
-    explicit = [(request.POST.get('option%d' % i) or '').strip() for i in range(1, 5)]
-    if any(explicit):
-        options = [o for o in explicit if o]
-    else:
-        options = [o.strip() for o in (request.POST.get('options') or '').splitlines() if o.strip()]
-    correct = (request.POST.get('correct_answer') or '').strip() or None
-    blanks = [b.strip() for b in (request.POST.get('blanks') or '').split(',') if b.strip()]
-    # فقط فیلدهای مربوط به نوع انتخاب‌شده ذخیره می‌شوند
-    if qtype != 'multiple_choice':
-        options = []
-    if qtype != 'fill_blank':
-        blanks = []
-    if qtype == 'multiple_choice':
-        if len(options) < 2:
-            return None, 'برای سوال تستی حداقل دو گزینه لازم است.'
-        if not (correct or '').isdigit() or not (1 <= int(correct) <= len(options)):
-            return None, 'پاسخ صحیح باید شمارهٔ یکی از گزینه‌های واردشده باشد.'
-    elif qtype == 'true_false':
-        if correct not in ('true', 'false'):
-            return None, 'برای سوال صحیح/غلط، پاسخ صحیح را انتخاب کنید.'
-    elif qtype == 'fill_blank' and not correct:
-        return None, 'برای سوال جاخالی، پاسخ جاهای خالی را (با ویرگول) بنویسید.'
-    elif qtype == 'short_answer' and not correct:
-        return None, 'برای سوال پاسخ کوتاه، پاسخ مورد انتظار را بنویسید.'
+    """فیلدهای سوال بانک (همهٔ انواع) + پوشه و سطح دشواری. خروجی: (data, error)"""
+    data, err = parse_question_post(request, for_bank=True)
+    if err:
+        return None, err
     folder = None
     folder_id = request.POST.get('folder') or ''
     if folder_id.isdigit():
         folder = BankFolder.objects.filter(id=int(folder_id), teacher=request.user).first()
-    data = {
-        'text': text,
-        'question_type': qtype,
-        'options': options,
-        'correct_answer': correct,
-        'blanks': blanks,
-        'max_score': validate_decimal_score(request.POST.get('max_score', '1'), max_value=None) or 1,
-        'folder': folder,
-    }
+    data['folder'] = folder
     difficulty = request.POST.get('difficulty')
     if difficulty in dict(QuestionBank.DIFFICULTY_CHOICES):
         data['difficulty'] = difficulty
+    if data['question_type'] == 'matching':
+        data['correct_answer'] = None
     return data, None
 
 
@@ -1375,18 +1332,18 @@ def question_bank(request):
         data, err = _parse_bank_payload(request)
         if err:
             messages.error(request, err)
-            ctx = _bank_render_context(request, '')
-            ctx['open_add'] = True
-            ctx['fd'] = request.POST
-            return render(request, 'teacher_panel/question_bank.html', ctx)
-        bank = QuestionBank.objects.create(
-            teacher=request.user,
-            image=request.FILES.get('image') or None,
-            **data)
+            return _render_question_form(request, mode='bank', action=reverse('question_bank'),
+                                         title='➕ سوال جدید در بانک', initial=_question_initial(post=request.POST),
+                                         error=err)
+        bank = QuestionBank(teacher=request.user)
+        for k, v in data.items():
+            setattr(bank, k, v)
+        _apply_question_image(request, bank)
+        bank.save()
         messages.success(request, 'سوال به بانک اضافه شد.')
         back = bank.folder_id or ''
         if request.POST.get('stay'):
-            return redirect(reverse('question_bank') + '?new=1' + ('&folder=%s' % back if back else ''))
+            return redirect(reverse('bank_question_new') + ('?folder=%s' % back if back else ''))
         return _bank_redirect(request, back)
     folder_id = request.GET.get('folder', '').strip()
     return render(request, 'teacher_panel/question_bank.html',
@@ -1481,6 +1438,9 @@ def _bank_render_context(request, folder_id=''):
 
 def _bank_redirect(request, folder_id=None):
     """بازگشت به همان پوشه‌ای که کاربر در آن بود"""
+    nxt = request.POST.get('next') or ''
+    if nxt.startswith('/teacher/') and '//' not in nxt:
+        return redirect(nxt)
     fid = folder_id if folder_id is not None else (request.POST.get('back') or '')
     url = reverse('question_bank')
     return redirect(url + ('?folder=%s' % fid if str(fid).strip() else ''))
@@ -1561,11 +1521,14 @@ def bank_folder_delete(request, folder_id):
 
 
 def _copy_bank_to_exam(bank, exam, order):
-    Question.objects.create(
+    q = Question.objects.create(
         exam=exam, text=bank.text, question_type=bank.question_type,
-        options=list(bank.options or []), correct_answer=bank.correct_answer,
-        blanks=list(bank.blanks or []), image=bank.image or None,
-        max_score=bank.max_score, order=order)
+        options=list(bank.options or []), options_type=bank.options_type or 'text',
+        correct_answer=bank.correct_answer, blanks=list(bank.blanks or []),
+        matching_pairs=list(bank.matching_pairs or []), allow_image_answer=bank.allow_image_answer,
+        image=bank.image or None, max_score=bank.max_score, order=order)
+    finalize_question(q)
+    return q
 
 
 @login_required
@@ -1644,17 +1607,34 @@ def bank_question_edit(request, bank_id):
     data, err = _parse_bank_payload(request)
     if err:
         messages.error(request, err)
-        return redirect(reverse('question_bank') + '?edit=%d' % bank.id)
+        return _render_question_form(request, mode='bank', action=reverse('bank_question_edit', args=[bank.id]),
+                                     title='✏️ ویرایش سوال بانک', obj=bank,
+                                     initial=_question_initial(post=request.POST), error=err)
     for key, value in data.items():
         setattr(bank, key, value)
-    if request.FILES.get('image'):
-        bank.image = request.FILES['image']
-    if request.POST.get('remove_image') and bank.image:
-        bank.image.delete(save=False)
-        bank.image = None
+    _apply_question_image(request, bank)
     bank.save()
     messages.success(request, 'سوال ویرایش شد.')
-    return _bank_redirect(request)
+    return _bank_redirect(request, bank.folder_id or '')
+
+
+@login_required
+def bank_question_new(request):
+    """صفحهٔ فرم سوال جدید بانک"""
+    check_teacher_access(request.user)
+    initial = _question_initial()
+    initial['folder'] = request.GET.get('folder', '')
+    return _render_question_form(request, mode='bank', action=reverse('question_bank'),
+                                 title='➕ سوال جدید در بانک', initial=initial)
+
+
+@login_required
+def bank_question_form(request, bank_id):
+    """صفحهٔ فرم ویرایش سوال بانک"""
+    check_teacher_access(request.user)
+    bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
+    return _render_question_form(request, mode='bank', action=reverse('bank_question_edit', args=[bank.id]),
+                                 title='✏️ ویرایش سوال بانک', obj=bank, initial=_question_initial(bank))
 
 
 @login_required

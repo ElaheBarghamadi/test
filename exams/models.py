@@ -241,9 +241,12 @@ class QuestionBank(models.Model):
                                 related_name='bank_questions',
                                 limit_choices_to={'role': 'teacher'})
     text = models.TextField()
-    question_type = models.CharField(max_length=20, choices=[c for c in Question.QUESTION_TYPES
-                                                              if c[0] not in ('matching', 'image_answer')])
+    question_type = models.CharField(max_length=20, choices=Question.QUESTION_TYPES)
     options = models.JSONField(default=list, blank=True)
+    options_type = models.CharField(max_length=10, default='text',
+                                    choices=[('text', 'متن'), ('image', 'تصویر'), ('mixed', 'متن+تصویر')])
+    matching_pairs = models.JSONField(default=list, blank=True)
+    allow_image_answer = models.BooleanField(default=False)
     correct_answer = models.TextField(blank=True, null=True)
     blanks = models.JSONField(default=list, blank=True)
     image = models.ImageField(upload_to='question_images/', null=True, blank=True)

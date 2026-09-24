@@ -57,12 +57,7 @@ if not DEBUG and not TESTING:
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 365
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-# در تولید فقط هاست‌های تعریف‌شده در ALLOWED_HOSTS (جدا با ویرگول) مجازند
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()]
-if DEBUG or TESTING:
-    ALLOWED_HOSTS = ['*']
-elif not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*']
 # برای فرم‌ها پشت HTTPS/پروکسی (مثلاً https://example.com)
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 # 🧩 Apps

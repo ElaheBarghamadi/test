@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+{% block title %}{{ form_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .qf-wrap { max-width: 1180px; margin: 0 auto; }
+    .qf-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .qf-top h1 { font-size: 1.15rem; font-weight: 800; color: var(--ink); margin: 0; }
+    .qf-top .back { font-size: .82rem; font-weight: 700; text-decoration: none; color: var(--gold3); }
+    .qf-tabs { display: inline-flex; background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; margin-bottom: 14px; }
+    .qf-tab { border: none; background: transparent; font-family: inherit; font-weight: 700; font-size: .84rem; color: var(--ink2); padding: 9px 18px; border-radius: 10px; cursor: pointer; }
+    .qf-tab.on { background: #fff; color: var(--gold3); box-shadow: 0 3px 10px rgba(8,45,52,.08); }
+    .qf-pane[hidden] { display: none !important; }
+    .qf-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+    .qf-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; margin-bottom: 14px; }
+    .qf-card h3 { font-size: .9rem; font-weight: 800; color: var(--ink); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+    .qf-card h3 small { font-weight: 600; color: var(--ink3); font-size: .72rem; }
+    .qf-label { display: block; font-size: .78rem; font-weight: 700; color: var(--ink2); margin-bottom: 6px; }
+    .qf-hint { font-size: .72rem; color: var(--ink3); line-height: 1.9; margin-top: 6px; }
+    .qf-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .qf-card input[type=text], .qf-card input[type=number], .qf-card select, .qf-card textarea { width: 100%; }
+    .qf-card textarea { resize: vertical; min-height: 96px; line-height: 1.9; }
+    .qf-error { background: var(--errsoft); color: var(--err); border: 1px solid var(--errline); border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: .85rem; margin-bottom: 14px; }
+
+    /* انتخاب نوع سوال */
+    .types { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+    .type-card { position: relative; cursor: pointer; }
+    .type-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .type-card span {
+        display: grid; gap: 3px; text-align: center; padding: 12px 8px; border-radius: 14px;
+        border: 1.5px solid var(--line); background: var(--card2); transition: .15s;
+    }
+    .type-card b { font-size: 1.25rem; line-height: 1; }
+    .type-card em { font-style: normal; font-size: .78rem; font-weight: 800; color: var(--ink); }
+    .type-card i { font-style: normal; font-size: .66rem; color: var(--ink3); }
+    .type-card:hover span { border-color: var(--gold); }
+    .type-card input:checked + span { border-color: var(--gold2); background: var(--goldsoft); box-shadow: 0 0 0 3px rgba(46,196,182,.18); }
+    .type-card input:focus-visible + span { outline: 2px solid var(--gold2); }
+
+    .sec[hidden] { display: none; }
+    /* گزینه‌ها / ردیف‌های پویا */
+    .rows { display: grid; gap: 8px; }
+    .row { display: grid; gap: 8px; align-items: center; background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 8px 10px; }
+    .row.opt { grid-template-columns: auto auto 1fr auto auto; }
+    .row.opt.is-correct { border-color: var(--okline); background: var(--oksoft); }
+    .row.blank { grid-template-columns: auto 1fr 1.2fr auto; }
+    .row.pair { grid-template-columns: auto 1fr auto 1fr auto; }
+    .row .num { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: #fff; border: 1px solid var(--line); font-weight: 800; font-size: .78rem; color: var(--ink2); }
+    .row .correct-pick { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; font-weight: 700; color: var(--ok); cursor: pointer; white-space: nowrap; }
+    .row .correct-pick input { accent-color: var(--ok); width: 17px; height: 17px; }
+    .row .arrow { color: var(--ink3); font-weight: 800; }
+    .icon-btn { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); background: #fff; cursor: pointer; display: grid; place-items: center; font-size: .9rem; color: var(--ink2); }
+    .icon-btn:hover { border-color: var(--gold); color: var(--gold3); }
+    .icon-btn.del:hover { border-color: var(--errline); color: var(--err); background: var(--errsoft); }
+    .icon-btn.has-img { border-color: var(--gold); background: var(--goldsoft); }
+    .opt-thumb { width: 38px; height: 38px; object-fit: cover; border-radius: 9px; border: 1px solid var(--line); }
+    .opt-media { display: flex; align-items: center; gap: 6px; }
+    .add-row { margin-top: 10px; border: 1.5px dashed var(--line); background: transparent; color: var(--gold3); font-family: inherit; font-weight: 800; font-size: .8rem; padding: 10px; border-radius: 12px; width: 100%; cursor: pointer; }
+    .add-row:hover { border-color: var(--gold); background: var(--goldsoft); }
+    .add-row:disabled { opacity: .45; cursor: not-allowed; }
+    .tf-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tf-pick label span { display: block; text-align: center; padding: 16px; border-radius: 14px; border: 1.5px solid var(--line); font-weight: 800; cursor: pointer; background: var(--card2); }
+    .tf-pick input { position: absolute; opacity: 0; }
+    .tf-pick input:checked + span { border-color: var(--ok); background: var(--oksoft); color: var(--ok); }
+    .tf-pick input[value=false]:checked + span { border-color: var(--err); background: var(--errsoft); color: var(--err); }
+    .img-current { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    .img-current img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); }
+    .chk { display: inline-flex; align-items: center; gap: 7px; font-size: .8rem; font-weight: 600; color: var(--ink2); cursor: pointer; }
+    .chk input { width: 17px; height: 17px; accent-color: var(--gold2); }
+
+    /* پیش‌نمایش */
+    .preview { position: sticky; top: 84px; }
+    .pv-box { background: #fbfefd; border: 1.5px dashed var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+    .pv-head { display: flex; justify-content: space-between; gap: 6px; font-size: .72rem; font-weight: 800; color: var(--gold3); }
+    .pv-text { font-weight: 700; font-size: .9rem; line-height: 2; color: var(--ink); white-space: pre-wrap; word-break: break-word; }
+    .pv-text .gap { display: inline-block; min-width: 54px; border-bottom: 2px solid var(--gold); margin: 0 3px; text-align: center; font-size: .7rem; color: var(--gold3); }
+    .pv-opts { display: grid; gap: 6px; }
+    .pv-opt { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 11px; border: 1px solid var(--line); background: #fff; font-size: .8rem; }
+    .pv-opt.ok { border-color: var(--okline); background: var(--oksoft); }
+    .pv-opt img { max-width: 110px; max-height: 70px; border-radius: 8px; }
+    .pv-muted { font-size: .75rem; color: var(--ink3); }
+    .pv-img { max-width: 100%; border-radius: 12px; border: 1px solid var(--line); }
+    .pv-field { border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px; font-size: .75rem; color: var(--ink3); background: #fff; }
+    .pv-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; align-items: center; font-size: .78rem; }
+    .pv-pair > span { background: #fff; border: 1px solid var(--line); border-radius: 9px; padding: 6px 8px; }
+    .pv-key { font-size: .72rem; color: var(--ok); font-weight: 700; }
+
+    .qf-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .qf-actions .grow { flex: 1; }
+
+    /* تب بانک */
+    .bank-filter { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .bank-rows { display: grid; gap: 8px; max-height: 60vh; overflow: auto; padding-left: 4px; }
+    .bank-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line2); background: var(--card2); cursor: pointer; }
+    .bank-row:hover { border-color: var(--gold); }
+    .bank-row.on { border-color: var(--gold2); background: var(--goldsoft); }
+    .bank-row input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--gold2); }
+    .bank-row .t { font-size: .84rem; font-weight: 600; color: var(--ink); line-height: 1.9; }
+    .bank-row .m { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .bank-row .m span { font-size: .68rem; font-weight: 700; color: var(--ink2); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+    .bank-bar { position: sticky; bottom: 0; display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: #0f5f68; color: #fff; }
+
+    @media (max-width: 980px) {
+        .qf-grid { grid-template-columns: 1fr; }
+        .preview { position: static; }
+    }
+    @media (max-width: 600px) {
+        .qf-card { padding: 14px; border-radius: 16px; }
+        .row.opt { grid-template-columns: auto 1fr auto; }
+        .row.opt .num { display: none; }
+        .row.opt .opt-media { grid-column: 1 / -1; order: 5; }
+        .row.blank, .row.pair { grid-template-columns: 1fr auto; }
+        .row.blank .num, .row.pair .num, .row.pair .arrow { display: none; }
+        .bank-filter { grid-template-columns: 1fr; }
+        .types { grid-template-columns: repeat(2, 1fr); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qf-wrap">
+    <div class="qf-top">
+        <h1>{{ form_title }}</h1>
+        {% if mode == 'exam' %}
+            <a class="back" href="{% url 'edit_exam' exam.id %}">← بازگشت به سوالات آزمون</a>
+        {% else %}
+            <a class="back" href="{% url 'question_bank' %}{% if initial.folder %}?folder={{ initial.folder }}{% endif %}">← بازگشت به بانک سوال</a>
+        {% endif %}
+    </div>
+
+    {% if mode == 'exam' and not obj %}
+    <div class="qf-tabs" role="tablist">
+        <button type="button" class="qf-tab on" data-pane="paneNew" role="tab">✍️ سوال جدید</button>
+        <button type="button" class="qf-tab" data-pane="paneBank" role="tab">📚 از بانک سوال <small>({{ bank_items|length }})</small></button>
+    </div>
+    {% endif %}
+
+    {% if form_error %}<div class="qf-error">⚠️ {{ form_error }}</div>{% endif %}
+
+    <!-- ============ فرم سوال ============ -->
+    <div class="qf-pane" id="paneNew">
+    <form method="post" action="{{ form_action }}" enctype="multipart/form-data" id="qForm" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="keep_image_url" value="{{ initial.image_url }}">
+        {% if initial.image_url %}<input type="hidden" name="keep_image" value="1">{% endif %}
+        <div class="qf-grid">
+            <div>
+                <div class="qf-card">
+                    <h3>۱. نوع سوال</h3>
+                    <div class="types">
+                        {% for value, label in type_choices %}
+                        <label class="type-card">
+                            <input type="radio" name="question_type" value="{{ value }}" {% if initial.question_type == value %}checked{% endif %}>
+                            <span>
+                                <b>{% if value == 'multiple_choice' %}🔘{% elif value == 'true_false' %}✅{% elif value == 'fill_blank' %}＿{% elif value == 'short_answer' %}✏️{% elif value == 'long_answer' %}📄{% elif value == 'image_answer' %}📷{% else %}🔗{% endif %}</b>
+                                <em>{{ label }}</em>
+                                <i>{% if value == 'multiple_choice' %}۲ تا ۶ گزینه{% elif value == 'true_false' %}دوگزینه‌ای{% elif value == 'fill_blank' %}تصحیح خودکار{% elif value == 'short_answer' %}یک‌خطی{% elif value == 'long_answer' %}تشریحی{% elif value == 'image_answer' %}آپلود عکس حل{% else %}جفت‌سازی{% endif %}</i>
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="qf-card">
+                    <h3>۲. صورت سوال</h3>
+                    <textarea name="text" id="qText" rows="4" placeholder="متن سوال را بنویسید…" maxlength="10000">{{ initial.text }}</textarea>
+                    <div class="qf-hint" id="textHint"></div>
+                    <div class="qf-row" style="margin-top:12px;">
+                        <div>
+                            <label class="qf-label">بارم (نمره) *</label>
+                            <input type="number" name="max_score" id="qScore" step="0.25" min="0.25" value="{{ initial.max_score }}" required>
+                        </div>
+                        <div>
+                            <label class="qf-label">تصویر سوال (اختیاری)</label>
+                            <input type="file" name="image" id="qImage" accept="image/*">
+                            {% if initial.image_url %}
+                            <div class="img-current">
+                                <img src="{{ initial.image_url }}" alt="تصویر فعلی">
+                                <label class="chk"><input type="checkbox" name="remove_image" value="1" id="removeImg"> حذف تصویر</label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% if mode == 'bank' %}
+                        <div>
+                            <label class="qf-label">پوشه</label>
+                            <select name="folder">
+                                <option value="">ریشهٔ بانک</option>
+                                {% for f in folders %}<option value="{{ f.id }}" {% if initial.folder == f.id|stringformat:'s' %}selected{% endif %}>{{ f.path }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="qf-label">سطح دشواری</label>
+                            <select name="difficulty">
+                                {% for v, l in difficulty_choices %}<option value="{{ v }}" {% if initial.difficulty == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <label class="chk" style="margin-top:12px;" id="allowImgWrap">
+                        <input type="checkbox" name="allow_image_answer" value="1" {% if initial.allow_image_answer %}checked{% endif %}>
+                        📷 دانش‌آموز بتواند عکس هم به‌عنوان پاسخ بفرستد
+                    </label>
+                </div>
+
+                <div class="qf-card">
+                    <h3>۳. پاسخ <small id="ansHint"></small></h3>
+
+                    <!-- تستی -->
+                    <div class="sec" data-types="multiple_choice">
+                        <div class="rows" id="optRows"></div>
+                        <button type="button" class="add-row" id="addOpt">+ افزودن گزینه</button>
+                        <div class="qf-hint">گزینهٔ صحیح را با «درست» مشخص کنید. هر گزینه می‌تواند متن یا تصویر (🖼️) باشد؛ گزینه‌های خالی نادیده گرفته می‌شوند.</div>
+                    </div>
+
+                    <!-- صحیح/غلط -->
+                    <div class="sec" data-types="true_false">
+                        <div class="tf-pick">
+                            <label><input type="radio" name="correct_answer" value="true" {% if initial.correct_answer != 'false' %}checked{% endif %}><span>✅ صحیح</span></label>
+                            <label><input type="radio" name="correct_answer" value="false" {% if initial.correct_answer == 'false' %}checked{% endif %}><span>❌ غلط</span></label>
+                        </div>
+                    </div>
+
+                    <!-- جاخالی -->
+                    <div class="sec" data-types="fill_blank">
+                        <div class="rows" id="blankRows"></div>
+                        <button type="button" class="add-row" id="addBlank">+ افزودن جای خالی</button>
+                        <div class="qf-hint">
+                            در متن سوال به‌جای هر جای خالی «____» (چهار زیرخط) بگذارید تا برای دانش‌آموز شماره‌گذاری شود.
+                            چند پاسخ قابل‌قبول را با «/» جدا کنید؛ مثلاً <b>۴۹/چهل و نه</b>. ارقام فارسی و انگلیسی یکسان حساب می‌شوند و نمرهٔ جزئی داده می‌شود.
+                        </div>
+                    </div>
+
+                    <!-- پاسخ کوتاه -->
+                    <div class="sec" data-types="short_answer">
+                        <label class="qf-label">پاسخ مورد انتظار {% if mode == 'bank' %}*{% else %}(برای راهنمای تصحیح){% endif %}</label>
+                        <input type="text" name="correct_answer" maxlength="1000" value="{% if initial.question_type == 'short_answer' %}{{ initial.correct_answer }}{% endif %}" placeholder="مثلاً: جرم تقسیم بر حجم">
+                    </div>
+
+                    <!-- تشریحی / تصویری -->
+                    <div class="sec" data-types="long_answer,image_answer">
+                        <label class="qf-label">پاسخ نمونه / معیار تصحیح (فقط برای معلم)</label>
+                        <textarea name="correct_answer" rows="4" placeholder="نکات کلیدی و تقسیم بارم…">{% if initial.question_type == 'long_answer' or initial.question_type == 'image_answer' %}{{ initial.correct_answer }}{% endif %}</textarea>
+                        <div class="qf-hint" data-types-hint="image_answer">دانش‌آموز حل خود را روی کاغذ می‌نویسد و عکس آن را آپلود می‌کند؛ یک توضیح متنی کوتاه هم می‌تواند بنویسد.</div>
+                    </div>
+
+                    <!-- وصل‌کردنی -->
+                    <div class="sec" data-types="matching">
+                        <div class="rows" id="pairRows"></div>
+                        <button type="button" class="add-row" id="addPair">+ افزودن جفت</button>
+                        <div class="qf-hint">هر ردیف یک جفت درست است. ستون دوم برای دانش‌آموز به‌هم‌ریخته نمایش داده می‌شود؛ تصحیح خودکار با نمرهٔ جزئی انجام می‌شود.</div>
+                    </div>
+                </div>
+
+                <div class="qf-card">
+                    <div class="qf-actions">
+                        {% if mode == 'exam' %}
+                            <label class="chk"><input type="checkbox" name="save_to_bank" value="1" id="saveToBank"> 📚 یک نسخه در بانک سوال هم ذخیره شود</label>
+                            <select name="bank_folder" id="bankFolder" style="max-width:240px;" hidden>
+                                <option value="">ریشهٔ بانک</option>
+                                {% for f in folders %}<option value="{{ f.id }}">{{ f.path }}</option>{% endfor %}
+                            </select>
+                            <span class="grow"></span>
+                            {% if not obj %}<button type="submit" name="add_another" value="1" class="btn btn-secondary">💾 ذخیره و سوال بعدی</button>{% endif %}
+                            <button type="submit" class="btn btn-gold">💾 ذخیره سوال</button>
+                        {% else %}
+                            <span class="grow"></span>
+                            {% if not obj %}<button type="submit" name="stay" value="1" class="btn btn-secondary">💾 ذخیره و سوال بعدی</button>{% endif %}
+                            <button type="submit" class="btn btn-gold">💾 ذخیره در بانک</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <aside class="preview">
+                <div class="qf-card">
+                    <h3>👁️ پیش‌نمایش برای دانش‌آموز</h3>
+                    <div class="pv-box" id="preview" aria-live="polite"></div>
+                </div>
+            </aside>
+        </div>
+    </form>
+    </div>
+
+    {% if mode == 'exam' and not obj %}
+    <!-- ============ افزودن از بانک ============ -->
+    <div class="qf-pane" id="paneBank" hidden>
+        <div class="qf-card">
+            {% if bank_items %}
+            <div class="bank-filter">
+                <input type="search" id="bSearch" placeholder="🔍 جستجو در متن سوال…">
+                <select id="bFolder">
+                    <option value="">همهٔ پوشه‌ها</option>
+                    {% for f in folders %}<option value="{{ f.id }}">{{ f.path }}</option>{% endfor %}
+                    <option value="0">بدون پوشه</option>
+                </select>
+                <select id="bType">
+                    <option value="">همهٔ انواع</option>
+                    {% for v, l in type_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+                </select>
+            </div>
+            <form method="post" action="{% url 'bank_bulk_action' %}" id="bankForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="import">
+                <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                <input type="hidden" name="next" value="{% url 'edit_exam' exam.id %}">
+                <div class="bank-rows" id="bankRows"></div>
+                <div class="bank-bar">
+                    <label class="chk" style="color:#fff;"><input type="checkbox" id="bAll"> انتخاب همهٔ موارد نمایش‌داده‌شده</label>
+                    <button type="submit" class="btn btn-gold" id="bSubmit" disabled>📥 افزودن <span id="bCount">۰</span> سوال به آزمون</button>
+                </div>
+            </form>
+            {{ bank_items|json_script:"bankData" }}
+            {% else %}
+            <div class="empty-state">📭 بانک سوال شما خالی است. <a href="{% url 'question_bank' %}">رفتن به بانک سوال</a></div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{{ initial|json_script:"qInitial" }}
+<script>
+(function () {
+    const INIT = JSON.parse(document.getElementById('qInitial').textContent);
+    const form = document.getElementById('qForm');
+    const FA = '۰۱۲۳۴۵۶۷۸۹';
+    const fa = n => String(n).replace(/\d/g, d => FA[d]);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const $ = (sel, root) => (root || document).querySelector(sel);
+    const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+    const LIMITS = { opt: 6, blank: 12, pair: 12 };
+
+    const qtype = () => ($('input[name=question_type]:checked', form) || {}).value || 'multiple_choice';
+
+    /* ---------------- ردیف‌های گزینه (DOM واقعی؛ فایل‌های انتخاب‌شده حفظ می‌شوند) ---------------- */
+    const optRows = $('#optRows');
+    function optRow(data) {
+        const row = document.createElement('div');
+        row.className = 'row opt';
+        row.innerHTML =
+            '<span class="num"></span>' +
+            '<label class="correct-pick"><input type="radio" name="correct_answer" class="js-correct"> درست</label>' +
+            '<input type="text" class="js-text" maxlength="500" placeholder="متن گزینه">' +
+            '<span class="opt-media">' +
+                '<img class="opt-thumb" alt="" hidden>' +
+                '<input type="hidden" class="js-keep">' +
+                '<input type="file" class="js-file" accept="image/*" hidden>' +
+                '<button type="button" class="icon-btn js-pick" title="تصویر برای این گزینه">🖼️</button>' +
+            '</span>' +
+            '<button type="button" class="icon-btn del js-del" title="حذف گزینه">✕</button>';
+        $('.js-text', row).value = data.text || '';
+        if (data.image) { $('.js-keep', row).value = data.image; showThumb(row, data.image); }
+        $('.js-pick', row).addEventListener('click', () => {
+            if ($('.js-keep', row).value || $('.js-file', row).files.length) {
+                // حذف تصویر فعلی
+                $('.js-keep', row).value = ''; $('.js-file', row).value = ''; showThumb(row, '');
+                sync();
+            } else {
+                $('.js-file', row).click();
+            }
+        });
+        $('.js-file', row).addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (f) { showThumb(row, URL.createObjectURL(f)); }
+            sync();
+        });
+        $('.js-del', row).addEventListener('click', () => {
+            if ($$('.row', optRows).length <= 2) { alert('سوال تستی حداقل دو گزینه دارد.'); return; }
+            row.remove(); renumber(); sync();
+        });
+        return row;
+    }
+    function showThumb(row, src) {
+        const img = $('.opt-thumb', row), btn = $('.js-pick', row);
+        if (src) { img.src = src; img.hidden = false; btn.classList.add('has-img'); btn.textContent = '✕🖼️'; btn.title = 'حذف تصویر'; }
+        else { img.hidden = true; img.removeAttribute('src'); btn.classList.remove('has-img'); btn.textContent = '🖼️'; btn.title = 'تصویر برای این گزینه'; }
+    }
+    function renumber() {
+        $$('.row', optRows).forEach((row, i) => {
+            const n = i + 1;
+            $('.num', row).textContent = fa(n);
+            $('.js-correct', row).value = String(n);
+            $('.js-text', row).name = 'option_' + n;
+            $('.js-keep', row).name = 'option_keep_' + n;
+            $('.js-file', row).name = 'option_image_' + n;
+            $('.js-text', row).placeholder = 'متن گزینه ' + fa(n);
+        });
+        $('#addOpt').disabled = $$('.row', optRows).length >= LIMITS.opt;
+    }
+    (function initOptions() {
+        let opts = INIT.options && INIT.options.length ? INIT.options : [{}, {}, {}, {}];
+        while (opts.length < 2) opts.push({});
+        opts.forEach(o => optRows.appendChild(optRow(o)));
+        renumber();
+        const c = parseInt(INIT.correct_answer, 10);
+        const target = $$('.js-correct', optRows)[(INIT.question_type === 'multiple_choice' && c >= 1) ? c - 1 : 0];
+        if (target) target.checked = true;
+    })();
+    $('#addOpt').addEventListener('click', () => {
+        if ($$('.row', optRows).length >= LIMITS.opt) return;
+        const r = optRow({}); optRows.appendChild(r); renumber(); $('.js-text', r).focus(); sync();
+    });
+
+    /* ---------------- جاهای خالی ---------------- */
+    const blankRows = $('#blankRows');
+    function blankRow(d) {
+        const row = document.createElement('div');
+        row.className = 'row blank';
+        row.innerHTML = '<span class="num"></span>' +
+            '<input type="text" class="js-label" maxlength="120" placeholder="برچسب (اختیاری) مثلاً: پایتخت">' +
+            '<input type="text" class="js-answer" maxlength="300" placeholder="پاسخ صحیح (چند پاسخ با /)">' +
+            '<button type="button" class="icon-btn del js-del" title="حذف">✕</button>';
+        $('.js-label', row).value = d.label || '';
+        $('.js-answer', row).value = d.answer || '';
+        $('.js-del', row).addEventListener('click', () => {
+            if ($$('.row', blankRows).length <= 1) { $('.js-label', row).value = ''; $('.js-answer', row).value = ''; }
+            else row.remove();
+            renumberBlanks(); sync();
+        });
+        return row;
+    }
+    function renumberBlanks() {
+        $$('.row', blankRows).forEach((row, i) => {
+            $('.num', row).textContent = fa(i + 1);
+            $('.js-label', row).name = 'blank_label_' + i;
+            $('.js-answer', row).name = 'blank_answer_' + i;
+        });
+        $('#addBlank').disabled = $$('.row', blankRows).length >= LIMITS.blank;
+    }
+    (INIT.blanks && INIT.blanks.length ? INIT.blanks : [{}]).forEach(b => blankRows.appendChild(blankRow(b)));
+    renumberBlanks();
+    $('#addBlank').addEventListener('click', () => {
+        const r = blankRow({}); blankRows.appendChild(r); renumberBlanks(); $('.js-answer', r).focus(); sync();
+    });
+
+    /* ---------------- جفت‌های وصل‌کردنی ---------------- */
+    const pairRows = $('#pairRows');
+    function pairRow(d) {
+        const row = document.createElement('div');
+        row.className = 'row pair';
+        row.innerHTML = '<span class="num"></span>' +
+            '<input type="text" class="js-left" maxlength="300" placeholder="مورد (مثلاً: ایران)">' +
+            '<span class="arrow">⟵</span>' +
+            '<input type="text" class="js-right" maxlength="300" placeholder="جفت درست (مثلاً: تهران)">' +
+            '<button type="button" class="icon-btn del js-del" title="حذف">✕</button>';
+        $('.js-left', row).value = d.left || '';
+        $('.js-right', row).value = d.right || '';
+        $('.js-del', row).addEventListener('click', () => {
+            if ($$('.row', pairRows).length <= 2) { alert('سوال وصل‌کردنی حداقل دو جفت دارد.'); return; }
+            row.remove(); renumberPairs(); sync();
+        });
+        return row;
+    }
+    function renumberPairs() {
+        $$('.row', pairRows).forEach((row, i) => {
+            $('.num', row).textContent = fa(i + 1);
+            $('.js-left', row).name = 'left_' + i;
+            $('.js-right', row).name = 'right_' + i;
+        });
+        $('#addPair').disabled = $$('.row', pairRows).length >= LIMITS.pair;
+    }
+    let pairs = INIT.pairs && INIT.pairs.length ? INIT.pairs.slice() : [{}, {}, {}];
+    while (pairs.length < 2) pairs.push({});
+    pairs.forEach(p => pairRows.appendChild(pairRow(p)));
+    renumberPairs();
+    $('#addPair').addEventListener('click', () => {
+        const r = pairRow({}); pairRows.appendChild(r); renumberPairs(); $('.js-left', r).focus(); sync();
+    });
+
+    /* ---------------- نمایش بخش مرتبط با نوع + پیش‌نمایش ---------------- */
+    const HINTS = {
+        multiple_choice: 'تصحیح خودکار',
+        true_false: 'تصحیح خودکار',
+        fill_blank: 'تصحیح خودکار با نمرهٔ جزئی',
+        matching: 'تصحیح خودکار با نمرهٔ جزئی',
+        short_answer: 'تصحیح دستی توسط معلم',
+        long_answer: 'تصحیح دستی توسط معلم',
+        image_answer: 'تصحیح دستی توسط معلم'
+    };
+    function sync() {
+        const t = qtype();
+        $$('.sec', form).forEach(sec => {
+            const on = sec.dataset.types.split(',').includes(t);
+            sec.hidden = !on;
+            // فقط فیلدهای بخش فعال ارسال شوند (چند فیلد correct_answer داریم)
+            $$('input,select,textarea', sec).forEach(el => { el.disabled = !on; });
+        });
+        $$('[data-types-hint]', form).forEach(h => h.hidden = h.dataset.typesHint !== t);
+        $('#allowImgWrap').hidden = t === 'image_answer';
+        $('#ansHint').textContent = '— ' + HINTS[t];
+        $$('.row.opt', optRows).forEach(r => r.classList.toggle('is-correct', $('.js-correct', r).checked));
+
+        const text = $('#qText').value;
+        const gaps = (text.match(/_{3,}/g) || []).length;
+        const hint = $('#textHint');
+        if (t === 'fill_blank') {
+            const rows = $$('.row', blankRows).length;
+            hint.innerHTML = gaps
+                ? ('در متن ' + fa(gaps) + ' جای خالی (____) پیدا شد' + (gaps !== rows ? ' — <a href="#" id="fitBlanks">تنظیم تعداد ردیف‌ها به ' + fa(gaps) + '</a>' : ' ✓'))
+                : 'نکته: در متن سوال به‌جای جای خالی «____» بنویسید.';
+            const fit = document.getElementById('fitBlanks');
+            if (fit) fit.onclick = e => {
+                e.preventDefault();
+                let rs = $$('.row', blankRows);
+                while (rs.length < gaps) { blankRows.appendChild(blankRow({})); rs = $$('.row', blankRows); }
+                while (rs.length > gaps && rs.length > 1) { rs[rs.length - 1].remove(); rs = $$('.row', blankRows); }
+                renumberBlanks(); sync();
+            };
+        } else {
+            hint.textContent = '';
+        }
+        preview();
+    }
+
+    function preview() {
+        const t = qtype();
+        const label = ($('input[name=question_type]:checked + span em', form) || {}).textContent || '';
+        const score = $('#qScore').value || '—';
+        let text = esc($('#qText').value.trim());
+        let gapN = 0;
+        if (t === 'fill_blank') text = text.replace(/_{3,}/g, () => '<span class="gap">(' + fa(++gapN) + ')</span>');
+        let h = '<div class="pv-head"><span>' + esc(label) + '</span><span>⭐ ' + fa(score) + ' نمره</span></div>';
+        h += '<div class="pv-text">' + (text || '<span class="pv-muted">صورت سوال…</span>') + '</div>';
+        const imgInput = $('#qImage');
+        if (imgInput.files && imgInput.files[0]) h += '<img class="pv-img" src="' + URL.createObjectURL(imgInput.files[0]) + '" alt="">';
+        else if (INIT.image_url && !($('#removeImg') || {}).checked) h += '<img class="pv-img" src="' + esc(INIT.image_url) + '" alt="">';
+
+        if (t === 'multiple_choice') {
+            h += '<div class="pv-opts">';
+            $$('.row', optRows).forEach((r, i) => {
+                const txt = $('.js-text', r).value.trim();
+                const img = $('.opt-thumb', r);
+                if (!txt && img.hidden) return;
+                const ok = $('.js-correct', r).checked;
+                h += '<div class="pv-opt' + (ok ? ' ok' : '') + '"><b>' + fa(i + 1) + ')</b> ' +
+                     (!img.hidden ? '<img src="' + esc(img.src) + '" alt="">' : esc(txt)) + (ok ? ' <span class="pv-key">✓</span>' : '') + '</div>';
+            });
+            h += '</div>';
+        } else if (t === 'true_false') {
+            const v = ($('input[name=correct_answer]:checked', $('.sec[data-types=true_false]')) || {}).value;
+            h += '<div class="pv-opts"><div class="pv-opt' + (v === 'true' ? ' ok' : '') + '">✅ صحیح</div><div class="pv-opt' + (v === 'false' ? ' ok' : '') + '">❌ غلط</div></div>';
+        } else if (t === 'fill_blank') {
+            $$('.row', blankRows).forEach((r, i) => {
+                const lab = $('.js-label', r).value.trim(), ans = $('.js-answer', r).value.trim();
+                h += '<div class="pv-field">' + esc(lab || ('جای خالی ' + fa(i + 1))) + ' … ' + (ans ? '<span class="pv-key">✓ ' + esc(ans) + '</span>' : '') + '</div>';
+            });
+        } else if (t === 'matching') {
+            $$('.row', pairRows).forEach(r => {
+                const l = $('.js-left', r).value.trim(), rt = $('.js-right', r).value.trim();
+                if (l || rt) h += '<div class="pv-pair"><span>' + esc(l || '…') + '</span><b>⟵</b><span>' + esc(rt || '…') + '</span></div>';
+            });
+            h += '<div class="pv-muted">ستون دوم برای دانش‌آموز به‌صورت فهرست کشویی و به‌هم‌ریخته نمایش داده می‌شود.</div>';
+        } else if (t === 'short_answer') {
+            h += '<div class="pv-field">پاسخ کوتاه دانش‌آموز…</div>';
+        } else if (t === 'long_answer') {
+            h += '<div class="pv-field" style="min-height:70px">پاسخ تشریحی دانش‌آموز…</div>';
+        } else if (t === 'image_answer') {
+            h += '<div class="pv-field" style="text-align:center">📷 انتخاب یا کشیدن تصویر پاسخ</div>';
+        }
+        if (t !== 'image_answer' && $('input[name=allow_image_answer]', form).checked) h += '<div class="pv-muted">📷 امکان ارسال عکس پاسخ فعال است.</div>';
+        $('#preview').innerHTML = h;
+    }
+
+    form.addEventListener('input', sync);
+    form.addEventListener('change', sync);
+    sync();
+
+    // اعتبارسنجی سریع سمت کاربر (سرور همیشه دوباره بررسی می‌کند)
+    form.addEventListener('submit', e => {
+        const t = qtype();
+        const msg = (() => {
+            if (!$('#qText').value.trim() && !($('#qImage').files || []).length && !INIT.image_url) return 'متن سوال را بنویسید.';
+            if (!(parseFloat($('#qScore').value) > 0)) return 'بارم سوال باید بزرگ‌تر از صفر باشد.';
+            if (t === 'multiple_choice') {
+                const filled = $$('.row', optRows).filter(r => $('.js-text', r).value.trim() || !$('.opt-thumb', r).hidden);
+                if (filled.length < 2) return 'حداقل دو گزینه وارد کنید.';
+                const c = $$('.row', optRows).find(r => $('.js-correct', r).checked);
+                if (!c || !filled.includes(c)) return 'گزینهٔ صحیح باید یکی از گزینه‌های پرشده باشد.';
+            }
+            if (t === 'fill_blank' && !$$('.js-answer', blankRows).some(i => i.value.trim())) return 'پاسخ جاهای خالی را بنویسید.';
+            if (t === 'matching' && $$('.row', pairRows).filter(r => $('.js-left', r).value.trim() && $('.js-right', r).value.trim()).length < 2) return 'حداقل دو جفت کامل لازم است.';
+            return '';
+        })();
+        if (msg) { e.preventDefault(); alert(msg); }
+    });
+
+    const stb = document.getElementById('saveToBank');
+    if (stb) stb.addEventListener('change', () => { document.getElementById('bankFolder').hidden = !stb.checked; });
+
+    /* ---------------- تب‌ها ---------------- */
+    $$('.qf-tab').forEach(tab => tab.addEventListener('click', () => {
+        $$('.qf-tab').forEach(t => t.classList.toggle('on', t === tab));
+        $$('.qf-pane').forEach(p => p.hidden = p.id !== tab.dataset.pane);
+    }));
+
+    /* ---------------- افزودن از بانک ---------------- */
+    const bankData = document.getElementById('bankData');
+    if (bankData) {
+        const items = JSON.parse(bankData.textContent);
+        const rowsHost = $('#bankRows');
+        const picked = new Set();
+        const DIFF = { easy: 'آسان', medium: 'متوسط', hard: 'دشوار' };
+        function draw() {
+            const q = $('#bSearch').value.trim(), f = $('#bFolder').value, t = $('#bType').value;
+            const list = items.filter(it => (!q || it.text.includes(q)) && (f === '' || String(it.folder) === f) && (!t || it.type === t));
+            rowsHost.innerHTML = list.length ? '' : '<div class="pv-muted" style="padding:12px">موردی پیدا نشد.</div>';
+            list.forEach(it => {
+                const row = document.createElement('label');
+                row.className = 'bank-row' + (picked.has(it.id) ? ' on' : '');
+                row.innerHTML = '<input type="checkbox" name="ids" value="' + it.id + '"' + (picked.has(it.id) ? ' checked' : '') + '>' +
+                    '<div><div class="t">' + esc(it.text) + '</div><div class="m">' +
+                    '<span>' + esc(it.type_label) + '</span><span>⭐ ' + fa(it.score) + '</span><span>' + (DIFF[it.difficulty] || '') + '</span>' +
+                    (it.folder_name ? '<span>📁 ' + esc(it.folder_name) + '</span>' : '') +
+                    (it.used ? '<span>🔁 ' + fa(it.used) + ' بار</span>' : '') + '</div></div>';
+                $('input', row).addEventListener('change', e => {
+                    e.target.checked ? picked.add(it.id) : picked.delete(it.id);
+                    row.classList.toggle('on', e.target.checked); count();
+                });
+                rowsHost.appendChild(row);
+            });
+            $('#bAll').checked = list.length > 0 && list.every(it => picked.has(it.id));
+        }
+        function count() {
+            $('#bCount').textContent = fa(picked.size);
+            $('#bSubmit').disabled = !picked.size;
+        }
+        ['bSearch', 'bFolder', 'bType'].forEach(id => document.getElementById(id).addEventListener('input', draw));
+        $('#bAll').addEventListener('change', e => {
+            $$('input[name=ids]', rowsHost).forEach(cb => { cb.checked = e.target.checked; cb.dispatchEvent(new Event('change')); });
+        });
+        // سوال‌های انتخاب‌شده‌ای که با فیلتر پنهان شده‌اند هم ارسال شوند
+        $('#bankForm').addEventListener('submit', () => {
+            $$('input[name=ids]', rowsHost).forEach(cb => cb.remove());
+            picked.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids'; i.value = id; $('#bankForm').appendChild(i); });
+        });
+        draw(); count();
+    }
+})();
+</script>
+{% endblock %}

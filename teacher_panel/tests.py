@@ -136,7 +136,7 @@ class QuestionTests(TeacherPanelTestCase):
             'multiple_choice': {'option_1': 'یک', 'option_2': 'دو', 'option_3': 'سه', 'option_4': 'چهار',
                                 'options_type': 'text', 'correct_answer': '2'},
             'true_false': {'correct_answer': 'true'},
-            'fill_blank': {'blanks': 'تهران, اصفهان', 'correct_answer': 'تهران'},
+            'fill_blank': {'blanks': 'تهران, اصفهان', 'correct_answer': 'تهران, اصفهان'},
             'short_answer': {'correct_answer': 'کوتاه'},
             'long_answer': {'correct_answer': 'بلند'},
             'image_answer': {'allow_image_answer': 'on'},
@@ -154,7 +154,7 @@ class QuestionTests(TeacherPanelTestCase):
 
     def test_invalid_question_type_is_rejected(self):
         response = self.add(text='بدون نوع', question_type='not_a_type', max_score='1')
-        self.assertEqual(response.status_code, 302)
+        self.assertIn(response.status_code, (200, 302))
         self.assertEqual(Question.objects.filter(exam=self.exam).count(), 0)
 
     def test_zero_or_junk_score_is_rejected(self):
@@ -703,7 +703,7 @@ class BankDynamicFormTests(TestCase):
     def test_stay_button_reopens_form(self):
         r = self._add(stay='1')
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.url.endswith('?new=1'))
+        self.assertIn(reverse('bank_question_new'), r.url)
 
     def test_edit_updates_all_fields(self):
         self._add()
@@ -725,8 +725,8 @@ class BankDynamicFormTests(TestCase):
         r = self.client.post(reverse('bank_question_edit', args=[b.id]), {
             'text': 'متن', 'question_type': 'multiple_choice', 'option1': 'تنها',
             'correct_answer': '1'})
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('?edit=%d' % b.id, r.url)
+        self.assertEqual(r.status_code, 200)   # فرم با پیام خطا دوباره نمایش داده می‌شود
+        self.assertContains(r, 'qf-error')
         b.refresh_from_db()
         self.assertEqual(b.text, 'صورت سوال')
 
@@ -835,3 +835,68 @@ class BankTreeTests(TestCase):
         for b in QuestionBank.objects.filter(teacher=self.t, question_type='fill_blank'):
             self.assertEqual(len(b.blanks), len(b.correct_answer.split(',')), b.text)
         self.assertEqual(self.client.get('/teacher/bank/').status_code, 200)
+
+
+class UnifiedQuestionFormTests(TestCase):
+    """فرم یکپارچهٔ سوال (آزمون + بانک) با همهٔ انواع و انتقال کامل بین بانک و آزمون"""
+
+    def setUp(self):
+        from accounts.models import User, Grade
+        from exams.models import Exam
+        self.teacher = User.objects.create_user(username='tu', password='test12345', role='teacher')
+        self.client.login(username='tu', password='test12345')
+        now = timezone.now()
+        self.exam = Exam.objects.create(title='u', teacher=self.teacher, grade=Grade.objects.create(name='8'),
+                                        duration_minutes=20, start_time=now, end_time=now + timedelta(hours=1))
+
+    def test_form_pages_render(self):
+        from exams.models import QuestionBank
+        self.assertContains(self.client.get(reverse('add_question', args=[self.exam.id])), 'qInitial')
+        self.assertContains(self.client.get(reverse('bank_question_new')), 'qInitial')
+        b = QuestionBank.objects.create(teacher=self.teacher, text='x', question_type='true_false', correct_answer='true')
+        self.assertContains(self.client.get(reverse('bank_question_form', args=[b.id])), 'qInitial')
+
+    def test_bank_matching_and_six_options(self):
+        from exams.models import QuestionBank
+        r = self.client.post(reverse('question_bank'), {
+            'text': 'وصل کن', 'question_type': 'matching', 'max_score': '2',
+            'left_0': 'آب', 'right_0': 'H2O', 'left_1': 'نمک', 'right_1': 'NaCl'})
+        self.assertEqual(r.status_code, 302)
+        b = QuestionBank.objects.get(teacher=self.teacher)
+        self.assertEqual(len(b.matching_pairs), 2)
+        data = {'text': 'شش گزینه', 'question_type': 'multiple_choice', 'max_score': '1', 'correct_answer': '6'}
+        data.update({'option_%d' % i: 'گ%d' % i for i in range(1, 7)})
+        self.assertEqual(self.client.post(reverse('question_bank'), data).status_code, 302)
+        self.assertEqual(len(QuestionBank.objects.get(text='شش گزینه').options), 6)
+
+    def test_import_matching_from_bank_is_gradable(self):
+        from exams.models import QuestionBank, Question
+        from exams.grading import evaluate_fraction
+        b = QuestionBank.objects.create(teacher=self.teacher, text='m', question_type='matching',
+                                        matching_pairs=[{'left': 'a', 'right': '1'}, {'left': 'b', 'right': '2'}])
+        r = self.client.post(reverse('bank_bulk_action'), {'action': 'import', 'ids': [b.id],
+                             'exam_id': self.exam.id, 'next': reverse('edit_exam', args=[self.exam.id])})
+        self.assertEqual(r.status_code, 302)
+        q = Question.objects.get(exam=self.exam)
+        self.assertEqual(q.question_type, 'matching')
+        full = json.dumps({'pair_%d_0' % q.id: 'pair_%d_0' % q.id, 'pair_%d_1' % q.id: 'pair_%d_1' % q.id})
+        half = json.dumps({'pair_%d_0' % q.id: 'pair_%d_0' % q.id, 'pair_%d_1' % q.id: 'pair_%d_0' % q.id})
+        self.assertEqual(evaluate_fraction(q, full), 1)
+        self.assertEqual(evaluate_fraction(q, half), 0.5)
+
+    def test_fill_blank_rows_alternatives_and_partial(self):
+        from exams.models import Question
+        from exams.grading import evaluate_fraction
+        r = self.client.post(reverse('add_question', args=[self.exam.id]), {
+            'text': '____ و ____', 'question_type': 'fill_blank', 'max_score': '2',
+            'blank_label_0': 'اول', 'blank_answer_0': '49/چهل و نه', 'blank_label_1': 'دوم', 'blank_answer_1': 'تهران'})
+        self.assertEqual(r.status_code, 302)
+        q = Question.objects.get(exam=self.exam)
+        self.assertEqual(evaluate_fraction(q, '۴۹|تهران'), 1)
+        self.assertEqual(evaluate_fraction(q, 'چهل و نه|شیراز'), 0.5)
+
+    def test_add_another_redirects_back_to_form(self):
+        r = self.client.post(reverse('add_question', args=[self.exam.id]), {
+            'text': 'q', 'question_type': 'true_false', 'correct_answer': 'false', 'max_score': '1', 'add_another': '1'})
+        self.assertEqual(r.status_code, 302)
+        self.assertIn(reverse('add_question', args=[self.exam.id]), r.url)

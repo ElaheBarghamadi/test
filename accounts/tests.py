@@ -19,7 +19,7 @@ class LoginPageStyleTests(TestCase):
     """صفحه ورود باید هم‌شکل بقیه بخش‌های سامانه باشد"""
 
     OFF_PALETTE = ['#2a5298', '#1e3c72', '#eef2f8', '#1e293b']   # تم آبی/طوسی قدیمی
-    SITE_PALETTE = ['#0f7078', '#0b4a52', '#2ec4b6', '#16404a']  # تم فیروزه‌ای/نفتی سامانه
+    SITE_PALETTE = ['#0f7078', '#2ec4b6', '#0a3440']  # تم فیروزه‌ای/نفتی سامانه
 
     def setUp(self):
         self.response = self.client.get(reverse('login'))
@@ -36,10 +36,10 @@ class LoginPageStyleTests(TestCase):
         for color in self.OFF_PALETTE:
             self.assertNotIn(color, self.html, f'رنگ {color} مربوط به تم قدیمی هنوز در صفحه ورود است')
 
-    def test_extends_base_layout(self):
-        # نوار بالا و فوتر مثل بقیه صفحات نمایش داده می‌شوند
-        self.assertIn('navbar', self.html)
-        self.assertIn('footer', self.html)
+    def test_standalone_without_header_footer(self):
+        # صفحه ورود به درخواست کاربر بدون هدر و فوتر است
+        self.assertNotIn('site-footer', self.html)
+        self.assertNotIn('site-header', self.html)
         self.assertIn('سامانه آزمون', self.html)
 
     def test_form_fields_and_csrf(self):

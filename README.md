@@ -87,7 +87,6 @@ python manage.py runserver
 |---|---|---|
 | `DEBUG` | `True`/`False` — حالت توسعه یا تولید | اگر تنظیم نشده: با `runserver` = توسعه، وگرنه = تولید |
 | `SECRET_KEY` | کلید امنیتی جنگو | در توسعه مقدار موقت؛ **در تولید اجباری** (بدون آن gunicorn بالا نمی‌آید) |
-| `ALLOWED_HOSTS` | دامنه‌های مجاز در تولید، جدا با ویرگول | `localhost,127.0.0.1` |
 | `CSRF_TRUSTED_ORIGINS` | مثلاً `https://your-domain.com` | خالی |
 | `DATABASE_URL` | آدرس دیتابیس (مثلاً postgres) | sqlite فایل `db.sqlite3` |
 | `CORS_ALLOWED_ORIGINS` | فهرست میزبان‌های مجاز CORS، جدا شده با ویرگول | خالی (هیچ میزبانی مجاز نیست) |
@@ -107,7 +106,6 @@ python manage.py runserver
 export DEBUG=False
 export SECRET_KEY='یک-کلید-طولانی-و-تصادفی'
 export DATABASE_URL='postgres://USER:PASS@HOST/DB'   # یا خالی برای sqlite
-export ALLOWED_HOSTS='your-domain.com'
 export CSRF_TRUSTED_ORIGINS='https://your-domain.com'
 export CORS_ALLOWED_ORIGINS='https://your-domain.com'
 

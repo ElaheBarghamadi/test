@@ -632,6 +632,41 @@
         @media (prefers-reduced-motion:reduce){
             *{animation-duration:.001s !important;transition-duration:.001s !important}
         }
+
+        /* ================== حالت تمرکز، علامت‌گذاری، اندازه متن ================== */
+        .topbar{transition:transform .3s ease,opacity .3s ease,margin .3s ease}
+        body.focus .topbar{transform:translateY(calc(-100% - 16px));opacity:0;pointer-events:none;margin-bottom:calc(-1 * var(--tb-h,90px))}
+        .tb-tools{display:flex;gap:6px;flex:0 0 auto}
+        .tb-tool{min-width:34px;height:34px;border-radius:999px;cursor:pointer;padding:0 9px;
+            background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;font-weight:800;font-size:.78rem}
+        .tb-tool:hover{background:rgba(255,255,255,.28)}
+        .tb-tool.pal-open{display:none}
+        @media (max-width:1023px){ body.mode-all .tb-tool.pal-open{display:inline-block} }
+        .focus-pill{position:fixed;top:8px;inset-inline-start:50%;transform:translate(50%,-150%);z-index:950;
+            display:flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;border-radius:999px;
+            background:#0b3c49;color:#fff;box-shadow:0 8px 24px rgba(8,45,52,.25);transition:transform .3s ease;font-size:.8rem;font-weight:700}
+        body.focus .focus-pill{transform:translate(50%,0)}
+        .focus-pill .fp-timer{font-variant-numeric:tabular-nums;letter-spacing:.5px}
+        .focus-pill .fp-timer.warning{color:#ffce85}.focus-pill .fp-timer.danger{color:#ff9b9b}
+        .focus-pill button{border:none;background:rgba(255,255,255,.16);color:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;font-weight:700;font-size:.75rem}
+        .focus-pill button:hover{background:rgba(255,255,255,.3)}
+        .q-flag{margin-inline-start:auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:0 10px;cursor:pointer;
+            font-size:.72rem;font-weight:700;color:var(--ink3);line-height:1.9}
+        .q-flag:hover{border-color:#f0a02a;color:#a0600a}
+        .q-card.is-flagged .q-flag{background:#fff4dd;border-color:#f0a02a;color:#a0600a}
+        .q-card.is-flagged{box-shadow:inset 4px 0 0 #f0a02a, var(--sh1)}
+        .pal.is-flagged::after{content:'🚩';position:absolute;top:-7px;inset-inline-start:-5px;font-size:.62rem}
+        .pal{position:relative}
+        .blank-mark{display:inline-block;min-width:3.2em;border-bottom:2px solid var(--gold2,#2ec4b6);margin:0 4px;text-align:center;
+            font-size:.75em;color:var(--gold3);font-weight:800;line-height:1.4}
+        body.fs-1 .q-text,body.fs-1 .q-answer{font-size:1.08em}
+        body.fs-2 .q-text,body.fs-2 .q-answer{font-size:1.18em}
+        body.fs--1 .q-text,body.fs--1 .q-answer{font-size:.93em}
+        /* در حالت همه‌سوالات نوار پایین لازم نیست؛ پایین صفحه خلوت می‌ماند */
+        body.mode-all .actionbar{display:none}
+        body.mode-all{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+        .flag-box{margin-top:10px}
+        @media print{.focus-pill{display:none !important}}
         @media print{
             .topbar,.actionbar,.side,.toast-wrap{display:none !important}
             body{background:#fff;padding:0}
@@ -665,6 +700,12 @@
                 <div class="timer-label" id="timerLabel">
                     {% if exam.timer_type == 'fixed' %}زمان تا پایان آزمون{% else %}زمان باقی‌مانده شما{% endif %}
                 </div>
+            </div>
+            <div class="tb-tools">
+                <button type="button" class="tb-tool pal-open" id="btnPalTop" title="فهرست سوالات" aria-label="فهرست سوالات">☰</button>
+                <button type="button" class="tb-tool" id="fsDown" title="کوچک‌تر کردن متن" aria-label="کوچک‌تر کردن متن">A−</button>
+                <button type="button" class="tb-tool" id="fsUp" title="بزرگ‌تر کردن متن" aria-label="بزرگ‌تر کردن متن">A+</button>
+                <button type="button" class="tb-tool" id="focusOn" title="حالت تمرکز: پنهان کردن سربرگ (کلید F)" aria-label="پنهان کردن سربرگ">⤒</button>
             </div>
             <button type="button" class="tb-toggle" id="tbToggle" aria-expanded="true"
                     aria-label="جمع کردن یا باز کردن سربرگ">▲</button>
@@ -717,6 +758,7 @@
                     <span class="q-chip">{{ question.type_display }}</span>
                     <span class="q-state" id="qstate_{{ question.id }}">پاسخ داده نشده</span>
                     <span class="q-score">⭐ {{ question.max_score|floatformat:"-2" }} نمره</span>
+                    <button type="button" class="q-flag js-flag" data-qid="{{ question.id }}" aria-pressed="false" title="علامت برای مرور دوباره">🚩 مرور</button>
                 </div>
 
                 {% if question.text or question.image %}
@@ -797,6 +839,12 @@
 
 <div class="backdrop" id="backdrop"></div>
 
+<div class="focus-pill" id="focusPill" aria-hidden="true">
+    <span>⏳ <span class="fp-timer" id="fpTimer">--:--</span></span>
+    <span id="fpCount"></span>
+    <button type="button" id="focusOff" title="نمایش سربرگ (کلید F)">⤓ سربرگ</button>
+</div>
+
 <!-- ================= نوار پایین ================= -->
 <nav class="actionbar" id="actionbar">
     <div class="ab-inner">
@@ -826,6 +874,10 @@
         <div class="unanswered" id="unansweredBox" style="display:none">
             <b>⚠️ به این سوال‌ها پاسخ نداده‌اید:</b>
             <div class="nums" id="unansweredNums"></div>
+        </div>
+        <div class="unanswered flag-box" id="flaggedBox" style="display:none">
+            <b>🚩 سوال‌های علامت‌خورده برای مرور:</b>
+            <div class="nums" id="flaggedNums"></div>
         </div>
         <div class="modal-actions">
             <button type="button" class="btn btn-ghost" id="confirmCancel">بازگشت به آزمون</button>
@@ -1709,6 +1761,17 @@
         } else {
             box.style.display = 'none';
         }
+        const fBox = el('flaggedBox'), fNums = el('flaggedNums');
+        const flagged = QUESTIONS.filter(q => flags.has(String(q.id)));
+        fNums.innerHTML = '';
+        fBox.style.display = flagged.length ? 'block' : 'none';
+        flagged.forEach(q => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = 'سوال ' + fa(q.index + 1);
+            b.addEventListener('click', () => { closeAllModals(); goTo(q.index); });
+            fNums.appendChild(b);
+        });
         openModal('confirmModal');
     }
 
@@ -1821,6 +1884,7 @@
                 tick.remove();
             }
         });
+        if (typeof paintFlags === 'function') try { paintFlags(); } catch (e) { }
     }
 
     /* ---------- سربرگ جمع‌شونده (کم‌جا در موبایل) ---------- */
@@ -2160,6 +2224,102 @@
         }
     }
 
+
+    /* =========================================================
+       امکانات کمکی: حالت تمرکز، علامت مرور، اندازه متن، جاخالی
+       ========================================================= */
+    const STORE_KEY = 'exam:' + location.pathname;
+    const flags = new Set((function () { try { return JSON.parse(localStorage.getItem(STORE_KEY + ':flags') || '[]'); } catch (e) { return []; } })());
+    function saveFlags() { try { localStorage.setItem(STORE_KEY + ':flags', JSON.stringify([...flags])); } catch (e) { } }
+    function paintFlags() {
+        document.querySelectorAll('.q-card').forEach(c => {
+            const on = flags.has(String(c.dataset.qid));
+            c.classList.toggle('is-flagged', on);
+            const b = c.querySelector('.js-flag');
+            if (b) { b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '🚩 علامت‌خورده' : '🚩 مرور'; }
+        });
+        document.querySelectorAll('.pal').forEach(p => {
+            const q = QUESTIONS[parseInt(p.dataset.idx, 10)];
+            p.classList.toggle('is-flagged', !!q && flags.has(String(q.id)));
+        });
+    }
+    function toggleFlag(qid) {
+        qid = String(qid);
+        flags.has(qid) ? flags.delete(qid) : flags.add(qid);
+        saveFlags(); paintFlags();
+    }
+    function setFocus(on) {
+        const tb = el('topbar');
+        if (tb) document.body.style.setProperty('--tb-h', tb.offsetHeight + 'px');
+        document.body.classList.toggle('focus', on);
+        el('focusPill').setAttribute('aria-hidden', String(!on));
+        try { sessionStorage.setItem(STORE_KEY + ':focus', on ? '1' : '0'); } catch (e) { }
+    }
+    let fontStep = 0;
+    function setFont(step) {
+        fontStep = Math.max(-1, Math.min(2, step));
+        document.body.classList.remove('fs--1', 'fs-1', 'fs-2');
+        if (fontStep) document.body.classList.add('fs-' + fontStep);
+        try { localStorage.setItem('exam:fontStep', String(fontStep)); } catch (e) { }
+    }
+    function markBlanks() {
+        document.querySelectorAll('.q-card[data-type="fill_blank"] .q-text').forEach(box => {
+            let n = 0;
+            const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+            const nodes = [];
+            while (walker.nextNode()) if (/_{3,}/.test(walker.currentNode.nodeValue)) nodes.push(walker.currentNode);
+            nodes.forEach(node => {
+                const frag = document.createDocumentFragment();
+                node.nodeValue.split(/(_{3,})/).forEach(part => {
+                    if (/^_{3,}$/.test(part)) {
+                        const s = document.createElement('span');
+                        s.className = 'blank-mark'; s.textContent = '(' + fa(++n) + ')';
+                        frag.appendChild(s);
+                    } else if (part) frag.appendChild(document.createTextNode(part));
+                });
+                node.parentNode.replaceChild(frag, node);
+            });
+        });
+    }
+    function syncPill() {
+        const t = el('timerDisplay'), fp = el('fpTimer');
+        if (t && fp) {
+            fp.textContent = t.textContent;
+            fp.className = 'fp-timer' + (t.classList.contains('danger') ? ' danger' : t.classList.contains('warning') ? ' warning' : '');
+        }
+        const c = el('fpCount');
+        if (c && TOTAL) c.textContent = fa(QUESTIONS.filter(isAnswered).length) + '/' + fa(TOTAL) + ' پاسخ';
+    }
+    function initHelpers() {
+        markBlanks();
+        document.querySelectorAll('.js-flag').forEach(b => b.addEventListener('click', () => toggleFlag(b.dataset.qid)));
+        paintFlags();
+        el('focusOn').addEventListener('click', () => setFocus(true));
+        el('focusOff').addEventListener('click', () => setFocus(false));
+        el('fsUp').addEventListener('click', () => setFont(fontStep + 1));
+        el('fsDown').addEventListener('click', () => setFont(fontStep - 1));
+        const pt = el('btnPalTop');
+        if (pt) pt.addEventListener('click', () => el('examSide').classList.contains('open') ? closeSide() : openSide());
+        let f = 0; try { f = parseInt(localStorage.getItem('exam:fontStep') || '0', 10) || 0; } catch (e) { }
+        setFont(f);
+        let fo = null; try { fo = sessionStorage.getItem(STORE_KEY + ':focus'); } catch (e) { }
+        if (fo === '1') setFocus(true);
+        const td = el('timerDisplay');
+        if (td && 'MutationObserver' in window) new MutationObserver(syncPill).observe(td, { childList: true, characterData: true, subtree: true, attributes: true });
+        document.addEventListener('change', () => setTimeout(syncPill, 50));
+        document.addEventListener('input', debounce(syncPill, 300));
+        syncPill();
+        document.addEventListener('keydown', e => {
+            const tag = (e.target.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (document.querySelector('.modal.on')) return;
+            const k = e.key.toLowerCase();
+            if (k === 'f' || k === 'ب') { e.preventDefault(); setFocus(!document.body.classList.contains('focus')); }
+            else if ((k === 'm' || k === 'پ') && TOTAL) { e.preventDefault(); const q = QUESTIONS[runtime.current]; if (q) toggleFlag(q.id); }
+        });
+    }
+
     function init() {
         restoreSaved();
         QUESTIONS.forEach(q => { renderWidget(q); refreshQuestion(q); });
@@ -2171,6 +2331,7 @@
         initZoom();
         initTopbarToggle();
         initNoticeDismiss();
+        initHelpers();
         document.querySelectorAll('.q-text .zoom-trigger').forEach(bindZoomTrigger);
 
         if (TOTAL) {

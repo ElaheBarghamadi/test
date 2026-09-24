@@ -9,19 +9,27 @@ def _normalize_fa_text(value):
     if value is None:
         return ''
     text = str(value).strip().lower()
+    # ارقام فارسی/عربی به لاتین تا «۴۹» و «49» یکسان باشند
+    text = text.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789'))
     text = text.replace('\u200c', ' ').replace('\u064a', 'ی').replace('\u0643', 'ک').replace('\u0629', 'ه')
     return ' '.join(text.split())
 
 
+def _matches_any(given, expected_part):
+    """پاسخ‌های قابل‌قبول یک جای خالی با «/» جدا می‌شوند: «۴۹/چهل و نه»"""
+    options = [_normalize_fa_text(o) for o in str(expected_part).split('/') if o.strip()]
+    return _normalize_fa_text(given) in options if options else False
+
+
 def fill_blank_is_correct(answer_text, correct_answer):
     """مقایسه پاسخ جاخالی («مقدار۱ | مقدار۲») با پاسخ صحیح («مقدار۱, مقدار۲»)"""
-    given = [_normalize_fa_text(p) for p in str(answer_text or '').split('|')]
-    expected = [_normalize_fa_text(p) for p in str(correct_answer or '').replace('،', ',').split(',') if p.strip()]
+    given = [p for p in str(answer_text or '').split('|')]
+    expected = [p for p in str(correct_answer or '').replace('،', ',').split(',') if p.strip()]
     if not expected:
         return False
     if len(given) == 1 and len(expected) > 1:
-        return given[0] == _normalize_fa_text(correct_answer)
-    return all(i < len(given) and given[i] == want for i, want in enumerate(expected))
+        return _normalize_fa_text(given[0]) == _normalize_fa_text(correct_answer)
+    return all(i < len(given) and _matches_any(given[i], want) for i, want in enumerate(expected))
 
 
 def matching_is_correct(answer_text, correct_answer):
@@ -35,8 +43,12 @@ def matching_is_correct(answer_text, correct_answer):
         return False
     if not isinstance(given, dict) or not isinstance(expected, dict) or not expected:
         return False
+    def idx(value):
+        # «pair_12_3» ، «r_3» و … — فقط شمارهٔ انتهایی معیار است
+        return str(value or '').strip().rsplit('_', 1)[-1]
     for key, want in expected.items():
-        if str(given.get(key, '')).strip() != str(want).strip():
+        got = given.get(key, '')
+        if not got or idx(got) != idx(want):
             return False
     return True
 
@@ -49,6 +61,10 @@ def evaluate_answer(question, answer_text):
     if question.question_type not in AUTO_TYPES:
         return None
     correct = (question.correct_answer or '').strip()
+    if question.question_type == 'matching' and question.matching_pairs:
+        # کلید پاسخ همیشه از خود جفت‌ها ساخته می‌شود (جفت i ⟵ گزینهٔ i)
+        from .question_forms import matching_answer_key
+        correct = matching_answer_key(question.id, question.matching_pairs)
     if not correct:
         return None
     if not answer_text or not str(answer_text).strip():
@@ -61,6 +77,48 @@ def evaluate_answer(question, answer_text):
     if qtype == 'matching':
         return matching_is_correct(answer_text, correct)
     return None
+
+
+def _fill_blank_fraction(answer_text, correct_answer):
+    given = str(answer_text or '').split('|')
+    expected = [p for p in str(correct_answer or '').replace('،', ',').split(',') if p.strip()]
+    if not expected:
+        return None
+    if len(given) == 1 and len(expected) > 1:
+        return 1.0 if _normalize_fa_text(given[0]) == _normalize_fa_text(correct_answer) else 0.0
+    ok = sum(1 for i, want in enumerate(expected) if i < len(given) and _matches_any(given[i], want))
+    return ok / len(expected)
+
+
+def _matching_fraction(answer_text, correct_answer):
+    try:
+        given = json.loads(answer_text or '{}')
+        expected = json.loads(correct_answer or '{}')
+    except (TypeError, ValueError):
+        return 0.0
+    if not isinstance(given, dict) or not isinstance(expected, dict) or not expected:
+        return 0.0
+    idx = lambda v: str(v or '').strip().rsplit('_', 1)[-1]
+    ok = sum(1 for k, want in expected.items() if given.get(k) and idx(given.get(k)) == idx(want))
+    return ok / len(expected)
+
+
+def evaluate_fraction(question, answer_text):
+    """کسر نمره (۰ تا ۱) برای سوالات عینی؛ جاخالی و وصل‌کردنی نمرهٔ جزئی می‌گیرند.
+    None یعنی تصحیح دستی لازم است."""
+    verdict = evaluate_answer(question, answer_text)
+    if verdict is None:
+        return None
+    if verdict:
+        return 1.0
+    if not answer_text or not str(answer_text).strip():
+        return 0.0
+    if question.question_type == 'fill_blank':
+        return _fill_blank_fraction(answer_text, question.correct_answer) or 0.0
+    if question.question_type == 'matching':
+        from .question_forms import matching_answer_key
+        return _matching_fraction(answer_text, matching_answer_key(question.id, question.matching_pairs))
+    return 0.0
 
 
 @transaction.atomic
@@ -77,10 +135,10 @@ def auto_grade_attempt(student, exam):
         question = questions.get(answer.question_id)
         if question is None or answer.graded_by_id is not None:
             continue  # نمره دستی معلم دست‌نخورده می‌ماند
-        verdict = evaluate_answer(question, answer.answer_text)
-        if verdict is None:
+        fraction = evaluate_fraction(question, answer.answer_text)
+        if fraction is None:
             continue
-        answer.score_obtained = float(question.max_score) if verdict else 0.0
+        answer.score_obtained = round(float(question.max_score) * fraction, 2)
         answer.auto_graded = True
         answer.save(update_fields=['score_obtained', 'auto_graded', 'updated_at'])
         graded += 1
