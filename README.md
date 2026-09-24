@@ -59,6 +59,16 @@ python manage.py seed_demo
 
 > ⚠️ در سرور واقعی حتماً رمز این کاربران را عوض کنید.
 
+### ۴.۶) بانک سوال نمونه (پوشه‌بندی‌شده)
+```bash
+python manage.py seed_question_bank                # برای معلم teacher
+python manage.py seed_question_bank --teacher ali  # برای معلم دیگر
+python manage.py seed_question_bank --all          # برای همهٔ معلم‌ها
+python manage.py seed_question_bank --reset        # پاک‌کردن بانک معلم و ساخت دوباره
+```
+حدود ۹۴ سوال از همهٔ انواع در ساختار «پایه › درس › فصل». معلم می‌تواند از دکمهٔ
+«✨ بارگذاری بانک نمونه» در صفحهٔ بانک سوال هم همین کار را انجام دهد. اجرای دوباره سوال تکراری نمی‌سازد.
+
 ### ۵) اجرای سرور
 ```bash
 python manage.py runserver
