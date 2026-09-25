@@ -264,7 +264,7 @@
 
 {% block content %}
 <div class="exam-hero">
-    <h1>📝 تصحیح آزمون «{{ exam.title }}»</h1>
+    <h1>تصحیح آزمون «{{ exam.title }}»</h1>
     <div class="exam-meta">
         <span>🏫 {{ exam.grade.get_name_display }}</span>
         <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
@@ -275,9 +275,9 @@
 
 <div class="progress-section">
     <div class="progress-stats">
-        <span>✅ تصحیح شده: <strong id="graded-count">0</strong></span>
-        <span>⏳ باقیمانده: <strong id="remaining-count">0</strong></span>
-        <span>📈 پیشرفت: <strong id="progress-percent">0%</strong></span>
+        <span>تصحیح شده: <strong id="graded-count">0</strong></span>
+        <span>باقیمانده: <strong id="remaining-count">0</strong></span>
+        <span>پیشرفت: <strong id="progress-percent">0%</strong></span>
     </div>
     <div class="progress-bar">
         <div class="progress-fill" id="progress-fill"></div>
@@ -285,8 +285,8 @@
 </div>
 
 <div class="mode-tabs">
-    <button class="mode-tab active" onclick="switchMode('question')">📋 تصحیح بر اساس سوال</button>
-    <button class="mode-tab" onclick="switchMode('student')">👤 تصحیح بر اساس دانش‌آموز</button>
+    <button class="mode-tab active" onclick="switchMode('question')">تصحیح بر اساس سوال</button>
+    <button class="mode-tab" onclick="switchMode('student')">تصحیح بر اساس دانش‌آموز</button>
 </div>
 
 <div class="filters-row">
@@ -398,7 +398,7 @@
     function formatMatchingAnswer(answerJson, matchingPairs) {
         // اگر پاسخ خالی باشد
         if (!answerJson || answerJson === '' || answerJson === '{}') {
-            return '❌ پاسخی ثبت نشده';
+            return 'پاسخی ثبت نشده';
         }
 
         // اگر matchingPairs وجود نداشته باشد یا خالی باشد
@@ -416,11 +416,11 @@
 
                 if (selectedIdx !== undefined && selectedIdx !== null && matchingPairs[selectedIdx]) {
                     let rightText = matchingPairs[selectedIdx].right;
-                    resultLines.push(`🔹 ${leftText}  ←→  ${rightText}`);
+                    resultLines.push(`${leftText}  ←→  ${rightText}`);
                 } else if (selectedIdx !== undefined && selectedIdx !== null) {
-                    resultLines.push(`🔹 ${leftText}  ←→  گزینه ${parseInt(selectedIdx) + 1}`);
+                    resultLines.push(`${leftText}  ←→  گزینه ${parseInt(selectedIdx) + 1}`);
                 } else {
-                    resultLines.push(`🔹 ${leftText}  ←→  ❌ انتخاب نشده`);
+                    resultLines.push(`${leftText}  ←→  انتخاب نشده`);
                 }
             }
 
@@ -434,15 +434,15 @@
     // تابع نمایش پاسخ بر اساس نوع سوال
     function formatAnswerDisplay(answerText, questionType, matchingPairs = null) {
         if (!answerText || answerText === '') {
-            return '❌ پاسخی ثبت نشده';
+            return 'پاسخی ثبت نشده';
         }
 
         if (questionType === 'true_false') {
-            return answerText === 'true' ? '✅ صحیح' : '❌ غلط';
+            return answerText === 'true' ? 'صحیح' : 'غلط';
         }
 
         if (questionType === 'multiple_choice') {
-            return `🔹 گزینه ${answerText}`;
+            return `گزینه ${answerText}`;
         }
 
         if (questionType === 'matching') {
@@ -533,7 +533,7 @@
 
         let btn = document.querySelector(`.save-btn-${answerId}`);
         let originalText = btn?.innerHTML;
-        if (btn) btn.innerHTML = '⏳ ...';
+        if (btn) btn.innerHTML = '...';
 
         try {
             let res = await fetch('/teacher/save-score/', {
@@ -624,7 +624,7 @@
             if (q.type === 'matching') {
                 teacherAnswerDisplay = formatMatchingAnswer(q.correctAnswer, q.matchingPairs);
             } else if (q.type === 'true_false') {
-                teacherAnswerDisplay = q.correctAnswer === 'true' ? '✅ صحیح' : '❌ غلط';
+                teacherAnswerDisplay = q.correctAnswer === 'true' ? 'صحیح' : 'غلط';
             } else if (q.type === 'multiple_choice') {
                 teacherAnswerDisplay = `گزینه ${q.correctAnswer}`;
             } else {
@@ -637,9 +637,9 @@
         let html = `<div class="question-box" style="margin-bottom:20px">
                         <div class="question-text"><strong>سوال ${q.num}:</strong> ${escapeHtml(q.text)}</div>
                         <div class="question-meta">
-                            <span>🔢 ${typeText}</span>
-                            <span>⭐ نمره: ${q.maxScore}</span>
-                            ${teacherAnswerDisplay ? `<span>✅ پاسخ صحیح: ${escapeHtml(teacherAnswerDisplay)}</span>` : ''}
+                            <span>${typeText}</span>
+                            <span>نمره: ${q.maxScore}</span>
+                            ${teacherAnswerDisplay ? `<span>پاسخ صحیح: ${escapeHtml(teacherAnswerDisplay)}</span>` : ''}
                         </div>
                     </div>
                     <div class="answers-list">`;
@@ -655,14 +655,14 @@
             html += `<div class="answer-card ${cardClass}">
                         <div class="answer-header">
                             <div class="student-info">
-                                <span class="student-name">👨‍🎓 ${escapeHtml(a.studentName)}</span>
+                                <span class="student-name">${escapeHtml(a.studentName)}</span>
                                 <span class="student-code">${students.find(s => s.id === a.studentId)?.code || ''}</span>
                             </div>
                             ${isGraded ? (isCorrect ? '<span style="background:#4a8c5c20;color:#2d5a3b;padding:2px 10px;border-radius:30px;">✓ نمره داده شده</span>' : '<span style="background:#dc868620;color:#9a4a4a;padding:2px 10px;border-radius:30px;">تصحیح شده</span>') : ''}
                         </div>
                         <div class="answer-body">
                             <div class="student-answer-box">
-                                <div class="answer-label">📝 پاسخ دانش‌آموز</div>
+                                <div class="answer-label">پاسخ دانش‌آموز</div>
                                 <div class="answer-content" style="white-space:pre-line;">
                                     ${escapeHtml(formattedAnswer)}
                                 </div>
@@ -672,7 +672,7 @@
             // نمایش پاسخ صحیح برای مقایسه در سوالات تشریحی که غلط است
             if (q.correctAnswer && a.answerText && !isCorrect && q.type !== 'multiple_choice' && q.type !== 'true_false' && q.type !== 'matching') {
                 html += `<div class="correct-hint">
-                            <strong>📌 پاسخ صحیح معلم:</strong><br>
+                            <strong>پاسخ صحیح معلم:</strong><br>
                             ${escapeHtml(teacherAnswerDisplay)}
                          </div>`;
             }
@@ -683,12 +683,12 @@
                                 <input type="number" id="score_${a.answerId}" class="score-input" value="${a.score ?? ''}" step="0.25" min="0" max="${q.maxScore}" onchange="saveScore(${a.answerId}, ${q.maxScore}, this.value)">
                             </div>
                             <div class="action-buttons">
-                                <button class="btn-score btn-full" onclick="setFullScore(${a.answerId}, ${q.maxScore})">⭐ نمره کامل</button>
-                                <button class="btn-score btn-zero" onclick="setZeroScore(${a.answerId}, ${q.maxScore})">❌ نمره صفر</button>
-                                <button class="btn-score btn-save save-btn-${a.answerId}" onclick="saveScore(${a.answerId}, ${q.maxScore}, document.getElementById('score_${a.answerId}').value)">💾 ذخیره</button>
+                                <button class="btn-score btn-full" onclick="setFullScore(${a.answerId}, ${q.maxScore})">نمره کامل</button>
+                                <button class="btn-score btn-zero" onclick="setZeroScore(${a.answerId}, ${q.maxScore})">نمره صفر</button>
+                                <button class="btn-score btn-save save-btn-${a.answerId}" onclick="saveScore(${a.answerId}, ${q.maxScore}, document.getElementById('score_${a.answerId}').value)">ذخیره</button>
                             </div>
                             ${a.score != null ? '<span class="saved-tick">✓ نمره ثبت شد</span>' : ''}
-                            ${a.autoGraded ? '<span class="auto-chip">🤖 تصحیح خودکار</span>' : ''}
+                            ${a.autoGraded ? '<span class="auto-chip">تصحیح خودکار</span>' : ''}
                         </div>
                         </div>
                     </div>`;
@@ -707,7 +707,7 @@
         let student = filtered[currentSIndex];
 
         let html = `<div class="question-box" style="margin-bottom:20px">
-                        <div class="question-text"><strong>👨‍🎓 ${escapeHtml(student.name)}</strong></div>
+                        <div class="question-text"><strong>${escapeHtml(student.name)}</strong></div>
                         <div class="question-meta"><span>🆔 کد: ${student.code}</span></div>
                     </div>
                     <div class="answers-list">`;
@@ -728,7 +728,7 @@
                 if (q.type === 'matching') {
                     teacherAnswerDisplay = formatMatchingAnswer(q.correctAnswer, q.matchingPairs);
                 } else if (q.type === 'true_false') {
-                    teacherAnswerDisplay = q.correctAnswer === 'true' ? '✅ صحیح' : '❌ غلط';
+                    teacherAnswerDisplay = q.correctAnswer === 'true' ? 'صحیح' : 'غلط';
                 } else if (q.type === 'multiple_choice') {
                     teacherAnswerDisplay = `گزینه ${q.correctAnswer}`;
                 } else {
@@ -745,12 +745,12 @@
                             <div class="question-box" style="margin-bottom:12px">
                                 <div class="question-text">${escapeHtml(q.text)}</div>
                                 <div class="question-meta">
-                                    <span>⭐ ${q.maxScore} نمره</span>
-                                    ${teacherAnswerDisplay ? `<span>✅ پاسخ صحیح: ${escapeHtml(teacherAnswerDisplay)}</span>` : ''}
+                                    <span>${q.maxScore} نمره</span>
+                                    ${teacherAnswerDisplay ? `<span>پاسخ صحیح: ${escapeHtml(teacherAnswerDisplay)}</span>` : ''}
                                 </div>
                             </div>
                             <div class="student-answer-box">
-                                <div class="answer-label">📝 پاسخ دانش‌آموز</div>
+                                <div class="answer-label">پاسخ دانش‌آموز</div>
                                 <div class="answer-content" style="white-space:pre-line;">
                                     ${escapeHtml(formattedAnswer)}
                                 </div>
@@ -759,7 +759,7 @@
 
             if (q.correctAnswer && a.answerText && !isCorrect && q.type !== 'multiple_choice' && q.type !== 'true_false' && q.type !== 'matching') {
                 html += `<div class="correct-hint">
-                            <strong>📌 پاسخ صحیح معلم:</strong><br>
+                            <strong>پاسخ صحیح معلم:</strong><br>
                             ${escapeHtml(teacherAnswerDisplay)}
                          </div>`;
             }
@@ -770,12 +770,12 @@
                                 <input type="number" id="score_${a.answerId}" class="score-input" value="${a.score ?? ''}" step="0.25" min="0" max="${q.maxScore}" onchange="saveScore(${a.answerId}, ${q.maxScore}, this.value)">
                             </div>
                             <div class="action-buttons">
-                                <button class="btn-score btn-full" onclick="setFullScore(${a.answerId}, ${q.maxScore})">⭐ نمره کامل</button>
-                                <button class="btn-score btn-zero" onclick="setZeroScore(${a.answerId}, ${q.maxScore})">❌ نمره صفر</button>
-                                <button class="btn-score btn-save save-btn-${a.answerId}" onclick="saveScore(${a.answerId}, ${q.maxScore}, document.getElementById('score_${a.answerId}').value)">💾 ذخیره</button>
+                                <button class="btn-score btn-full" onclick="setFullScore(${a.answerId}, ${q.maxScore})">نمره کامل</button>
+                                <button class="btn-score btn-zero" onclick="setZeroScore(${a.answerId}, ${q.maxScore})">نمره صفر</button>
+                                <button class="btn-score btn-save save-btn-${a.answerId}" onclick="saveScore(${a.answerId}, ${q.maxScore}, document.getElementById('score_${a.answerId}').value)">ذخیره</button>
                             </div>
                             ${a.score != null ? '<span class="saved-tick">✓ نمره ثبت شد</span>' : ''}
-                            ${a.autoGraded ? '<span class="auto-chip">🤖 تصحیح خودکار</span>' : ''}
+                            ${a.autoGraded ? '<span class="auto-chip">تصحیح خودکار</span>' : ''}
                         </div>
                         </div>
                     </div>`;

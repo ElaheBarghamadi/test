@@ -582,7 +582,7 @@ def add_question(request, exam_id):
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
     check_teacher_access(request.user, exam)
     action = reverse('add_question', args=[exam.id])
-    title = '➕ افزودن سوال به «%s»' % exam.title
+    title = 'افزودن سوال به «%s»' % exam.title
 
     if request.method == 'POST':
         data, err = parse_question_post(request)
@@ -614,7 +614,7 @@ def edit_question(request, exam_id, question_id):
     question = get_object_or_404(Question, id=question_id, exam=exam)
     check_teacher_access(request.user, exam)
     action = reverse('edit_question', args=[exam.id, question.id])
-    title = '✏️ ویرایش سوال %d — %s' % (question.order, exam.title)
+    title = 'ویرایش سوال %d — %s' % (question.order, exam.title)
 
     if request.method == 'POST':
         data, err = parse_question_post(request)
@@ -1364,7 +1364,7 @@ def question_bank(request):
         if err:
             messages.error(request, err)
             return _render_question_form(request, mode='bank', action=reverse('question_bank'),
-                                         title='➕ سوال جدید در بانک', initial=_question_initial(post=request.POST),
+                                         title='سوال جدید در بانک', initial=_question_initial(post=request.POST),
                                          error=err)
         bank = QuestionBank(teacher=request.user)
         for k, v in data.items():
@@ -1639,7 +1639,7 @@ def bank_question_edit(request, bank_id):
     if err:
         messages.error(request, err)
         return _render_question_form(request, mode='bank', action=reverse('bank_question_edit', args=[bank.id]),
-                                     title='✏️ ویرایش سوال بانک', obj=bank,
+                                     title='ویرایش سوال بانک', obj=bank,
                                      initial=_question_initial(post=request.POST), error=err)
     for key, value in data.items():
         setattr(bank, key, value)
@@ -1656,7 +1656,7 @@ def bank_question_new(request):
     initial = _question_initial()
     initial['folder'] = request.GET.get('folder', '')
     return _render_question_form(request, mode='bank', action=reverse('question_bank'),
-                                 title='➕ سوال جدید در بانک', initial=initial)
+                                 title='سوال جدید در بانک', initial=initial)
 
 
 @login_required
@@ -1665,7 +1665,7 @@ def bank_question_form(request, bank_id):
     check_teacher_access(request.user)
     bank = get_object_or_404(QuestionBank, id=bank_id, teacher=request.user)
     return _render_question_form(request, mode='bank', action=reverse('bank_question_edit', args=[bank.id]),
-                                 title='✏️ ویرایش سوال بانک', obj=bank, initial=_question_initial(bank))
+                                 title='ویرایش سوال بانک', obj=bank, initial=_question_initial(bank))
 
 
 @login_required

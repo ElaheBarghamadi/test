@@ -432,7 +432,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/site.css' %}?v=4">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=5">
-    <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=6">
 </head>
 <body>
 <a class="skip-to-content" href="#mainContent">پرش به محتوای اصلی</a>
@@ -491,7 +491,7 @@
                             </div>
                             {% endfor %}
                         {% else %}
-                            <div class="bell-empty">📭 اطلاعیه‌ای نیست</div>
+                            <div class="bell-empty">اطلاعیه‌ای نیست</div>
                         {% endif %}
                     </div>
                 </details>
@@ -508,17 +508,17 @@
                     </button>
                     <div class="dropdown-content" id="dropdownContent">
                         {% if user.role == 'admin' %}
-                            <a href="{% url 'admin_dashboard' %}">🏠 داشبورد ادمین</a>
-                            <a href="{% url 'system_settings' %}">⚙️ تنظیمات سیستم</a>
+                            <a href="{% url 'admin_dashboard' %}">داشبورد ادمین</a>
+                            <a href="{% url 'system_settings' %}">تنظیمات سیستم</a>
                         {% elif user.role == 'teacher' %}
-                            <a href="{% url 'teacher_dashboard' %}">📋 آزمون‌های من</a>
-                            <a href="{% url 'question_bank' %}">📚 بانک سوال</a>
+                            <a href="{% url 'teacher_dashboard' %}">آزمون‌های من</a>
+                            <a href="{% url 'question_bank' %}">بانک سوال</a>
                         {% elif user.role == 'student' %}
-                            <a href="{% url 'student_dashboard' %}">📋 آزمون‌های من</a>
+                            <a href="{% url 'student_dashboard' %}">آزمون‌های من</a>
                         {% endif %}
                         <form method="post" action="{% url 'logout_view' %}" class="logout-form">
                             {% csrf_token %}
-                            <button type="submit" class="logout-dropdown-btn">🚪 خروج</button>
+                            <button type="submit" class="logout-dropdown-btn">خروج</button>
                         </form>
                     </div>
                 </div>
@@ -559,25 +559,25 @@
     <div class="sidebar-nav">
         {% if user.is_authenticated %}
             {% if user.role == 'admin' %}
-                <a href="{% url 'admin_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
-                <a href="{% url 'manage_users' %}" class="sidebar-link">👥 مدیریت کاربران</a>
-                <a href="{% url 'manage_exams' %}" class="sidebar-link">📋 مدیریت آزمون‌ها</a>
-                <a href="{% url 'system_logs' %}" class="sidebar-link">📜 لاگ سیستم</a>
+                <a href="{% url 'admin_dashboard' %}" class="sidebar-link">داشبورد</a>
+                <a href="{% url 'manage_users' %}" class="sidebar-link">مدیریت کاربران</a>
+                <a href="{% url 'manage_exams' %}" class="sidebar-link">مدیریت آزمون‌ها</a>
+                <a href="{% url 'system_logs' %}" class="sidebar-link">لاگ سیستم</a>
             {% elif user.role == 'teacher' %}
-                <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
-                <a href="{% url 'create_exam' %}" class="sidebar-link">➕ آزمون جدید</a>
-                <a href="{% url 'question_bank' %}" class="sidebar-link">📚 بانک سوال</a>
-                <a href="{% url 'groups' %}" class="sidebar-link">👥 گروه‌ها</a>
+                <a href="{% url 'teacher_dashboard' %}" class="sidebar-link">داشبورد</a>
+                <a href="{% url 'create_exam' %}" class="sidebar-link">آزمون جدید</a>
+                <a href="{% url 'question_bank' %}" class="sidebar-link">بانک سوال</a>
+                <a href="{% url 'groups' %}" class="sidebar-link">گروه‌ها</a>
             {% elif user.role == 'student' %}
-                <a href="{% url 'student_dashboard' %}" class="sidebar-link">🏠 داشبورد</a>
-                <a href="{% url 'student_dashboard' %}#results" class="sidebar-link">📊 نتایج من</a>
+                <a href="{% url 'student_dashboard' %}" class="sidebar-link">داشبورد</a>
+                <a href="{% url 'student_dashboard' %}#results" class="sidebar-link">نتایج من</a>
             {% endif %}
             <form method="post" action="{% url 'logout_view' %}" class="logout-form">
                 {% csrf_token %}
-                <button type="submit" class="sidebar-link logout">🚪 خروج از حساب</button>
+                <button type="submit" class="sidebar-link logout">خروج از حساب</button>
             </form>
         {% else %}
-            <a href="{% url 'login' %}" class="sidebar-link">🔐 ورود به سامانه</a>
+            <a href="{% url 'login' %}" class="sidebar-link">ورود به سامانه</a>
         {% endif %}
     </div>
 </div>

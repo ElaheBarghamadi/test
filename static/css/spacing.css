@@ -201,3 +201,12 @@ body .folder-tree { padding: 16px 12px; overflow-x: hidden; }
 body .tree-body { min-width: 0; }
 body .tree-link { min-width: 0; max-width: 100%; box-sizing: border-box; }
 body .tree-link .tl-name { min-width: 0; flex: 1; }
+
+/* کارت‌های نوع سوال فقط متنی؛ آیکن پوشه‌ها کم‌رنگ و کوچک */
+body .type-card b { display: none; }
+body .type-card span { padding: 14px 10px; gap: 2px; }
+body .type-card em { font-weight: 600; }
+body .sf-icon { font-size: 1.1rem; opacity: .7; filter: grayscale(1); }
+body .subfolder { gap: 6px; padding: 16px 18px; }
+body .tree-link .tl-name { filter: grayscale(1); }
+body .tree-link.on .tl-name { filter: none; }

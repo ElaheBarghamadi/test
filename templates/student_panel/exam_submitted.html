@@ -103,21 +103,21 @@
     <!-- باکس اطلاعات آزمون -->
     <div class="info-box">
         <div class="info-row">
-            <span class="info-label">📅 تاریخ ثبت</span>
+            <span class="info-label">تاریخ ثبت</span>
             <span class="info-value">{{ now|to_jalali }}</span>
         </div>
         <div class="info-row">
-            <span class="info-label">⏱️ مدت زمان آزمون</span>
+            <span class="info-label">مدت زمان آزمون</span>
             <span class="info-value">{{ exam.duration_minutes }} دقیقه</span>
         </div>
         <div class="info-row">
-            <span class="info-label">📊 تعداد سوالات</span>
+            <span class="info-label">تعداد سوالات</span>
             <span class="info-value">{{ exam.questions.count }} سوال</span>
         </div>
     </div>
 
     <div class="thanks-message">
-        ✨ از شما متشکریم که در این آزمون شرکت کردید. نتیجه آزمون پس از تصحیح توسط استاد محترم در بخش "نتایج آزمون‌ها" قابل مشاهده خواهد بود.
+        از شما متشکریم که در این آزمون شرکت کردید. نتیجه آزمون پس از تصحیح توسط استاد محترم در بخش "نتایج آزمون‌ها" قابل مشاهده خواهد بود.
     </div>
 
     <a href="{% url 'student_dashboard' %}" class="btn-dashboard">

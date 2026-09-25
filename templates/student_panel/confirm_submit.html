@@ -74,7 +74,7 @@
     <div class="icon">⚠️</div>
 
     {% if is_timeout %}
-        <h2 style="color: #dc2626;">⏰ زمان آزمون به پایان رسید!</h2>
+        <h2 style="color: #dc2626;">زمان آزمون به پایان رسید!</h2>
         <div class="timeout-warning">
             زمان مجاز برای پاسخگویی به پایان رسیده است.<br>
             آزمون شما به صورت خودکار ثبت خواهد شد.
@@ -88,7 +88,7 @@
     {% if not is_timeout %}
         <p>آیا می‌خواهید این آزمون را <strong>ثبت نهایی</strong> کنید؟</p>
         <div class="warning-text">
-            🔒 بعد از ثبت، دیگر نمی‌توانید پاسخ‌ها را تغییر دهید.
+            بعد از ثبت، دیگر نمی‌توانید پاسخ‌ها را تغییر دهید.
         </div>
     {% else %}
         <p>پاسخ‌های شما ذخیره شده است. برای ثبت نهایی روی دکمه زیر کلیک کنید.</p>
@@ -98,9 +98,9 @@
         <form method="post" style="display: inline; width: {% if is_timeout %}100%{% else %}auto{% endif %};">
             {% csrf_token %}
             {% if is_timeout %}
-                <button type="submit" class="btn-only">✅ ثبت نهایی آزمون</button>
+                <button type="submit" class="btn-only">ثبت نهایی آزمون</button>
             {% else %}
-                <button type="submit" class="btn-yes">✅ بله، ثبت نهایی</button>
+                <button type="submit" class="btn-yes">بله، ثبت نهایی</button>
                 <a href="{% url 'take_exam' exam.id %}" class="btn-no" id="backToExamBtn">← خیر، برگرد به آزمون</a>
             {% endif %}
         </form>
@@ -108,7 +108,7 @@
 
     {% if not is_timeout %}
     <div class="info-note">
-        💡 پاسخ‌های شما قبلاً ذخیره شده‌اند. با برگشتن می‌توانید ادامه دهید.
+        پاسخ‌های شما قبلاً ذخیره شده‌اند. با برگشتن می‌توانید ادامه دهید.
     </div>
     {% endif %}
 </div>

@@ -32,19 +32,19 @@
 {% block content %}
 {% include 'admin_panel/_admin_nav.html' %}
 
-<div class="page-title">👥 مدیریت کاربران</div>
+<div class="page-title">مدیریت کاربران</div>
 
 <div class="stats">
-    <div class="stat-card students"><div class="stat-number">{{ stats.total_students }}</div><div class="stat-label">👥 دانش‌آموز</div></div>
-    <div class="stat-card active"><div class="stat-number">{{ stats.total_teachers }}</div><div class="stat-label">🧑🏫 معلم</div></div>
-    <div class="stat-card ongoing"><div class="stat-number">{{ stats.total_admins }}</div><div class="stat-label">🛡️ ادمین</div></div>
-    <div class="stat-card inactive"><div class="stat-number">{{ stats.total_all }}</div><div class="stat-label">📦 کل کاربران</div></div>
+    <div class="stat-card students"><div class="stat-number">{{ stats.total_students }}</div><div class="stat-label">دانش‌آموز</div></div>
+    <div class="stat-card active"><div class="stat-number">{{ stats.total_teachers }}</div><div class="stat-label">معلم</div></div>
+    <div class="stat-card ongoing"><div class="stat-number">{{ stats.total_admins }}</div><div class="stat-label">ادمین</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ stats.total_all }}</div><div class="stat-label">کل کاربران</div></div>
 </div>
 
 <div class="admin-cols">
     <!-- افزودن کاربر -->
     <div class="card">
-        <div class="section-title">➕ افزودن کاربر جدید</div>
+        <div class="section-title">افزودن کاربر جدید</div>
         <form id="addUserForm">
             <div class="form-row">
                 <div class="form-group"><label>نام کاربری *</label><input type="text" name="username" required placeholder="مثلاً ali.rezaei"></div>
@@ -72,22 +72,22 @@
                 </div>
             </div>
             <div class="form-group"><label>کد دانش‌آموزی</label><input type="text" name="student_code" placeholder="فقط برای دانش‌آموزان"></div>
-            <button type="submit" class="btn btn-primary">➕ ثبت کاربر</button>
+            <button type="submit" class="btn btn-primary">ثبت کاربر</button>
             <span id="addMsg" style="font-size:.76rem; margin-right:8px;"></span>
         </form>
     </div>
 
     <!-- ورودی انبوه -->
     <div class="card">
-        <div class="section-title">📤 ثبت گروهی از فایل (Excel / CSV)</div>
+        <div class="section-title">ثبت گروهی از فایل (Excel / CSV)</div>
         <p style="font-size:.76rem; color:var(--ink2); line-height:1.9; margin-bottom:10px;">
             فایل باید ستون‌های <b>username</b> و <b>password</b> را داشته باشد؛ ستون‌های اختیاری:
             first_name، last_name، role، student_code، grade_id.
         </p>
         <form id="importForm">
             <div class="form-group"><input type="file" name="file" accept=".xlsx,.xls,.csv" required></div>
-            <button type="submit" class="btn btn-success">📤 آپلود و ثبت گروهی</button>
-            <a class="btn btn-template" href="{% url 'download_users_template' %}">⬇️ دانلود فایل نمونه</a>
+            <button type="submit" class="btn btn-success">آپلود و ثبت گروهی</button>
+            <a class="btn btn-template" href="{% url 'download_users_template' %}">دانلود فایل نمونه</a>
         </form>
         <div id="importResult" class="import-result"></div>
     </div>
@@ -132,15 +132,15 @@
                 <b>{{ u.get_full_name|default:u.username }}</b>
                 <div style="font-size:.72rem; color:var(--ink3);">@{{ u.username }}</div>
             </td>
-            <td><span class="status-badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'teacher' %}status-ongoing{% else %}status-completed{% endif %}">{% if u.role == 'admin' %}🛡️ ادمین{% elif u.role == 'teacher' %}🧑‍ معلم{% else %}👥 دانش‌آموز{% endif %}</span></td>
+            <td><span class="status-badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'teacher' %}status-ongoing{% else %}status-completed{% endif %}">{% if u.role == 'admin' %}ادمین{% elif u.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %}</span></td>
             <td>{{ u.grade.name|default:'—' }}</td>
             <td>{{ u.student_code|default:'—' }}</td>
             <td style="font-size:.72rem;">{{ u.date_joined|to_jalali }}</td>
             <td>
                 <div class="row-actions">
-                    <button class="btn btn-edit js-edit" data-id="{{ u.id }}">✏️ ویرایش</button>
+                    <button class="btn btn-edit js-edit" data-id="{{ u.id }}">ویرایش</button>
                     {% if u.id != request.user.id %}
-                    <button class="btn btn-delete js-del" data-id="{{ u.id }}" data-name="{{ u.get_full_name|default:u.username }}">🗑️ حذف</button>
+                    <button class="btn btn-delete js-del" data-id="{{ u.id }}" data-name="{{ u.get_full_name|default:u.username }}">حذف</button>
                     {% endif %}
                 </div>
             </td>
@@ -160,14 +160,14 @@
     </div>
     {% endif %}
     {% else %}
-    <div class="empty-state">🔍 کاربری با این فیلترها پیدا نشد.</div>
+    <div class="empty-state">کاربری با این فیلترها پیدا نشد.</div>
     {% endif %}
 </div>
 
 <!-- مودال ویرایش -->
 <div class="modal-backdrop" id="editModal">
     <div class="modal-card">
-        <h3>✏️ ویرایش کاربر</h3>
+        <h3>ویرایش کاربر</h3>
         <form id="editForm">
             <input type="hidden" name="id" id="eId">
             <div class="form-row">
@@ -197,7 +197,7 @@
             </div>
             <div class="form-group"><label>کد دانش‌آموزی</label><input type="text" name="student_code" id="eCode"></div>
             <div style="display:flex; gap:8px;">
-                <button type="submit" class="btn btn-save">💾 ذخیره</button>
+                <button type="submit" class="btn btn-save">ذخیره</button>
                 <button type="button" class="btn btn-secondary" id="editCancel">انصراف</button>
             </div>
             <span id="editMsg" style="font-size:.76rem; margin-right:6px;"></span>
@@ -215,19 +215,19 @@ document.getElementById('addUserForm').addEventListener('submit', async e => {
     const r = await fetch('{% url "add_user" %}', { method: 'POST', body: fd(e.target), headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
     msg.style.color = d.success ? 'var(--ok)' : 'var(--err)';
-    msg.textContent = d.success ? '✅ ' + d.message : '⚠️ ' + (d.error || 'خطا');
+    msg.textContent = d.success ? '' + d.message : '' + (d.error || 'خطا');
     if (d.success) setTimeout(() => location.reload(), 700);
 });
 
 document.getElementById('importForm').addEventListener('submit', async e => {
     e.preventDefault();
     const box = document.getElementById('importResult');
-    box.innerHTML = '⏳ در حال پردازش فایل…';
+    box.innerHTML = 'در حال پردازش فایل…';
     const r = await fetch('{% url "import_users_from_file" %}', { method: 'POST', body: fd(e.target), headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
-    if (!r.ok) { box.innerHTML = '<div class="err-line">⚠️ ' + (d.error || 'خطا') + '</div>'; return; }
-    let html = '<div class="ok-line">✅ ' + d.success_count + ' کاربر ثبت شد</div>';
-    if (d.failed_count) html += '<div class="err-line">⚠️ ' + d.failed_count + ' ردیف ناموفق:</div>';
+    if (!r.ok) { box.innerHTML = '<div class="err-line">' + (d.error || 'خطا') + '</div>'; return; }
+    let html = '<div class="ok-line">' + d.success_count + ' کاربر ثبت شد</div>';
+    if (d.failed_count) html += '<div class="err-line">' + d.failed_count + ' ردیف ناموفق:</div>';
     (d.errors || []).forEach(er => html += '<div class="err-line">• ' + er + '</div>');
     box.innerHTML = html;
     if (d.success_count) setTimeout(() => location.reload(), 1200);
@@ -258,7 +258,7 @@ document.getElementById('editForm').addEventListener('submit', async e => {
     const r = await fetch('/admin-panel/users/' + id + '/edit/', { method: 'POST', body: fd(e.target), headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
     msg.style.color = d.success ? 'var(--ok)' : 'var(--err)';
-    msg.textContent = d.success ? '✅ ' + d.message : '⚠️ ' + (d.error || 'خطا');
+    msg.textContent = d.success ? '' + d.message : '' + (d.error || 'خطا');
     if (d.success) setTimeout(() => location.reload(), 700);
 });
 
@@ -266,7 +266,7 @@ document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click'
     if (!confirm('کاربر «' + btn.dataset.name + '» حذف شود؟')) return;
     const r = await fetch('/admin-panel/users/' + btn.dataset.id + '/delete/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
-    if (d.success) location.reload(); else alert('⚠️ ' + (d.error || 'خطا'));
+    if (d.success) location.reload(); else alert('' + (d.error || 'خطا'));
 }));
 </script>
 {% endblock %}

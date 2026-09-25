@@ -311,14 +311,14 @@
                 {% for answer in data.answers %}
                 <div class="answer-item">
                     <div class="question-title">
-                        <span>📌 سوال {{ forloop.counter }}: {{ answer.question.text|truncatewords:20 }}</span>
+                        <span>سوال {{ forloop.counter }}: {{ answer.question.text|truncatewords:20 }}</span>
                         <span class="score-badge {% if answer.is_correct %}score-correct{% else %}score-wrong{% endif %}">
-                            {% if answer.is_correct %}✓ صحیح{% else %}✗ نادرست{% endif %}
+                            {% if answer.is_correct %}✓ صحیح{% else %}نادرست{% endif %}
                         </span>
                     </div>
 
                     <div class="student-answer">
-                        <strong>📝 پاسخ دانش‌آموز:</strong>
+                        <strong>پاسخ دانش‌آموز:</strong>
                         {% if answer.answer and answer.answer.answer_text %}
                             <p>{{ answer.answer.answer_text|linebreaksbr }}</p>
                         {% elif answer.answer and answer.answer.answer_image %}
@@ -330,7 +330,7 @@
 
                     {% if answer.teacher_answer and answer.teacher_answer.answer_text %}
                     <div class="teacher-answer">
-                        <strong>👨‍🏫 پاسخ صحیح (معلم):</strong>
+                        <strong>پاسخ صحیح (معلم):</strong>
                         <p>{{ answer.teacher_answer.answer_text|linebreaksbr|truncatewords:50 }}</p>
                         {% if answer.teacher_answer.answer_image %}
                             <img src="{{ answer.teacher_answer.answer_image.url }}" alt="تصویر پاسخ معلم" onclick="openImageModal('{{ answer.teacher_answer.answer_image.url }}')">
@@ -339,10 +339,10 @@
                     {% endif %}
 
                     <div class="score-control">
-                        <label>🎯 نمره:</label>
+                        <label>نمره:</label>
                         <input type="number" class="score-input" value="{{ answer.score|default:0 }}" step="0.25" min="0" max="{{ answer.max_score }}">
                         <button class="save-score-btn" onclick="saveScore(this, {{ exam.id }}, {{ data.student.id }}, {{ answer.question.id }}, {{ answer.max_score }})">
-                            💾 ذخیره نمره
+                            ذخیره نمره
                         </button>
                         <span class="max-score-hint">حداکثر: {{ answer.max_score|floatformat:1 }}</span>
                     </div>
@@ -352,7 +352,7 @@
         </div>
         {% empty %}
         <div class="empty-state">
-            📭 هنوز دانش‌آموزی آزمون را تکمیل نکرده است.
+            هنوز دانش‌آموزی آزمون را تکمیل نکرده است.
         </div>
         {% endfor %}
     </div>
@@ -423,7 +423,7 @@
         scoreInput.value = score;
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '⏳ ...';
+        btn.innerHTML = '...';
 
         try {
             const response = await fetch(`/teacher/save-student-score/${examId}/${studentId}/${questionId}/`, {
@@ -445,7 +445,7 @@
                     btn.disabled = false;
                 }, 1500);
             } else {
-                btn.innerHTML = '❌ خطا';
+                btn.innerHTML = 'خطا';
                 btn.style.background = '#dc8686';
                 setTimeout(() => {
                     btn.innerHTML = originalText;
@@ -454,7 +454,7 @@
                 }, 2000);
             }
         } catch (error) {
-            btn.innerHTML = '❌ خطا';
+            btn.innerHTML = 'خطا';
             btn.style.background = '#dc8686';
             setTimeout(() => {
                 btn.innerHTML = originalText;

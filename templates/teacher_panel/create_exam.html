@@ -79,7 +79,7 @@
 
 <div class="ce">
     <div class="ce-head">
-        <h1>📝 ساخت آزمون جدید</h1>
+        <h1>ساخت آزمون جدید</h1>
         <a href="{% url 'teacher_dashboard' %}">انصراف و بازگشت</a>
     </div>
     <div class="ce-steps" aria-hidden="true">
@@ -146,7 +146,7 @@
         <section class="ce-card">
             <h2><span class="n">۲</span> چه کسانی شرکت می‌کنند؟</h2>
             <div class="st-tools">
-                <input type="search" id="searchName" placeholder="🔎 جستجوی نام یا کد دانش‌آموزی" aria-label="جستجوی دانش‌آموز">
+                <input type="search" id="searchName" placeholder="جستجوی نام یا کد دانش‌آموزی" aria-label="جستجوی دانش‌آموز">
                 <select id="filterGrade" aria-label="فیلتر پایه">
                     <option value="">همهٔ پایه‌ها</option>
                     {% for grade in grades %}<option value="{{ grade.id }}">{{ grade.get_name_display }}</option>{% endfor %}
@@ -164,25 +164,25 @@
                     <button type="button" id="deselectAllBtn">پاک کردن انتخاب</button>
                 </span>
             </div>
-            <div class="st-list" id="studentsList"><div class="st-empty">⏳ در حال بارگذاری…</div></div>
+            <div class="st-list" id="studentsList"><div class="st-empty">در حال بارگذاری…</div></div>
             <div class="ce-hint" data-hint="students"></div>
         </section>
 
         <details class="more ce-card" style="padding:0;" {% if is_post %}open{% endif %}>
-            <summary>⚙️ تنظیمات بیشتر <small id="moreSummary">پیش‌فرض‌های پیشنهادی فعال است — بعداً هم قابل تغییر است</small></summary>
+            <summary>تنظیمات بیشتر <small id="moreSummary">پیش‌فرض‌های پیشنهادی فعال است — بعداً هم قابل تغییر است</small></summary>
             <div class="more-body">
                 <div class="opt-group">
                     <h3>زمان‌بندی</h3>
                     <div class="seg">
-                        <label><input type="radio" name="timer_type" value="floating" {% if form.timer_type != 'fixed' %}checked{% endif %}><span>🏃 از لحظهٔ ورود هر دانش‌آموز<small>هر نفر به اندازهٔ «مدت پاسخ‌گویی» وقت دارد.</small></span></label>
-                        <label><input type="radio" name="timer_type" value="fixed" {% if form.timer_type == 'fixed' %}checked{% endif %}><span>🔒 تا ساعت بسته شدن<small>همه تا زمان بسته شدن آزمون فرصت دارند.</small></span></label>
+                        <label><input type="radio" name="timer_type" value="floating" {% if form.timer_type != 'fixed' %}checked{% endif %}><span>از لحظهٔ ورود هر دانش‌آموز<small>هر نفر به اندازهٔ «مدت پاسخ‌گویی» وقت دارد.</small></span></label>
+                        <label><input type="radio" name="timer_type" value="fixed" {% if form.timer_type == 'fixed' %}checked{% endif %}><span>تا ساعت بسته شدن<small>همه تا زمان بسته شدن آزمون فرصت دارند.</small></span></label>
                     </div>
                 </div>
                 <div class="opt-group">
                     <h3>نمایش سوال‌ها</h3>
                     <div class="seg">
-                        <label><input type="radio" name="show_questions_mode" value="one_by_one" {% if form.show_questions_mode != 'all' %}checked{% endif %}><span>📄 یکی‌یکی<small>تمرکز بیشتر؛ مناسب گوشی.</small></span></label>
-                        <label><input type="radio" name="show_questions_mode" value="all" {% if form.show_questions_mode == 'all' %}checked{% endif %}><span>📑 همه در یک صفحه<small>مرور سریع همهٔ سوال‌ها.</small></span></label>
+                        <label><input type="radio" name="show_questions_mode" value="one_by_one" {% if form.show_questions_mode != 'all' %}checked{% endif %}><span>یکی‌یکی<small>تمرکز بیشتر؛ مناسب گوشی.</small></span></label>
+                        <label><input type="radio" name="show_questions_mode" value="all" {% if form.show_questions_mode == 'all' %}checked{% endif %}><span>همه در یک صفحه<small>مرور سریع همهٔ سوال‌ها.</small></span></label>
                     </div>
                     <label class="sw"><input type="checkbox" name="show_back_button" {% if is_post %}{% if form.show_back_button %}checked{% endif %}{% else %}checked{% endif %}> امکان برگشت به سوال قبلی</label>
                     <label class="sw"><input type="checkbox" name="random_questions" {% if form.random_questions %}checked{% endif %}> ترتیب تصادفی سوال‌ها برای هر دانش‌آموز</label>
@@ -282,7 +282,7 @@
     function render() {
         const list = filtered(), host = $('studentsList');
         if (!all.length) { host.innerHTML = '<div class="st-empty">هنوز دانش‌آموزی در سامانه ثبت نشده است.</div>'; return; }
-        if (!list.length) { host.innerHTML = '<div class="st-empty">📭 دانش‌آموزی با این مشخصات پیدا نشد.</div>'; return; }
+        if (!list.length) { host.innerHTML = '<div class="st-empty">دانش‌آموزی با این مشخصات پیدا نشد.</div>'; return; }
         host.innerHTML = list.map(s => '<label class="st"><input type="checkbox" value="' + s.id + '"' + (selected.has(s.id) ? ' checked' : '') + '>' +
             '<span><span class="nm">' + esc(s.full_name) + '</span><br><span class="cd">' + esc(s.grade_name) + (s.student_code ? ' · ' + esc(s.student_code) : '') + '</span></span></label>').join('');
     }
@@ -322,7 +322,7 @@
             if ($('gradeSelect').value) $('filterGrade').value = $('gradeSelect').value;
             render(); count();
         })
-        .catch(() => { $('studentsList').innerHTML = '<div class="st-empty">❌ فهرست دانش‌آموزان بارگذاری نشد. صفحه را دوباره باز کنید.</div>'; });
+        .catch(() => { $('studentsList').innerHTML = '<div class="st-empty">فهرست دانش‌آموزان بارگذاری نشد. صفحه را دوباره باز کنید.</div>'; });
 
     /* ---------- تنظیمات ضدتقلب ---------- */
     function syncAC() {
@@ -377,7 +377,7 @@
         // همهٔ انتخاب‌ها ارسال شوند، حتی آن‌هایی که با جستجو پنهان شده‌اند
         form.querySelectorAll('input[name=students]').forEach(i => i.remove());
         selected.forEach(id => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'students'; i.value = id; form.appendChild(i); });
-        const btn = $('submitBtn'); btn.disabled = true; btn.textContent = '⏳ در حال ساخت…';
+        const btn = $('submitBtn'); btn.disabled = true; btn.textContent = 'در حال ساخت…';
     });
 
     syncAC(); syncChips(); paintDates(); summary();

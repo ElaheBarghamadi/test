@@ -40,31 +40,31 @@
             <h1>سلام {{ user.first_name|default:user.username }} 👋</h1>
             <p>{% if exams %}آزمون‌های شما در یک نگاه{% else %}برای شروع، اولین آزمون خود را بسازید.{% endif %}</p>
         </div>
-        <a href="{% url 'create_exam' %}" class="btn btn-gold dash-cta">➕ آزمون جدید</a>
+        <a href="{% url 'create_exam' %}" class="btn btn-gold dash-cta">آزمون جدید</a>
     </div>
 
     <!-- آمار -->
     <div class="stats">
         <button type="button" class="stat-card active" data-filter="active" title="نمایش آزمون‌های فعال">
             <div class="stat-number">{{ active_exams_count|default:"0" }}</div>
-            <div class="stat-label">✅ آزمون فعال</div>
+            <div class="stat-label">آزمون فعال</div>
         </button>
         <button type="button" class="stat-card ongoing" data-filter="ongoing" title="نمایش آزمون‌های در حال برگزاری">
             <div class="stat-number">{{ ongoing_exams_count|default:"0" }}</div>
-            <div class="stat-label">⏳ در حال برگزاری</div>
+            <div class="stat-label">در حال برگزاری</div>
         </button>
         <button type="button" class="stat-card inactive" data-filter="inactive" title="نمایش آزمون‌های غیرفعال">
             <div class="stat-number">{{ inactive_exams_count|default:"0" }}</div>
-            <div class="stat-label">🔒 غیرفعال</div>
+            <div class="stat-label">غیرفعال</div>
         </button>
         <div class="stat-card students">
             <div class="stat-number">{{ total_students|default:"0" }}</div>
-            <div class="stat-label">👥 دانش‌آموزان</div>
+            <div class="stat-label">دانش‌آموزان</div>
         </div>
     </div>
 
     <div class="dash-filters" role="search">
-        <input type="search" id="searchFilter" placeholder="🔎 جستجوی عنوان آزمون" aria-label="جستجوی عنوان آزمون">
+        <input type="search" id="searchFilter" placeholder="جستجوی عنوان آزمون" aria-label="جستجوی عنوان آزمون">
         <select id="statusFilter" aria-label="وضعیت">
             <option value="all">همهٔ وضعیت‌ها</option>
             <option value="active">فعال</option>
@@ -99,36 +99,36 @@
             </div>
             <div class="exam-actions">
                 {% if not exam.questions_count %}
-                <a href="{% url 'add_question' exam.id %}" class="btn btn-gold" title="این آزمون هنوز سوال ندارد">➕ افزودن اولین سوال</a>
+                <a href="{% url 'add_question' exam.id %}" class="btn btn-gold" title="این آزمون هنوز سوال ندارد">افزودن اولین سوال</a>
                 {% else %}
-                <a href="{% url 'edit_exam' exam.id %}" class="btn btn-questions" title="مدیریت سوالات">📋 سوالات</a>
-                {% if exam.submitted_count %}<a href="{% url 'grade_exam' exam.id %}" class="btn btn-grade" title="تصحیح آزمون">📝 تصحیح</a>{% endif %}
-                <a href="{% url 'exam_results' exam.id %}" class="btn btn-results" title="مشاهده نتایج">📊 نتایج</a>
+                <a href="{% url 'edit_exam' exam.id %}" class="btn btn-questions" title="مدیریت سوالات">سوالات</a>
+                {% if exam.submitted_count %}<a href="{% url 'grade_exam' exam.id %}" class="btn btn-grade" title="تصحیح آزمون">تصحیح</a>{% endif %}
+                <a href="{% url 'exam_results' exam.id %}" class="btn btn-results" title="مشاهده نتایج">نتایج</a>
                 {% endif %}
                 <details class="more-menu">
                     <summary title="امکانات بیشتر">⋯</summary>
                     <div class="more-items">
-                        <a href="{% url 'edit_exam_info' exam.id %}">✏️ ویرایش اطلاعات</a>
-                        <a href="{% url 'exam_settings' exam.id %}">⚙️ تنظیمات آزمون</a>
-                        <a href="{% url 'print_exam_paper' exam.id %}" target="_blank">🖨️ چاپ برگه</a>
-                        <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">📋 چاپ پاسخنامه</a>
-                        <a href="{% url 'exam_cheats_report' exam.id %}">⚠️ گزارش تخلفات</a>
+                        <a href="{% url 'edit_exam_info' exam.id %}">ویرایش اطلاعات</a>
+                        <a href="{% url 'exam_settings' exam.id %}">تنظیمات آزمون</a>
+                        <a href="{% url 'print_exam_paper' exam.id %}" target="_blank">چاپ برگه</a>
+                        <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">چاپ پاسخنامه</a>
+                        <a href="{% url 'exam_cheats_report' exam.id %}">گزارش تخلفات</a>
                         <form method="post" action="{% url 'duplicate_exam' exam.id %}">
                             {% csrf_token %}
-                            <button type="submit">📑 کپی این آزمون</button>
+                            <button type="submit">کپی این آزمون</button>
                         </form>
                         <a href="{% url 'toggle_exam_status' exam.id %}" data-confirm="{% if exam.is_active %}آزمون غیرفعال شود؟ دانش‌آموزان تا فعال‌سازی دوباره نمی‌توانند وارد شوند.{% else %}آزمون فعال شود؟{% endif %}">
-                            {% if exam.is_active %}🔒 غیرفعال کردن{% else %}✅ فعال کردن{% endif %}
+                            {% if exam.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}
                         </a>
-                        <a class="danger" href="{% url 'delete_exam' exam.id %}" data-confirm="«{{ exam.title }}» و همهٔ سوال‌ها و پاسخ‌هایش برای همیشه حذف می‌شود. ادامه می‌دهید؟">🗑️ حذف آزمون</a>
+                        <a class="danger" href="{% url 'delete_exam' exam.id %}" data-confirm="«{{ exam.title }}» و همهٔ سوال‌ها و پاسخ‌هایش برای همیشه حذف می‌شود. ادامه می‌دهید؟">حذف آزمون</a>
                     </div>
                 </details>
             </div>
         </div>
         {% empty %}
         <div class="empty-state">
-            📭 هنوز آزمونی ساخته نشده است.<br>
-            <a href="{% url 'create_exam' %}" class="btn btn-gold" style="margin-top: 14px;">➕ ساخت اولین آزمون</a>
+            هنوز آزمونی ساخته نشده است.<br>
+            <a href="{% url 'create_exam' %}" class="btn btn-gold" style="margin-top: 14px;">ساخت اولین آزمون</a>
         </div>
         {% endfor %}
     </div>
@@ -136,7 +136,7 @@
     <!-- اطلاعیه‌ها -->
     <details class="card announce-card">
         <summary class="announce-head">
-            <h3>📣 اطلاعیه به دانش‌آموزان</h3>
+            <h3>اطلاعیه به دانش‌آموزان</h3>
             <span class="info-stat">{{ my_announcements|length }} اطلاعیه · برای نوشتن کلیک کنید</span>
         </summary>
         <form method="post" action="{% url 'announcement_create' %}" class="announce-form">
@@ -151,7 +151,7 @@
                     <option value="{{ g.id }}">{{ g.get_name_display }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="btn btn-gold">📣 انتشار اطلاعیه</button>
+                <button type="submit" class="btn btn-gold">انتشار اطلاعیه</button>
             </div>
         </form>
         {% if my_announcements %}
@@ -200,7 +200,7 @@
             emptyMsg = document.createElement('div');
             emptyMsg.id = 'emptyFilterMsg';
             emptyMsg.className = 'empty-state';
-            emptyMsg.innerHTML = '📭 آزمونی با این فیلترها یافت نشد.';
+            emptyMsg.innerHTML = 'آزمونی با این فیلترها یافت نشد.';
             document.getElementById('examsContainer').appendChild(emptyMsg);
         }
         emptyMsg.style.display = (visibleCount === 0 && cards.length > 0) ? 'block' : 'none';

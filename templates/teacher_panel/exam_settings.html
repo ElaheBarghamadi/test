@@ -230,25 +230,25 @@
 
                     <div class="setting-item">
                         <input type="checkbox" name="enable_anti_cheat" id="enable_anti_cheat" {% if exam.enable_anti_cheat %}checked{% endif %}>
-                        <label for="enable_anti_cheat">✅ فعال کردن سیستم تشخیص تقلب</label>
+                        <label for="enable_anti_cheat">فعال کردن سیستم تشخیص تقلب</label>
                     </div>
                     <div class="help-text">تشخیص تغییر تب، کپی/پیست، چند تب همزمان و ثبت تخلفات</div>
 
                     <div class="setting-item">
                         <input type="checkbox" name="prevent_tab_switch" id="prevent_tab_switch" {% if exam.prevent_tab_switch %}checked{% endif %}>
-                        <label for="prevent_tab_switch">🚫 جلوگیری از تغییر تب</label>
+                        <label for="prevent_tab_switch">جلوگیری از تغییر تب</label>
                     </div>
                     <div class="help-text">در صورت خروج از صفحه آزمون، اخطار نمایش داده می‌شود</div>
 
                     <div class="setting-item">
                         <input type="checkbox" name="prevent_copy_paste" id="prevent_copy_paste" {% if exam.prevent_copy_paste %}checked{% endif %}>
-                        <label for="prevent_copy_paste">📋 جلوگیری از کپی/پیست</label>
+                        <label for="prevent_copy_paste">جلوگیری از کپی/پیست</label>
                     </div>
                     <div class="help-text">دانش‌آموز نمی‌تواند متن را کپی یا پیست کند</div>
 
                     <div class="setting-item">
                         <input type="checkbox" name="track_ip" id="track_ip" {% if exam.track_ip %}checked{% endif %}>
-                        <label for="track_ip">🌐 ردیابی IP دانش‌آموزان</label>
+                        <label for="track_ip">ردیابی IP دانش‌آموزان</label>
                     </div>
                     <div class="help-text">در صورت تغییر IP، اخطار ثبت می‌شود</div>
                 </div>
@@ -264,10 +264,10 @@
                         <label>نحوه نمایش سوالات:</label>
                         <select name="show_questions_mode">
                             <option value="all" {% if exam.show_questions_mode == 'all' %}selected{% endif %}>
-                                📑 همه سوالات در یک صفحه
+                                همه سوالات در یک صفحه
                             </option>
                             <option value="one_by_one" {% if exam.show_questions_mode == 'one_by_one' %}selected{% endif %}>
-                                📄 هر سوال در یک صفحه جداگانه
+                                هر سوال در یک صفحه جداگانه
                             </option>
                         </select>
                     </div>
@@ -275,7 +275,7 @@
 
                     <div class="setting-item">
                         <input type="checkbox" name="show_back_button" id="show_back_button" {% if exam.show_back_button %}checked{% endif %}>
-                        <label for="show_back_button">🔙 نمایش دکمه بازگشت به سوال قبلی</label>
+                        <label for="show_back_button">نمایش دکمه بازگشت به سوال قبلی</label>
                     </div>
                     <div class="help-text">فقط در حالت نمایش هر سوال در یک صفحه معنی دارد</div>
                 </div>
@@ -289,20 +289,20 @@
 
                     <div class="setting-item">
                         <input type="checkbox" name="allow_teacher_answer" id="allow_teacher_answer" {% if exam.allow_teacher_answer %}checked{% endif %}>
-                        <label for="allow_teacher_answer">👨‍🏫 معلم می‌تواند پاسخ تشریحی وارد کند</label>
+                        <label for="allow_teacher_answer">معلم می‌تواند پاسخ تشریحی وارد کند</label>
                     </div>
                     <div class="help-text">پاسخ صحیح سوالات تشریحی توسط معلم تعیین می‌شود</div>
 
                     <div class="setting-item">
                         <input type="checkbox" name="show_answers_after_exam" id="show_answers_after_exam" {% if exam.show_answers_after_exam %}checked{% endif %}>
-                        <label for="show_answers_after_exam">📖 نمایش پاسخ صحیح به دانش‌آموز بعد از اتمام آزمون</label>
+                        <label for="show_answers_after_exam">نمایش پاسخ صحیح به دانش‌آموز بعد از اتمام آزمون</label>
                     </div>
                     <div class="help-text">بعد از پایان آزمون، دانش‌آموز می‌تواند پاسخ‌های صحیح را ببیند</div>
                 </div>
 
                 <div class="form-actions">
                     <button type="submit" class="btn-save">
-                        💾 ذخیره تنظیمات
+                        ذخیره تنظیمات
                     </button>
                     <a href="{% url 'edit_exam' exam.id %}" class="btn-back">
                         ← بازگشت به ویرایش آزمون

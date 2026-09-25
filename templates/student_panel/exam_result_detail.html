@@ -144,22 +144,22 @@
 
         <!-- لیست سوالات و پاسخ‌ها -->
         <div class="questions-list">
-            <div class="section-title">📝 پاسخ‌های شما</div>
+            <div class="section-title">پاسخ‌های شما</div>
 
             {% for item in question_scores %}
             <div class="question-item">
                 <div class="question-header">
                     <span class="question-number">سوال {{ forloop.counter }}</span>
                     {% if show_score %}
-                    <span class="question-score">⭐ نمره: {{ item.score|floatformat:1 }} / {{ item.max_score|floatformat:1 }}</span>
+                    <span class="question-score">نمره: {{ item.score|floatformat:1 }} / {{ item.max_score|floatformat:1 }}</span>
                     {% else %}
-                    <span class="question-score">⭐ بارم: {{ item.max_score|floatformat:1 }}</span>
+                    <span class="question-score">بارم: {{ item.max_score|floatformat:1 }}</span>
                     {% endif %}
                 </div>
                 <div class="question-text">{{ item.question.text|truncatewords:50 }}</div>
 
                 <div class="student-answer">
-                    <strong>📝 پاسخ شما:</strong>
+                    <strong>پاسخ شما:</strong>
                     {% if item.answer and item.answer.answer_text %}
                         <p>{{ item.answer.answer_text }}</p>
                     {% elif item.answer and item.answer.answer_image %}
@@ -172,13 +172,13 @@
                 {% if show_answers %}
                 {% if item.correct_display %}
                 <div class="student-answer" style="background:#eef8f1;border-color:#bfe3cb">
-                    <strong>✅ پاسخ صحیح:</strong>
+                    <strong>پاسخ صحیح:</strong>
                     <p style="white-space:pre-line">{{ item.correct_display }}</p>
                 </div>
                 {% endif %}
                 {% if item.teacher_answer %}{% if item.teacher_answer.answer_text or item.teacher_answer.answer_image %}
                 <div class="student-answer" style="background:#fdf6e6;border-color:#ecd9a8">
-                    <strong>🧑‍🏫 پاسخ تشریحی معلم:</strong>
+                    <strong>پاسخ تشریحی معلم:</strong>
                     {% if item.teacher_answer.answer_text %}
                     <p style="white-space:pre-line">{{ item.teacher_answer.answer_text }}</p>
                     {% endif %}

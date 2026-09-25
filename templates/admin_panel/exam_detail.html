@@ -25,25 +25,25 @@
 
 <div class="card" style="margin-bottom:14px;">
     <div class="info-grid">
-        <div class="cell"><div class="k">🧑‍🏫 معلم</div><div class="v">{{ exam.teacher.get_full_name|default:exam.teacher.username }}</div></div>
-        <div class="cell"><div class="k">🎓 پایه</div><div class="v">{{ exam.grade.name|default:'—' }}</div></div>
-        <div class="cell"><div class="k">🖥️ حالت نمایش</div><div class="v">{% if exam.show_questions_mode == 'one_by_one' %}صفحه به صفحه{% else %}یکجا{% endif %}</div></div>
-        <div class="cell"><div class="k">🛡️ ضد تقلب</div><div class="v">{% if exam.enable_anti_cheat %}فعال{% else %}خاموش{% endif %}</div></div>
-        <div class="cell"><div class="k">⏰ شروع</div><div class="v">{{ exam.start_time|to_jalali }}</div></div>
+        <div class="cell"><div class="k">معلم</div><div class="v">{{ exam.teacher.get_full_name|default:exam.teacher.username }}</div></div>
+        <div class="cell"><div class="k">پایه</div><div class="v">{{ exam.grade.name|default:'—' }}</div></div>
+        <div class="cell"><div class="k">حالت نمایش</div><div class="v">{% if exam.show_questions_mode == 'one_by_one' %}صفحه به صفحه{% else %}یکجا{% endif %}</div></div>
+        <div class="cell"><div class="k">ضد تقلب</div><div class="v">{% if exam.enable_anti_cheat %}فعال{% else %}خاموش{% endif %}</div></div>
+        <div class="cell"><div class="k">شروع</div><div class="v">{{ exam.start_time|to_jalali }}</div></div>
         <div class="cell"><div class="k"> پایان</div><div class="v">{{ exam.end_time|to_jalali }}</div></div>
-        <div class="cell"><div class="k">✅ وضعیت</div><div class="v">{% if exam.is_active %}فعال{% else %}غیرفعال{% endif %}</div></div>
+        <div class="cell"><div class="k">وضعیت</div><div class="v">{% if exam.is_active %}فعال{% else %}غیرفعال{% endif %}</div></div>
     </div>
 </div>
 
 <div class="stats">
-    <div class="stat-card ongoing"><div class="stat-number">{{ questions|length }}</div><div class="stat-label">❓ سوال</div></div>
-    <div class="stat-card students"><div class="stat-number">{{ students|length }}</div><div class="stat-label">👥 دانش‌آموز مجاز</div></div>
-    <div class="stat-card inactive"><div class="stat-number">{{ total_answers }}</div><div class="stat-label">✍️ پاسخ‌ها</div></div>
-    <div class="stat-card active"><div class="stat-number">{{ graded_answers }}</div><div class="stat-label">💯 تصحیح‌شده</div></div>
+    <div class="stat-card ongoing"><div class="stat-number">{{ questions|length }}</div><div class="stat-label">سوال</div></div>
+    <div class="stat-card students"><div class="stat-number">{{ students|length }}</div><div class="stat-label">دانش‌آموز مجاز</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ total_answers }}</div><div class="stat-label">پاسخ‌ها</div></div>
+    <div class="stat-card active"><div class="stat-number">{{ graded_answers }}</div><div class="stat-label">تصحیح‌شده</div></div>
 </div>
 
 <div class="card" style="margin-bottom:14px;">
-    <div class="section-title">❓ سوال‌ها</div>
+    <div class="section-title">سوال‌ها</div>
     {% if questions %}
     <table>
         <thead><tr><th>#</th><th>متن سوال</th><th>نوع</th><th>بارم</th></tr></thead>
@@ -59,12 +59,12 @@
         </tbody>
     </table>
     {% else %}
-    <div class="empty-state">📭 این آزمون سوالی ندارد.</div>
+    <div class="empty-state">این آزمون سوالی ندارد.</div>
     {% endif %}
 </div>
 
 <div class="card">
-    <div class="section-title">👥 دانش‌آموزان مجاز</div>
+    <div class="section-title">دانش‌آموزان مجاز</div>
     {% if students %}
     <div class="chips">
         {% for s in students %}
@@ -72,7 +72,7 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="empty-state">📭 دانش‌آموزی به این آزمون اختصاص داده نشده است.</div>
+    <div class="empty-state">دانش‌آموزی به این آزمون اختصاص داده نشده است.</div>
     {% endif %}
 </div>
 {% endblock %}

@@ -173,8 +173,8 @@
 
     {% if mode == 'exam' and not obj %}
     <div class="qf-tabs" role="tablist">
-        <button type="button" class="qf-tab on" data-pane="paneNew" role="tab">✍️ سوال جدید</button>
-        <button type="button" class="qf-tab" data-pane="paneBank" role="tab">📚 از بانک سوال <small>({{ bank_items|length }})</small></button>
+        <button type="button" class="qf-tab on" data-pane="paneNew" role="tab">سوال جدید</button>
+        <button type="button" class="qf-tab" data-pane="paneBank" role="tab">از بانک سوال <small>({{ bank_items|length }})</small></button>
     </div>
     {% endif %}
 
@@ -214,7 +214,7 @@
                             <input type="number" name="max_score" id="qScore" step="0.25" min="0.25" value="{{ initial.max_score }}" required>
                         </div>
                         <details class="qf-more" {% if initial.image_url or initial.allow_image_answer %}open{% endif %}>
-                            <summary>📎 تصویر و تنظیمات بیشتر</summary>
+                            <summary>تصویر و تنظیمات بیشتر</summary>
                             <div class="qf-more-body">
                             <label class="qf-label">تصویر سوال (اختیاری)</label>
                             <input type="file" name="image" id="qImage" accept="image/*">
@@ -226,7 +226,7 @@
                             {% endif %}
                             <label class="chk" style="margin-top:12px;" id="allowImgWrap">
                                 <input type="checkbox" name="allow_image_answer" value="1" {% if initial.allow_image_answer %}checked{% endif %}>
-                                📷 دانش‌آموز بتواند عکس هم به‌عنوان پاسخ بفرستد
+                                دانش‌آموز بتواند عکس هم به‌عنوان پاسخ بفرستد
                             </label>
                             </div>
                         </details>
@@ -261,8 +261,8 @@
                     <!-- صحیح/غلط -->
                     <div class="sec" data-types="true_false">
                         <div class="tf-pick">
-                            <label><input type="radio" name="correct_answer" value="true" {% if initial.correct_answer != 'false' %}checked{% endif %}><span>✅ صحیح</span></label>
-                            <label><input type="radio" name="correct_answer" value="false" {% if initial.correct_answer == 'false' %}checked{% endif %}><span>❌ غلط</span></label>
+                            <label><input type="radio" name="correct_answer" value="true" {% if initial.correct_answer != 'false' %}checked{% endif %}><span>صحیح</span></label>
+                            <label><input type="radio" name="correct_answer" value="false" {% if initial.correct_answer == 'false' %}checked{% endif %}><span>غلط</span></label>
                         </div>
                     </div>
 
@@ -300,18 +300,18 @@
                 <div class="qf-card qf-savebar">
                     <div class="qf-actions">
                         {% if mode == 'exam' %}
-                            <label class="chk"><input type="checkbox" name="save_to_bank" value="1" id="saveToBank"> 📚 یک نسخه در بانک سوال هم ذخیره شود</label>
+                            <label class="chk"><input type="checkbox" name="save_to_bank" value="1" id="saveToBank"> یک نسخه در بانک سوال هم ذخیره شود</label>
                             <select name="bank_folder" id="bankFolder" style="max-width:240px;" hidden>
                                 <option value="">ریشهٔ بانک</option>
                                 {% for f in folders %}<option value="{{ f.id }}">{{ f.path }}</option>{% endfor %}
                             </select>
                             <span class="grow"></span>
-                            {% if not obj %}<button type="submit" name="add_another" value="1" class="btn btn-secondary">💾 ذخیره و سوال بعدی</button>{% endif %}
-                            <button type="submit" class="btn btn-gold">💾 ذخیره سوال</button>
+                            {% if not obj %}<button type="submit" name="add_another" value="1" class="btn btn-secondary">ذخیره و سوال بعدی</button>{% endif %}
+                            <button type="submit" class="btn btn-gold">ذخیره سوال</button>
                         {% else %}
                             <span class="grow"></span>
-                            {% if not obj %}<button type="submit" name="stay" value="1" class="btn btn-secondary">💾 ذخیره و سوال بعدی</button>{% endif %}
-                            <button type="submit" class="btn btn-gold">💾 ذخیره در بانک</button>
+                            {% if not obj %}<button type="submit" name="stay" value="1" class="btn btn-secondary">ذخیره و سوال بعدی</button>{% endif %}
+                            <button type="submit" class="btn btn-gold">ذخیره در بانک</button>
                         {% endif %}
                     </div>
                 </div>
@@ -319,7 +319,7 @@
 
             <aside class="preview">
                 <details class="qf-card pv-details" id="pvDetails" open>
-                    <summary><h3>👁️ پیش‌نمایش برای دانش‌آموز</h3></summary>
+                    <summary><h3>پیش‌نمایش برای دانش‌آموز</h3></summary>
                     <div class="pv-box" id="preview" aria-live="polite"></div>
                 </details>
             </aside>
@@ -333,7 +333,7 @@
         <div class="qf-card">
             {% if bank_items %}
             <div class="bank-filter">
-                <input type="search" id="bSearch" placeholder="🔍 جستجو در متن سوال…">
+                <input type="search" id="bSearch" placeholder="جستجو در متن سوال…">
                 <select id="bFolder">
                     <option value="">همهٔ پوشه‌ها</option>
                     {% for f in folders %}<option value="{{ f.id }}">{{ f.path }}</option>{% endfor %}
@@ -352,12 +352,12 @@
                 <div class="bank-rows" id="bankRows"></div>
                 <div class="bank-bar">
                     <label class="chk" style="color:#fff;"><input type="checkbox" id="bAll"> انتخاب همهٔ موارد نمایش‌داده‌شده</label>
-                    <button type="submit" class="btn btn-gold" id="bSubmit" disabled>📥 افزودن <span id="bCount">۰</span> سوال به آزمون</button>
+                    <button type="submit" class="btn btn-gold" id="bSubmit" disabled>افزودن <span id="bCount">۰</span> سوال به آزمون</button>
                 </div>
             </form>
             {{ bank_items|json_script:"bankData" }}
             {% else %}
-            <div class="empty-state">📭 بانک سوال شما خالی است. <a href="{% url 'question_bank' %}">رفتن به بانک سوال</a></div>
+            <div class="empty-state">بانک سوال شما خالی است. <a href="{% url 'question_bank' %}">رفتن به بانک سوال</a></div>
             {% endif %}
         </div>
     </div>
@@ -565,7 +565,7 @@
         let text = esc($('#qText').value.trim());
         let gapN = 0;
         if (t === 'fill_blank') text = text.replace(/_{3,}/g, () => '<span class="gap">(' + fa(++gapN) + ')</span>');
-        let h = '<div class="pv-head"><span>' + esc(label) + '</span><span>⭐ ' + fa(score) + ' نمره</span></div>';
+        let h = '<div class="pv-head"><span>' + esc(label) + '</span><span>' + fa(score) + ' نمره</span></div>';
         h += '<div class="pv-text">' + (text || '<span class="pv-muted">صورت سوال…</span>') + '</div>';
         const imgInput = $('#qImage');
         if (imgInput.files && imgInput.files[0]) h += '<img class="pv-img" src="' + URL.createObjectURL(imgInput.files[0]) + '" alt="">';
@@ -584,7 +584,7 @@
             h += '</div>';
         } else if (t === 'true_false') {
             const v = ($('input[name=correct_answer]:checked', $('.sec[data-types=true_false]')) || {}).value;
-            h += '<div class="pv-opts"><div class="pv-opt' + (v === 'true' ? ' ok' : '') + '">✅ صحیح</div><div class="pv-opt' + (v === 'false' ? ' ok' : '') + '">❌ غلط</div></div>';
+            h += '<div class="pv-opts"><div class="pv-opt' + (v === 'true' ? ' ok' : '') + '">صحیح</div><div class="pv-opt' + (v === 'false' ? ' ok' : '') + '">غلط</div></div>';
         } else if (t === 'fill_blank') {
             $$('.row', blankRows).forEach((r, i) => {
                 const lab = $('.js-label', r).value.trim(), ans = $('.js-answer', r).value.trim();
@@ -601,9 +601,9 @@
         } else if (t === 'long_answer') {
             h += '<div class="pv-field" style="min-height:70px">پاسخ تشریحی دانش‌آموز…</div>';
         } else if (t === 'image_answer') {
-            h += '<div class="pv-field" style="text-align:center">📷 انتخاب یا کشیدن تصویر پاسخ</div>';
+            h += '<div class="pv-field" style="text-align:center">انتخاب یا کشیدن تصویر پاسخ</div>';
         }
-        if (t !== 'image_answer' && $('input[name=allow_image_answer]', form).checked) h += '<div class="pv-muted">📷 امکان ارسال عکس پاسخ فعال است.</div>';
+        if (t !== 'image_answer' && $('input[name=allow_image_answer]', form).checked) h += '<div class="pv-muted">امکان ارسال عکس پاسخ فعال است.</div>';
         $('#preview').innerHTML = h;
     }
 
@@ -661,9 +661,9 @@
                 row.className = 'bank-row' + (picked.has(it.id) ? ' on' : '');
                 row.innerHTML = '<input type="checkbox" name="ids" value="' + it.id + '"' + (picked.has(it.id) ? ' checked' : '') + '>' +
                     '<div><div class="t">' + esc(it.text) + '</div><div class="m">' +
-                    '<span>' + esc(it.type_label) + '</span><span>⭐ ' + fa(it.score) + '</span><span>' + (DIFF[it.difficulty] || '') + '</span>' +
-                    (it.folder_name ? '<span>📁 ' + esc(it.folder_name) + '</span>' : '') +
-                    (it.used ? '<span>🔁 ' + fa(it.used) + ' بار</span>' : '') + '</div></div>';
+                    '<span>' + esc(it.type_label) + '</span><span>' + fa(it.score) + '</span><span>' + (DIFF[it.difficulty] || '') + '</span>' +
+                    (it.folder_name ? '<span>' + esc(it.folder_name) + '</span>' : '') +
+                    (it.used ? '<span>' + fa(it.used) + ' بار</span>' : '') + '</div></div>';
                 $('input', row).addEventListener('change', e => {
                     e.target.checked ? picked.add(it.id) : picked.delete(it.id);
                     row.classList.toggle('on', e.target.checked); count();

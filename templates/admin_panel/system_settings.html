@@ -6,7 +6,7 @@
 {% block content %}
 {% include 'admin_panel/_admin_nav.html' %}
 
-<div class="page-title">⚙️ تنظیمات سیستم</div>
+<div class="page-title">تنظیمات سیستم</div>
 
 {% if messages %}
 {% for m in messages %}
@@ -17,7 +17,7 @@
 <div class="admin-cols">
     <!-- تنظیمات کارنامه -->
     <div class="card">
-        <div class="section-title">📇 تنظیمات کارنامه</div>
+        <div class="section-title">تنظیمات کارنامه</div>
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="save_report_card">
@@ -40,13 +40,13 @@
                     <option value="summer" {% if current_semester == 'summer' %}selected{% endif %}>نیمسال تابستان</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-save">💾 ذخیره تنظیمات کارنامه</button>
+            <button type="submit" class="btn btn-save">ذخیره تنظیمات کارنامه</button>
         </form>
     </div>
 
     <!-- تنظیمات امنیتی -->
     <div class="card">
-        <div class="section-title">🛡️ تنظیمات امنیتی</div>
+        <div class="section-title">تنظیمات امنیتی</div>
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="save_security">
@@ -61,18 +61,18 @@
                 <label>حداکثر تعویض تب مجاز</label>
                 <input type="number" name="max_tab_switches" min="1" max="20" value="{{ max_tab_switches }}">
             </div>
-            <button type="submit" class="btn btn-save">💾 ذخیره تنظیمات امنیتی</button>
+            <button type="submit" class="btn btn-save">ذخیره تنظیمات امنیتی</button>
         </form>
     </div>
 </div>
 
 <!-- بکاپ -->
 <div class="card" style="margin-top:14px;">
-    <div class="section-title">💾 پشتیبان‌گیری از داده‌ها</div>
+    <div class="section-title">پشتیبان‌گیری از داده‌ها</div>
     <p style="font-size:.76rem; color:var(--ink2); line-height:1.9;">
         با گرفتن بکاپ، تمام داده‌های سامانه در پوشهٔ <b>backups/</b> داخل پروژه ذخیره می‌شود.
     </p>
-    <button class="btn btn-primary" id="backupBtn">📦 گرفتن بکاپ کامل</button>
+    <button class="btn btn-primary" id="backupBtn">گرفتن بکاپ کامل</button>
     <span id="backupMsg" style="font-size:.78rem; margin-right:8px;"></span>
 </div>
 
@@ -80,12 +80,12 @@
 const csrftoken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
 document.getElementById('backupBtn').addEventListener('click', async () => {
     const msg = document.getElementById('backupMsg');
-    msg.textContent = '⏳ در حال گرفتن بکاپ…';
+    msg.textContent = 'در حال گرفتن بکاپ…';
     msg.style.color = 'var(--ink2)';
     const r = await fetch('{% url "backup_data" %}', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
-    if (d.success) { msg.style.color = 'var(--ok)'; msg.textContent = '✅ ' + d.message + ' (' + d.file_name + ')'; }
-    else { msg.style.color = 'var(--err)'; msg.textContent = '⚠️ ' + (d.error || 'خطا'); }
+    if (d.success) { msg.style.color = 'var(--ok)'; msg.textContent = '' + d.message + ' (' + d.file_name + ')'; }
+    else { msg.style.color = 'var(--err)'; msg.textContent = '' + (d.error || 'خطا'); }
 });
 </script>
 {% endblock %}

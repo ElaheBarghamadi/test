@@ -39,11 +39,11 @@
         <div class="welcome-title">سلام {{ user.get_full_name|default:user.username }} ☕</div>
         <div class="welcome-subtitle">به سامانه آزمون آنلاین خوش آمدید</div>
         <div class="info-stats">
-            <div class="info-stat">📚 پایه: {{ user.grade.get_name_display|default:'تعریف نشده' }}</div>
+            <div class="info-stat">پایه: {{ user.grade.get_name_display|default:'تعریف نشده' }}</div>
             <div class="info-stat">📋 {{ exams_with_status|length }} آزمون</div>
             <div class="info-stat">✅ {{ completed_results|length }} آزمون ثبت شده</div>
             {% if show_report_card %}
-            <div class="info-stat">📊 معدل: {{ overall_average|floatformat:1|default:'---' }}</div>
+            <div class="info-stat">معدل: {{ overall_average|floatformat:1|default:'---' }}</div>
             {% endif %}
         </div>
     </div>
@@ -51,19 +51,19 @@
     {% if next_exam %}
     <div class="next-exam" role="region" aria-label="آزمون قابل شروع">
         <div>
-            <div class="ne-label">{% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}⏳ آزمون نیمه‌تمام دارید{% else %}🟢 همین حالا می‌توانید شرکت کنید{% endif %}</div>
+            <div class="ne-label">{% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}آزمون نیمه‌تمام دارید{% else %}همین حالا می‌توانید شرکت کنید{% endif %}</div>
             <div class="ne-title">{{ next_exam.exam.title }}</div>
             <div class="ne-meta">{{ next_exam.questions_count }} سوال · {{ next_exam.exam.duration_minutes }} دقیقه · تا {{ next_exam.end_time_jalali }} باز است</div>
         </div>
         <a href="{% url 'take_exam' next_exam.hashed_id %}" class="btn-start ne-btn"
            {% if not next_exam.attempt %}data-confirm="با شروع آزمون، زمان {{ next_exam.exam.duration_minutes }} دقیقه‌ای شما آغاز می‌شود. آماده‌اید؟"{% endif %}>
-            {% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}▶️ ادامه آزمون{% else %}✨ شروع آزمون{% endif %}
+            {% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}▶️ ادامه آزمون{% else %}شروع آزمون{% endif %}
         </a>
     </div>
     {% endif %}
 
     <!-- بخش 1: لیست آزمون‌ها -->
-    <div class="section-title">📋 آزمون‌های من</div>
+    <div class="section-title">آزمون‌های من</div>
     <div class="exams-grid">
         {% for item in exams_with_status %}
         <div class="exam-card {{ item.status_class }}">
@@ -72,19 +72,19 @@
             <!-- اطلاعات کامل -->
             <div class="info-two-columns">
                 <div class="info-badge">
-                    <span class="label">📅 تاریخ شروع</span>
+                    <span class="label">تاریخ شروع</span>
                     <span class="value">{{ item.start_time_jalali|default:'-' }}</span>
                 </div>
                 <div class="info-badge">
-                    <span class="label">🏁 تاریخ پایان</span>
+                    <span class="label">تاریخ پایان</span>
                     <span class="value">{{ item.end_time_jalali|default:'-' }}</span>
                 </div>
                 <div class="info-badge">
-                    <span class="label">⏱️ مدت زمان</span>
+                    <span class="label">مدت زمان</span>
                     <span class="value">{{ item.exam.duration_minutes }} دقیقه</span>
                 </div>
                 <div class="info-badge">
-                    <span class="label">📊 تعداد سوالات</span>
+                    <span class="label">تعداد سوالات</span>
                     <span class="value">{{ item.questions_count }}</span>
                 </div>
             </div>
@@ -96,37 +96,37 @@
                 {% if item.attempt and item.attempt.status == 'submitted' %}
                     <span class="status-badge status-completed">✓ ثبت شده</span>
                 {% elif item.attempt and item.attempt.status == 'in_progress' %}
-                    <span class="status-badge status-ongoing">⏳ در حال انجام</span>
+                    <span class="status-badge status-ongoing">در حال انجام</span>
                 {% endif %}
             </div>
 
             <!-- دکمه اقدام -->
             {% if item.attempt and item.attempt.status == 'submitted' %}
-                <div class="btn-disabled">✅ ثبت شده - غیرقابل ویرایش</div>
+                <div class="btn-disabled">ثبت شده - غیرقابل ویرایش</div>
             {% elif item.can_start and item.exam.is_active %}
                 {% if item.attempt and item.attempt.status == 'in_progress' %}
                     <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start">▶️ ادامه آزمون</a>
                 {% elif item.exam.start_time > now %}
-                    <div class="btn-disabled">⏳ شروع از {{ item.start_time_jalali }} <span class="countdown" data-start="{{ item.start_iso }}"></span></div>
+                    <div class="btn-disabled">شروع از {{ item.start_time_jalali }} <span class="countdown" data-start="{{ item.start_iso }}"></span></div>
                 {% else %}
-                    <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start" data-confirm="با شروع آزمون، زمان {{ item.exam.duration_minutes }} دقیقه‌ای شما آغاز می‌شود. آماده‌اید؟">✨ شروع آزمون</a>
+                    <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start" data-confirm="با شروع آزمون، زمان {{ item.exam.duration_minutes }} دقیقه‌ای شما آغاز می‌شود. آماده‌اید؟">شروع آزمون</a>
                 {% endif %}
             {% else %}
                 <div class="btn-disabled">
-                    {% if not item.exam.is_active %}🔒 غیرفعال
-                    {% elif item.exam.end_time < now %}📅 تمام شده
-                    {% else %}🚫 غیرقابل دسترسی{% endif %}
+                    {% if not item.exam.is_active %}غیرفعال
+                    {% elif item.exam.end_time < now %}تمام شده
+                    {% else %}غیرقابل دسترسی{% endif %}
                 </div>
             {% endif %}
         </div>
         {% empty %}
-        <div class="empty-state">📭 فعلاً آزمونی برای شما تعریف نشده است. وقتی معلم آزمونی بسازد، همین‌جا نمایش داده می‌شود.</div>
+        <div class="empty-state">فعلاً آزمونی برای شما تعریف نشده است. وقتی معلم آزمونی بسازد، همین‌جا نمایش داده می‌شود.</div>
         {% endfor %}
     </div>
 
     {% if bell_announcements %}
     <div class="card announce-card student-announce">
-        <h3 style="margin-bottom: 8px;">📣 اطلاعیه‌های معلم</h3>
+        <h3 style="margin-bottom: 8px;">اطلاعیه‌های معلم</h3>
         <div class="announce-list">
             {% for a in bell_announcements %}
             <div class="announce-item">
@@ -142,7 +142,7 @@
     {% endif %}
 
     <!-- بخش 2: نتایج آزمون‌ها -->
-    <div class="section-title">📊 نتایج منتشر شده</div>
+    <div class="section-title">نتایج منتشر شده</div>
     <div class="exams-grid">
         {% for result in completed_results %}
             {% if result.show_score %}
@@ -151,11 +151,11 @@
 
                 <div class="info-two-columns">
                     <div class="info-badge">
-                        <span class="label">📅 تاریخ ثبت</span>
+                        <span class="label">تاریخ ثبت</span>
                         <span class="value">{{ result.date_jalali|default:'-' }}</span>
                     </div>
                     <div class="info-badge">
-                        <span class="label">📊 تعداد سوالات</span>
+                        <span class="label">تعداد سوالات</span>
                         <span class="value">{{ result.exam.questions.count }}</span>
                     </div>
                 </div>
@@ -177,11 +177,11 @@
                     درصد: {{ result.percentage }}%
                 </div>
 
-                <a href="{% url 'exam_result_detail' result.exam.id %}" class="btn-result">📊 مشاهده جزئیات</a>
+                <a href="{% url 'exam_result_detail' result.exam.id %}" class="btn-result">مشاهده جزئیات</a>
             </div>
             {% endif %}
         {% empty %}
-        <div class="empty-state">📭 هنوز نتیجه‌ای منتشر نشده است.</div>
+        <div class="empty-state">هنوز نتیجه‌ای منتشر نشده است.</div>
         {% endfor %}
     </div>
 
@@ -189,7 +189,7 @@
     {% if show_report_card and report_data %}
     <div class="report-card">
         <div class="report-header">
-            <div class="report-title">🎓 کارنامه تحصیلی</div>
+            <div class="report-title">کارنامه تحصیلی</div>
             <div class="report-badge">{{ user.grade.get_name_display|default:'پایه' }} - {{ current_semester|default:'نیمسال جاری' }}</div>
         </div>
 
@@ -223,9 +223,9 @@
                             {% if exam_result.percentage >= 70 %}
                                 <span class="grade-pass">✓ قبول</span>
                             {% elif exam_result.percentage >= 50 %}
-                                <span class="grade-warning">⚠️ مشروط</span>
+                                <span class="grade-warning">مشروط</span>
                             {% else %}
-                                <span class="grade-fail">✗ مردود</span>
+                                <span class="grade-fail">مردود</span>
                             {% endif %}
                         </td>
                         <td style="font-size: 0.7rem;">{{ exam_result.date_jalali|default:'-' }}</td>
@@ -246,15 +246,15 @@
             <div class="average-value">{{ overall_average|floatformat:2 }}</div>
             <div class="average-message">
                 {% if overall_average >= 17 %}
-                    🎉 عالی! عملکرد شما بسیار چشمگیر است. در این مسیر ادامه دهید.
+                    عالی! عملکرد شما بسیار چشمگیر است. در این مسیر ادامه دهید.
                 {% elif overall_average >= 15 %}
-                    🌟 خیلی خوب! در مسیر درستی هستید و می‌توانید بهتر هم شوید.
+                    خیلی خوب! در مسیر درستی هستید و می‌توانید بهتر هم شوید.
                 {% elif overall_average >= 12 %}
-                    👍 قابل قبول، با کمی تلاش بیشتر می‌توانید نتیجه بهتری بگیرید.
+                    قابل قبول، با کمی تلاش بیشتر می‌توانید نتیجه بهتری بگیرید.
                 {% elif overall_average >= 10 %}
-                    ⚠️ نیاز به تلاش بیشتر دارید. روی نقاط ضعف خود کار کنید.
+                    نیاز به تلاش بیشتر دارید. روی نقاط ضعف خود کار کنید.
                 {% else %}
-                    📚 زمان برای مطالعه جدی فرا رسیده است. از همین الان شروع کنید.
+                    زمان برای مطالعه جدی فرا رسیده است. از همین الان شروع کنید.
                 {% endif %}
             </div>
         </div>

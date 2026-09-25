@@ -317,9 +317,9 @@
                 نتایج دانش‌آموزان
             </h2>
             <div class="export-buttons">
-                <button class="btn-print" onclick="window.print()">🖨️ چاپ</button>
-                <button class="btn-pdf" id="pdfBtn">📄 خروجی PDF</button>
-                <a class="btn-csv" href="{% url 'export_results_csv' exam.id %}">📥 خروجی اکسل</a>
+                <button class="btn-print" onclick="window.print()">چاپ</button>
+                <button class="btn-pdf" id="pdfBtn">خروجی PDF</button>
+                <a class="btn-csv" href="{% url 'export_results_csv' exam.id %}">خروجی اکسل</a>
             </div>
         </div>
 
@@ -359,16 +359,16 @@
                             {% if result.answered_count == result.total_questions %}
                                 <span class="status-badge status-complete">✓ کامل</span>
                             {% else %}
-                                <span class="status-badge status-partial">⏳ ناقص</span>
+                                <span class="status-badge status-partial">ناقص</span>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'grade_exam' exam.id %}" class="btn-view">✏️ تصحیح</a>
+                            <a href="{% url 'grade_exam' exam.id %}" class="btn-view">تصحیح</a>
                         </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 50px; color: #7fa8ad;">📭 هیچ دانش‌آموزی برای این آزمون ثبت نام نشده است</td>
+                        <td colspan="7" style="text-align: center; padding: 50px; color: #7fa8ad;">هیچ دانش‌آموزی برای این آزمون ثبت نام نشده است</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -376,7 +376,7 @@
         </div>
 
         <div class="footer-note">
-            💡 نکته: نمرات سوالات تستی/صحیح‌غلط/جاخالی/وصل‌کردنی به‌محض ثبت نهایی آزمون، <b>به‌صورت خودکار</b> محاسبه می‌شود؛ سوالات تشریحی را دستی تصحیح کنید.
+            نکته: نمرات سوالات تستی/صحیح‌غلط/جاخالی/وصل‌کردنی به‌محض ثبت نهایی آزمون، <b>به‌صورت خودکار</b> محاسبه می‌شود؛ سوالات تشریحی را دستی تصحیح کنید.
         </div>
     </div>
 
@@ -411,7 +411,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="footer-note">💡 سوال‌هایی با درصد موفقیت پایین‌تر، نامزد بازبینی تدریس یا سخت‌بودن سوال هستند.</div>
+        <div class="footer-note">سوال‌هایی با درصد موفقیت پایین‌تر، نامزد بازبینی تدریس یا سخت‌بودن سوال هستند.</div>
     </div>
     {% endif %}
 </div>

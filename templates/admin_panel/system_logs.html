@@ -19,20 +19,20 @@
 {% block content %}
 {% include 'admin_panel/_admin_nav.html' %}
 
-<div class="page-title">🛡️ لاگ‌های سیستم و رصد تقلب</div>
+<div class="page-title">لاگ‌های سیستم و رصد تقلب</div>
 
 <div class="stats">
-    <div class="stat-card inactive"><div class="stat-number">{{ cheat_stats.total }}</div><div class="stat-label">⚠️ کل تقلب‌ها</div></div>
-    <div class="stat-card ongoing"><div class="stat-number">{{ cheat_stats.tab_switch }}</div><div class="stat-label">🔀 تعویض تب</div></div>
-    <div class="stat-card ongoing"><div class="stat-number">{{ cheat_stats.copy_paste }}</div><div class="stat-label">📋 کپی/پیست</div></div>
-    <div class="stat-card inactive"><div class="stat-number">{{ cheat_stats.right_click }}</div><div class="stat-label">🖱️ راست‌کلیک</div></div>
-    <div class="stat-card inactive"><div class="stat-number">{{ cheat_stats.multiple_tabs }}</div><div class="stat-label">🪟 چند تب</div></div>
-    <div class="stat-card active"><div class="stat-number">{{ cheat_stats.today }}</div><div class="stat-label">📅 امروز</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ cheat_stats.total }}</div><div class="stat-label">کل تقلب‌ها</div></div>
+    <div class="stat-card ongoing"><div class="stat-number">{{ cheat_stats.tab_switch }}</div><div class="stat-label">تعویض تب</div></div>
+    <div class="stat-card ongoing"><div class="stat-number">{{ cheat_stats.copy_paste }}</div><div class="stat-label">کپی/پیست</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ cheat_stats.right_click }}</div><div class="stat-label">راست‌کلیک</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ cheat_stats.multiple_tabs }}</div><div class="stat-label">چند تب</div></div>
+    <div class="stat-card active"><div class="stat-number">{{ cheat_stats.today }}</div><div class="stat-label">امروز</div></div>
 </div>
 
 <div class="tab-bar">
-    <button class="on" data-tab="cheats">⚠️ تلاش‌های تقلب ({{ cheats|length }})</button>
-    <button data-tab="logs">📜 لاگ رویدادها ({{ logs|length }})</button>
+    <button class="on" data-tab="cheats">تلاش‌های تقلب ({{ cheats|length }})</button>
+    <button data-tab="logs">لاگ رویدادها ({{ logs|length }})</button>
 </div>
 
 <div class="tab-pane on" id="pane-cheats">
@@ -53,7 +53,7 @@
             </tbody>
         </table>
         {% else %}
-        <div class="empty-state">🎉 هیچ تلاش تقلبی ثبت نشده است.</div>
+        <div class="empty-state">هیچ تلاش تقلبی ثبت نشده است.</div>
         {% endif %}
     </div>
 </div>
@@ -76,7 +76,7 @@
             </tbody>
         </table>
         {% else %}
-        <div class="empty-state">📭 لاگی ثبت نشده است.</div>
+        <div class="empty-state">لاگی ثبت نشده است.</div>
         {% endif %}
     </div>
 </div>

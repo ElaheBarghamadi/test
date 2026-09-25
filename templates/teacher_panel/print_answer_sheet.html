@@ -377,8 +377,8 @@
 {% block content %}
 <div class="print-container">
     <div class="button-bar no-print">
-        <button class="btn-print" onclick="window.print()">🖨️ چاپ پاسخنامه</button>
-        <button class="btn-close" onclick="window.close()">✖ بستن</button>
+        <button class="btn-print" onclick="window.print()">چاپ پاسخنامه</button>
+        <button class="btn-close" onclick="window.close()">بستن</button>
     </div>
 
     {% for student_data in students_data %}
@@ -386,9 +386,9 @@
         <div class="exam-header">
             <div class="exam-title">{{ exam.title }}</div>
             <div class="exam-meta">
-                <span>📖 پایه: {{ exam.grade.get_name_display }}</span>
-                <span>📅 تاریخ: {{ exam.start_time|to_jalali_date }}</span>
-                <span>⏱️ مدت: {{ exam.duration_minutes }} دقیقه</span>
+                <span>پایه: {{ exam.grade.get_name_display }}</span>
+                <span>تاریخ: {{ exam.start_time|to_jalali_date }}</span>
+                <span>مدت: {{ exam.duration_minutes }} دقیقه</span>
             </div>
         </div>
 
@@ -407,10 +407,10 @@
                 <thead>
                     <tr>
                         <th style="width: 50px;">#</th>
-                        <th style="text-align: right;">📌 متن سوال</th>
-                        <th style="width: 65px;">⭐ بارم</th>
-                        <th style="text-align: right;">✍️ پاسخ دانش‌آموز</th>
-                        <th style="width: 80px;">🏆 نمره</th>
+                        <th style="text-align: right;">متن سوال</th>
+                        <th style="width: 65px;">بارم</th>
+                        <th style="text-align: right;">پاسخ دانش‌آموز</th>
+                        <th style="width: 80px;">نمره</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -427,7 +427,7 @@
                         </td>
                         <td class="q-score">{{ item.question.max_score|floatformat:1 }}</td>
                         <td class="answer-box">
-                            <div class="answer-label">📝 پاسخ تشریحی:</div>
+                            <div class="answer-label">پاسخ تشریحی:</div>
                             <div class="answer-content">
                                 {% if item.answer %}
                                     {% if item.answer.answer_text %}
@@ -435,10 +435,10 @@
                                     {% elif item.answer.answer_image %}
                                         <img src="{{ item.answer.answer_image.url }}" class="answer-image" alt="پاسخ تصویری">
                                     {% else %}
-                                        <span class="no-answer">✗ پاسخی ثبت نشده</span>
+                                        <span class="no-answer">پاسخی ثبت نشده</span>
                                     {% endif %}
                                 {% else %}
-                                    <span class="no-answer">✗ پاسخی ثبت نشده</span>
+                                    <span class="no-answer">پاسخی ثبت نشده</span>
                                 {% endif %}
                             </div>
                         </td>
@@ -450,13 +450,13 @@
                     {% endfor %}
 
                     <tr class="score-row">
-                        <td colspan="3" class="score-label" style="text-align: left;">📊 جمع کل</td>
-                        <td class="score-label">✅ نمره کسب شده</td>
+                        <td colspan="3" class="score-label" style="text-align: left;">جمع کل</td>
+                        <td class="score-label">نمره کسب شده</td>
                         <td class="score-value">__________</td>
                     </tr>
                     <tr class="score-row">
                         <td colspan="3"></td>
-                        <td class="score-label">🔢 از مجموع</td>
+                        <td class="score-label">از مجموع</td>
                         <td class="score-value">{{ total_possible|floatformat:1 }}</td>
                     </tr>
                 </tbody>
@@ -465,12 +465,12 @@
 
         <div class="exam-footer">
             <div class="signatures">
-                <div class="signature-item">✍️ امضای دانش‌آموز: ____________________</div>
-                <div class="signature-item">👩‍🏫 امضای معلم: ____________________</div>
-                <div class="signature-item">📆 تاریخ: ____________________</div>
+                <div class="signature-item">امضای دانش‌آموز: ____________________</div>
+                <div class="signature-item">امضای معلم: ____________________</div>
+                <div class="signature-item">تاریخ: ____________________</div>
             </div>
             <div style="margin-top: 1rem; font-size: 0.7rem; opacity: 0.8;">
-                🌹 موفق و پیروز باشید
+                موفق و پیروز باشید
             </div>
         </div>
     </div>

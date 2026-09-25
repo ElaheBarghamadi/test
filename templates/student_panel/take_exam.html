@@ -444,7 +444,7 @@
         /* راهنمای بزرگ‌نمایی روی تصویر سوال */
         .q-img-wrap{position:relative}
         .q-img-wrap::after{
-            content:'🔍 برای بزرگ‌نمایی روی تصویر کلیک کنید';
+            content:'برای بزرگ‌نمایی روی تصویر کلیک کنید';
             position:absolute;bottom:14px;inset-inline:0;margin-inline:auto;width:max-content;max-width:92%;
             background:rgba(8, 45, 52,.58);color:#fff;font-size: .72rem;padding:2px 12px;border-radius:999px;
             backdrop-filter:blur(2px);pointer-events:none;opacity:0;transition:opacity .2s;
@@ -685,13 +685,13 @@
             <div class="tb-main">
                 <div class="tb-title">{{ exam.title }}</div>
                 <div class="tb-sub">
-                    <span class="tb-tag">🎓 پایه {{ exam.grade }}</span>
+                    <span class="tb-tag">پایه {{ exam.grade }}</span>
                     <span class="tb-tag">📝 {{ questions|length }} سوال</span>
                     <span class="tb-tag">⭐ {{ total_score }} نمره</span>
                     {% if exam.timer_type == 'fixed' %}
-                        <span class="tb-tag">🔒 پایان: {{ end_time_jalali }}</span>
+                        <span class="tb-tag">پایان: {{ end_time_jalali }}</span>
                     {% else %}
-                        <span class="tb-tag">🏃 مدت آزمون: {{ exam.duration_minutes }} دقیقه</span>
+                        <span class="tb-tag">مدت آزمون: {{ exam.duration_minutes }} دقیقه</span>
                     {% endif %}
                 </div>
             </div>
@@ -758,7 +758,7 @@
                     <span class="q-chip">{{ question.type_display }}</span>
                     <span class="q-state" id="qstate_{{ question.id }}">پاسخ داده نشده</span>
                     <span class="q-score">⭐ {{ question.max_score|floatformat:"-2" }} نمره</span>
-                    <button type="button" class="q-flag js-flag" data-qid="{{ question.id }}" aria-pressed="false" title="علامت برای مرور دوباره">🚩 مرور</button>
+                    <button type="button" class="q-flag js-flag" data-qid="{{ question.id }}" aria-pressed="false" title="علامت برای مرور دوباره">مرور</button>
                 </div>
 
                 {% if question.text or question.image %}
@@ -780,7 +780,7 @@
             </article>
             {% endfor %}
 
-            <!-- 🏁 منطقه ثبت نهایی — فقط بعد از آخرین سوال -->
+            <!-- منطقه ثبت نهایی — فقط بعد از آخرین سوال -->
             <div class="submit-zone" id="submitZone">
                 <div class="sz-card">
                     <div class="sz-ico">🏁</div>
@@ -872,11 +872,11 @@
         <h2 class="modal-title" id="confirmTitle">ثبت نهایی آزمون</h2>
         <p class="modal-text" id="confirmText">آیا مطمئن هستید که می‌خواهید آزمون را ثبت نهایی کنید؟</p>
         <div class="unanswered" id="unansweredBox" style="display:none">
-            <b>⚠️ به این سوال‌ها پاسخ نداده‌اید:</b>
+            <b>به این سوال‌ها پاسخ نداده‌اید:</b>
             <div class="nums" id="unansweredNums"></div>
         </div>
         <div class="unanswered flag-box" id="flaggedBox" style="display:none">
-            <b>🚩 سوال‌های علامت‌خورده برای مرور:</b>
+            <b>سوال‌های علامت‌خورده برای مرور:</b>
             <div class="nums" id="flaggedNums"></div>
         </div>
         <div class="modal-actions">
@@ -1100,8 +1100,8 @@
         let html = '<div class="opt-grid' + (q.type === 'true_false' || (!useImg && opts.length <= 2) ? ' cols-2' : '') + '" role="radiogroup">';
 
         if (q.type === 'true_false') {
-            html += radioOption(q, 'true', '', '<span class="opt-mark"></span><span class="opt-body"><span class="opt-text">✅ صحیح</span></span>');
-            html += radioOption(q, 'false', '', '<span class="opt-mark"></span><span class="opt-body"><span class="opt-text">❌ غلط</span></span>');
+            html += radioOption(q, 'true', '', '<span class="opt-mark"></span><span class="opt-body"><span class="opt-text">صحیح</span></span>');
+            html += radioOption(q, 'false', '', '<span class="opt-mark"></span><span class="opt-body"><span class="opt-text">غلط</span></span>');
         } else {
             opts.forEach((opt, i) => {
                 const val = String(i + 1);
@@ -1167,9 +1167,9 @@
     function previewHtml(q) {
         return '<div class="preview">' +
             '<img src="' + esc(q.state.image) + '" class="zoom-trigger" alt="تصویر پاسخ شما" loading="lazy">' +
-            '<div class="preview-cap">✅ تصویر پاسخ ذخیره شد</div>' +
+            '<div class="preview-cap">تصویر پاسخ ذخیره شد</div>' +
             '<div class="fld-row" style="justify-content:center">' +
-            '<button type="button" class="btn btn-ghost btn-sm js-remove-img">🗑️ حذف تصویر</button>' +
+            '<button type="button" class="btn btn-ghost btn-sm js-remove-img">حذف تصویر</button>' +
             '</div></div>';
     }
 
@@ -1454,7 +1454,7 @@
         b.className = 'save-badge' + (kind && kind !== 'idle' ? ' ' + kind : '');
         b.textContent = '';
         if (!text) return;
-        const prefix = kind === 'saving' ? '⏳ ' : kind === 'saved' ? '✅ ' : kind === 'error' ? '⛔ ' : '';
+        const prefix = kind === 'saving' ? '' : kind === 'saved' ? '' : kind === 'error' ? '' : '';
         b.appendChild(document.createTextNode(prefix + text));
         if (kind === 'error') {
             const retry = document.createElement('button');
@@ -1664,7 +1664,7 @@
         return out;
     }
 
-    // ⚠️ قبل از ثبت نهایی، همه ذخیره‌های در جریان باید تمام شوند؛
+    // قبل از ثبت نهایی، همه ذخیره‌های در جریان باید تمام شوند؛
     // وگرنه ممکن است پاسخی بعد از «ثبت شد» به سرور برسد و با ۴۰۳ رد شود.
     async function awaitPendingSaves() {
         for (let round = 0; round < 3; round++) {
@@ -2120,7 +2120,7 @@
             let text = rec.answer_text || '';
             const image = rec.answer_image || null;
 
-            // ⚠️ در نسخه قدیمی، آدرس عکس در متن پاسخ ذخیره می‌شد — خودترمیمی
+            // در نسخه قدیمی، آدرس عکس در متن پاسخ ذخیره می‌شد — خودترمیمی
             if (image && text === image) text = '';
             if (!image && q.canUpload && text && looksLikeImage(text) && text.length < 300) {
                 q.state.image = text;
@@ -2236,7 +2236,7 @@
             const on = flags.has(String(c.dataset.qid));
             c.classList.toggle('is-flagged', on);
             const b = c.querySelector('.js-flag');
-            if (b) { b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '🚩 علامت‌خورده' : '🚩 مرور'; }
+            if (b) { b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'علامت‌خورده' : 'مرور'; }
         });
         document.querySelectorAll('.pal').forEach(p => {
             const q = QUESTIONS[parseInt(p.dataset.idx, 10)];

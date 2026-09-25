@@ -145,7 +145,7 @@
             <span>📚 {{ exam.grade.get_name_display }}</span>
             <span>⏱️ {{ exam.duration_minutes }} دقیقه</span>
             <span>📅 {{ exam.start_time|to_jalali }} تا {{ exam.end_time|to_jalali }}</span>
-            <span>{% if exam.is_active %}🟢 فعال{% else %}⚪ غیرفعال{% endif %}</span>
+            <span>{% if exam.is_active %}فعال{% else %}غیرفعال{% endif %}</span>
         </div>
     </div>
 
@@ -158,21 +158,21 @@
 
     <div class="top-bar">
         <div class="btn-group">
-            <a href="{% url 'add_question' exam.id %}" class="btn-primary">➕ سوال جدید</a>
-            <a href="{% url 'add_question' exam.id %}#bank" class="btn-secondary">📚 از بانک سوال</a>
-            <a href="{% url 'bulk_upload_questions' exam.id %}" class="btn-secondary">📤 از فایل اکسل</a>
+            <a href="{% url 'add_question' exam.id %}" class="btn-primary">سوال جدید</a>
+            <a href="{% url 'add_question' exam.id %}#bank" class="btn-secondary">از بانک سوال</a>
+            <a href="{% url 'bulk_upload_questions' exam.id %}" class="btn-secondary">از فایل اکسل</a>
         </div>
         <div class="btn-group-right">
-            <a href="{% url 'print_exam_paper' exam.id %}" target="_blank" class="btn-secondary">🖨️ چاپ</a>
+            <a href="{% url 'print_exam_paper' exam.id %}" target="_blank" class="btn-secondary">چاپ</a>
             <details class="more-menu">
                 <summary class="btn-secondary" title="امکانات بیشتر">⋯ بیشتر</summary>
                 <div class="more-items">
-                    <a href="{% url 'edit_exam_info' exam.id %}">✏️ مشخصات و دانش‌آموزان</a>
-                    <a href="{% url 'exam_settings' exam.id %}">⚙️ تنظیمات آزمون</a>
-                    <a href="{% url 'view_student_answers' exam.id %}">📝 پاسخ‌های دانش‌آموزان</a>
-                    <a href="{% url 'exam_results' exam.id %}">📊 نتایج</a>
-                    <a href="{% url 'exam_cheats_report' exam.id %}">⚠️ گزارش تخلفات</a>
-                    <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">📋 چاپ پاسخنامه</a>
+                    <a href="{% url 'edit_exam_info' exam.id %}">مشخصات و دانش‌آموزان</a>
+                    <a href="{% url 'exam_settings' exam.id %}">تنظیمات آزمون</a>
+                    <a href="{% url 'view_student_answers' exam.id %}">پاسخ‌های دانش‌آموزان</a>
+                    <a href="{% url 'exam_results' exam.id %}">نتایج</a>
+                    <a href="{% url 'exam_cheats_report' exam.id %}">گزارش تخلفات</a>
+                    <a href="{% url 'print_answer_sheet' exam.id %}" target="_blank">چاپ پاسخنامه</a>
                 </div>
             </details>
         </div>
@@ -181,16 +181,16 @@
     <!-- تب‌ها -->
     <div class="questions-card">
         <div class="tabs">
-            <button class="tab-btn active" data-tab="questions">📝 سوالات</button>
-            <button class="tab-btn" data-tab="cheats">⚠️ تخلفات</button>
-            <button class="tab-btn" data-tab="teacher-answers">👨‍🏫 پاسخ معلم</button>
+            <button class="tab-btn active" data-tab="questions">سوالات</button>
+            <button class="tab-btn" data-tab="cheats">تخلفات</button>
+            <button class="tab-btn" data-tab="teacher-answers">پاسخ معلم</button>
         </div>
 
         <!-- تب سوالات -->
         <div id="tab-questions" class="tab-content active">
             <div class="section-header">
                 <div>
-                    <span class="section-title">📝 سوالات آزمون</span>
+                    <span class="section-title">سوالات آزمون</span>
                     <span class="question-count">{{ questions|length }} سوال</span>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                     {% for ta in questions_with_teacher_answer %}
                     {% if ta.question.id == q.id and ta.answer_text %}
                     <div class="teacher-answer">
-                        <div class="teacher-answer-label">📌 پاسخ معلم:</div>
+                        <div class="teacher-answer-label">پاسخ معلم:</div>
                         {{ ta.answer_text|truncatewords:20 }}
                     </div>
                     {% endif %}
@@ -231,10 +231,10 @@
                 {% endfor %}
                 {% else %}
                 <div class="empty-state">
-                    📭 هنوز سوالی اضافه نشده است.<br>
+                    هنوز سوالی اضافه نشده است.<br>
                     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
-                        <a href="{% url 'add_question' exam.id %}" class="btn-primary">➕ نوشتن اولین سوال</a>
-                        <a href="{% url 'add_question' exam.id %}#bank" class="btn-secondary">📚 انتخاب از بانک سوال</a>
+                        <a href="{% url 'add_question' exam.id %}" class="btn-primary">نوشتن اولین سوال</a>
+                        <a href="{% url 'add_question' exam.id %}#bank" class="btn-secondary">انتخاب از بانک سوال</a>
                     </div>
                 </div>
                 {% endif %}
@@ -244,7 +244,7 @@
         <!-- تب تخلفات -->
         <div id="tab-cheats" class="tab-content">
             <div class="section-header">
-                <span class="section-title">⚠️ گزارش تخلفات</span>
+                <span class="section-title">گزارش تخلفات</span>
             </div>
 
             {% if cheats_stats %}
@@ -270,18 +270,18 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="empty-state">📭 هنوز هیچ تخلفی ثبت نشده است</div>
+            <div class="empty-state">هنوز هیچ تخلفی ثبت نشده است</div>
             {% endif %}
 
             <div style="margin-top: 16px; text-align: center;">
-                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-primary" style="background: linear-gradient(135deg, #bd2222, #8f1616); padding: 6px 16px;">🔍 گزارش کامل</a>
+                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-primary" style="background: linear-gradient(135deg, #bd2222, #8f1616); padding: 6px 16px;">گزارش کامل</a>
             </div>
         </div>
 
         <!-- تب پاسخ تشریحی معلم -->
         <div id="tab-teacher-answers" class="tab-content">
             <div class="section-header">
-                <span class="section-title">👨‍🏫 پاسخ‌های تشریحی معلم</span>
+                <span class="section-title">پاسخ‌های تشریحی معلم</span>
                 <span class="question-count">{{ questions_with_teacher_answer|length }} سوال دارای پاسخ</span>
             </div>
             <div class="questions-list">
@@ -294,12 +294,12 @@
                             <span class="question-type">{{ item.question.get_question_type_display }}</span>
                         </div>
                         <div class="question-actions">
-                            <a href="{% url 'add_teacher_answer' exam.id item.question.id %}" class="btn-edit">✏️ ویرایش</a>
+                            <a href="{% url 'add_teacher_answer' exam.id item.question.id %}" class="btn-edit">ویرایش</a>
                         </div>
                     </div>
                     <div class="question-text"><strong>متن سوال:</strong> {{ item.question.text|truncatewords:30 }}</div>
                     <div class="teacher-answer">
-                        <div class="teacher-answer-label">📌 پاسخ تشریحی معلم:</div>
+                        <div class="teacher-answer-label">پاسخ تشریحی معلم:</div>
                         {{ item.answer_text|default:"پاسخی ثبت نشده است"|truncatewords:30 }}
                         {% if item.answer_image %}
                         <div><img src="{{ item.answer_image.url }}" class="question-image" style="max-width: 80px;" onclick="openZoom('{{ item.answer_image.url }}')"></div>
@@ -308,7 +308,7 @@
                 </div>
                 {% endfor %}
                 {% else %}
-                <div class="empty-state">📭 هنوز پاسخی ثبت نشده است</div>
+                <div class="empty-state">هنوز پاسخی ثبت نشده است</div>
                 {% endif %}
             </div>
         </div>

@@ -345,7 +345,7 @@
                 <span>📚 {{ exam.title }}</span>
                 <span>🎓 {{ exam.grade.get_name_display }}</span>
                 <span>👥 {{ total_students|default:0 }} دانش‌آموز</span>
-                <span>🕐 تاریخ: {{ exam.start_time|to_jalali_date }}</span>
+                <span>تاریخ: {{ exam.start_time|to_jalali_date }}</span>
             </div>
         </div>
         <a href="{% url 'edit_exam' exam.id %}" class="btn-back">← بازگشت به آزمون</a>
@@ -410,9 +410,9 @@
                 <td><code style="font-size: 0.72rem; background: rgba(120, 190, 185,0.15); padding: 3px 6px; border-radius: 8px;">{{ data.ip_address }}</code></td>
                 <td>
                     {% if data.is_active %}
-                    <span style="color: #7a9c3e;">🟢 فعال</span>
+                    <span style="color: #7a9c3e;">فعال</span>
                     {% else %}
-                    <span style="color: #7fa8ad;">⚪ غیرفعال</span>
+                    <span style="color: #7fa8ad;">غیرفعال</span>
                     {% endif %}
                 </td>
             </tr>
@@ -469,7 +469,7 @@
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 24px;">
             <div style="flex: 1;">
-                <div style="font-weight: 700; margin-bottom: 10px; color: #16404a;">🔍 انواع تخلفات:</div>
+                <div style="font-weight: 700; margin-bottom: 10px; color: #16404a;">انواع تخلفات:</div>
                 <ul>
                     <li><span style="color: #dc8686;">●</span> تغییر تب (Tab Switch) - خروج از صفحه آزمون</li>
                     <li><span style="color: #f5a623;">●</span> کپی/پیست (Copy/Paste) - تلاش برای کپی متن</li>
@@ -477,7 +477,7 @@
                 </ul>
             </div>
             <div style="flex: 1;">
-                <div style="font-weight: 700; margin-bottom: 10px; color: #16404a;">⚙️ چگونه تخلفات را کاهش دهیم؟</div>
+                <div style="font-weight: 700; margin-bottom: 10px; color: #16404a;">چگونه تخلفات را کاهش دهیم؟</div>
                 <ul>
                     <li>فعال کردن گزینه "جلوگیری از تغییر تب" در تنظیمات آزمون</li>
                     <li>فعال کردن گزینه "جلوگیری از کپی/پیست"</li>

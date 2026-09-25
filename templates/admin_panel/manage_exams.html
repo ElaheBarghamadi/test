@@ -14,12 +14,12 @@
 {% block content %}
 {% include 'admin_panel/_admin_nav.html' %}
 
-<div class="page-title">📝 مدیریت آزمون‌های سامانه</div>
+<div class="page-title">مدیریت آزمون‌های سامانه</div>
 
 <div class="stats">
-    <div class="stat-card ongoing"><div class="stat-number">{{ total_exams }}</div><div class="stat-label">📝 کل آزمون‌ها</div></div>
-    <div class="stat-card active"><div class="stat-number">{{ active_exams }}</div><div class="stat-label">✅ فعال</div></div>
-    <div class="stat-card inactive"><div class="stat-number">{{ total_questions }}</div><div class="stat-label">❓ کل سوال‌ها</div></div>
+    <div class="stat-card ongoing"><div class="stat-number">{{ total_exams }}</div><div class="stat-label">کل آزمون‌ها</div></div>
+    <div class="stat-card active"><div class="stat-number">{{ active_exams }}</div><div class="stat-label">فعال</div></div>
+    <div class="stat-card inactive"><div class="stat-number">{{ total_questions }}</div><div class="stat-label">کل سوال‌ها</div></div>
 </div>
 
 <form class="filters" method="get">
@@ -64,11 +64,11 @@
             <td style="font-size:.72rem;">{{ e.start_time|to_jalali }}<br>تا {{ e.end_time|to_jalali }}</td>
             <td>
                 <div class="row-actions">
-                    <a class="btn btn-info" href="{% url 'exam_detail' e.id %}">🔍 جزئیات</a>
+                    <a class="btn btn-info" href="{% url 'exam_detail' e.id %}">جزئیات</a>
                     <button class="btn btn-toggle t-toggle {% if e.is_active %}on{% endif %} js-toggle" data-id="{{ e.id }}">
-                        {% if e.is_active %}🔒 غیرفعال‌سازی{% else %}🔓 فعال‌سازی{% endif %}
+                        {% if e.is_active %}غیرفعال‌سازی{% else %}فعال‌سازی{% endif %}
                     </button>
-                    <button class="btn btn-delete js-del" data-id="{{ e.id }}" data-name="{{ e.title }}">🗑️ حذف</button>
+                    <button class="btn btn-delete js-del" data-id="{{ e.id }}" data-name="{{ e.title }}">حذف</button>
                 </div>
             </td>
         </tr>
@@ -76,7 +76,7 @@
         </tbody>
     </table>
     {% else %}
-    <div class="empty-state">🔍 آزمونی با این فیلترها پیدا نشد.</div>
+    <div class="empty-state">آزمونی با این فیلترها پیدا نشد.</div>
     {% endif %}
 </div>
 
@@ -85,13 +85,13 @@ const csrftoken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
 document.querySelectorAll('.js-toggle').forEach(btn => btn.addEventListener('click', async () => {
     const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/toggle/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
-    if (d.success) location.reload(); else alert('⚠️ ' + (d.error || 'خطا'));
+    if (d.success) location.reload(); else alert('' + (d.error || 'خطا'));
 }));
 document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click', async () => {
     if (!confirm('آزمون «' + btn.dataset.name + '» همراه همهٔ پاسخ‌ها حذف شود؟')) return;
     const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/delete/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
-    if (d.success) location.reload(); else alert('⚠️ ' + (d.error || 'خطا'));
+    if (d.success) location.reload(); else alert('' + (d.error || 'خطا'));
 }));
 </script>
 {% endblock %}

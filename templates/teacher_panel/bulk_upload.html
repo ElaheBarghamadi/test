@@ -551,38 +551,38 @@
                 </div>
                 <div class="help-grid">
                     <div class="help-card">
-                        <h4>🔘 سوال تستی</h4>
+                        <h4>سوال تستی</h4>
                         <p>ستون‌های option_1 تا option_4 و correct_answer (1-4) اجباری</p>
                         <div class="help-example">text: "پایتون چیست؟" | question_type: "تستی" | max_score: 1.5 | option_1: "زبان برنامه‌نویسی" | option_2: "مار" | correct_answer: "1"</div>
                     </div>
                     <div class="help-card">
-                        <h4>✅ صحیح/غلط</h4>
+                        <h4>صحیح/غلط</h4>
                         <p>correct_answer = true یا false</p>
                         <div class="help-example">text: "پایتون یک زبان تفسیری است" | question_type: "صحیح/غلط" | max_score: 1 | correct_answer: "true"</div>
                     </div>
                     <div class="help-card">
-                        <h4>✏️ پاسخ کوتاه/تشریحی</h4>
+                        <h4>پاسخ کوتاه/تشریحی</h4>
                         <p>فقط متن سوال و نمره کافیست</p>
                         <div class="help-example">text: "تفاوت list و tuple را بنویسید" | question_type: "پاسخ کوتاه" | max_score: 2.5</div>
                     </div>
                     <div class="help-card">
-                        <h4>🔗 وصل کردنی</h4>
+                        <h4>وصل کردنی</h4>
                         <p>فرمت: left1,right1;left2,right2</p>
                         <div class="help-example">matching_pairs: "HTTP,پروتکل انتقال;HTTPS,نسخه امن;API,رابط برنامه‌نویسی"</div>
                     </div>
                     <div class="help-card">
-                        <h4>🖼️ تصویری</h4>
+                        <h4>تصویری</h4>
                         <p>allow_image_answer = True</p>
                         <div class="help-example">text: "نمودار کلاس را رسم کنید" | question_type: "تصویری" | allow_image_answer: "True"</div>
                     </div>
                     <div class="help-card">
-                        <h4>📊 ستون‌های عمومی</h4>
+                        <h4>ستون‌های عمومی</h4>
                         <p>text (اجباری)، question_type (اجباری)، max_score (اجباری)</p>
                         <div class="help-example">text: "سوال نمونه" | question_type: "تستی" | max_score: "1"</div>
                     </div>
                 </div>
                 <button class="btn-help" id="showHelpModalBtn">
-                    📋 مشاهده جدول کامل مشخصات ستون‌ها
+                    مشاهده جدول کامل مشخصات ستون‌ها
                 </button>
             </div>
 
@@ -610,7 +610,7 @@
 
                 <div class="action-buttons">
                     <button type="submit" class="btn-primary" id="submitBtn" disabled>
-                        📤 آپلود و پردازش
+                        آپلود و پردازش
                     </button>
                     <a href="{% url 'edit_exam' exam.id %}" class="btn-secondary">
                         ← بازگشت
@@ -633,7 +633,7 @@
 <div id="helpModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 style="margin:0;">📋 جدول مشخصات ستون‌های فایل اکسل</h3>
+            <h3 style="margin:0;">جدول مشخصات ستون‌های فایل اکسل</h3>
             <button class="modal-close" onclick="closeHelpModal()">✕</button>
         </div>
         <div class="modal-body">
@@ -659,7 +659,7 @@
                 </tbody>
             </table>
             <div style="margin-top: 20px; background: #eef7f5; padding: 16px; border-radius: 20px;">
-                <strong>💡 نکات مهم:</strong>
+                <strong>نکات مهم:</strong>
                 <ul style="margin-top: 10px; padding-right: 20px;">
                     <li>ستون‌های اضافی در فایل مشکلی ایجاد نمی‌کنند</li>
                     <li>برای سوالات تشریحی و کوتاه، فقط text و question_type و max_score کافی است</li>
@@ -675,7 +675,7 @@
 <div id="previewModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
-            <h3 style="margin:0;">📋 سوالات آپلود شده</h3>
+            <h3 style="margin:0;">سوالات آپلود شده</h3>
             <button class="modal-close" onclick="closePreviewModal()">✕</button>
         </div>
         <div class="modal-body" id="previewModalBody">
@@ -781,15 +781,15 @@
         // انیمیشن پراگرس
         let progress = 0;
         progressFill.style.width = '0%';
-        progressText.innerText = '📤 در حال آپلود فایل...';
+        progressText.innerText = 'در حال آپلود فایل...';
 
         const interval = setInterval(() => {
             if (progress < 90) {
                 progress += 10;
                 progressFill.style.width = progress + '%';
-                if (progress === 30) progressText.innerText = '🔄 در حال بررسی ساختار فایل...';
-                if (progress === 60) progressText.innerText = '⚙️ در حال پردازش سوالات...';
-                if (progress === 80) progressText.innerText = '💾 در حال ذخیره در دیتابیس...';
+                if (progress === 30) progressText.innerText = 'در حال بررسی ساختار فایل...';
+                if (progress === 60) progressText.innerText = 'در حال پردازش سوالات...';
+                if (progress === 80) progressText.innerText = 'در حال ذخیره در دیتابیس...';
             }
         }, 300);
 
@@ -802,7 +802,7 @@
 
             clearInterval(interval);
             progressFill.style.width = '100%';
-            progressText.innerText = '✅ پردازش کامل شد!';
+            progressText.innerText = 'پردازش کامل شد!';
 
             const data = await response.json();
 
@@ -812,25 +812,25 @@
                 progressFill.style.width = '0%';
 
                 if (data.success) {
-                    resultMessage.innerHTML = `<div class="alert-success"><strong>✅ موفق!</strong> ${data.message}</div>`;
+                    resultMessage.innerHTML = `<div class="alert-success"><strong>موفق!</strong> ${data.message}</div>`;
 
                     if (data.skip_count > 0) {
-                        resultMessage.innerHTML += `<div style="margin-top:10px; background:#fef3c7; padding:12px; border-radius:18px;"><small>⚠️ ${data.skip_count} سوال به دلیل خطا اضافه نشدند</small></div>`;
+                        resultMessage.innerHTML += `<div style="margin-top:10px; background:#fef3c7; padding:12px; border-radius:18px;"><small>${data.skip_count} سوال به دلیل خطا اضافه نشدند</small></div>`;
                     }
 
                     if (data.warnings && data.warnings.length) {
-                        warningList.innerHTML = '<div style="margin-top:14px; background:#fffbeb; padding:14px; border-radius:18px;"><strong>⚠️ هشدارها:</strong><ul style="margin-top:8px; padding-right:20px;">' +
+                        warningList.innerHTML = '<div style="margin-top:14px; background:#fffbeb; padding:14px; border-radius:18px;"><strong>هشدارها:</strong><ul style="margin-top:8px; padding-right:20px;">' +
                             data.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('') + '</ul></div>';
                     }
 
                     if (data.errors && data.errors.length) {
-                        errorList.innerHTML = '<div style="margin-top:14px; background:#fef2f2; padding:14px; border-radius:18px;"><strong>❌ خطاها:</strong><ul style="margin-top:8px; padding-right:20px;">' +
+                        errorList.innerHTML = '<div style="margin-top:14px; background:#fef2f2; padding:14px; border-radius:18px;"><strong>خطاها:</strong><ul style="margin-top:8px; padding-right:20px;">' +
                             data.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('') + '</ul></div>';
                     }
 
                     if (data.preview_questions && data.preview_questions.length) {
                         lastUploadedQuestions = data.preview_questions;
-                        previewBtnContainer.innerHTML = '<button class="btn-preview" id="showPreviewBtn">📋 مشاهده جزئیات سوالات آپلود شده</button>';
+                        previewBtnContainer.innerHTML = '<button class="btn-preview" id="showPreviewBtn">مشاهده جزئیات سوالات آپلود شده</button>';
                         document.getElementById('showPreviewBtn').onclick = showPreviewModal;
                     }
 
@@ -838,7 +838,7 @@
                         window.location.href = "{% url 'edit_exam' exam.id %}";
                     }, 4000);
                 } else {
-                    resultMessage.innerHTML = `<div class="alert-danger"><strong>❌ خطا!</strong> ${data.error}</div>`;
+                    resultMessage.innerHTML = `<div class="alert-danger"><strong>خطا!</strong> ${data.error}</div>`;
                     submitBtn.disabled = false;
                 }
             }, 500);
@@ -847,7 +847,7 @@
             clearInterval(interval);
             progressWrapper.style.display = 'none';
             resultBox.style.display = 'block';
-            resultMessage.innerHTML = '<div class="alert-danger"><strong>❌ خطا!</strong> مشکل در ارتباط با سرور</div>';
+            resultMessage.innerHTML = '<div class="alert-danger"><strong>خطا!</strong> مشکل در ارتباط با سرور</div>';
             submitBtn.disabled = false;
         }
     });
@@ -861,8 +861,8 @@
                     <div class="preview-question-item">
                         <div class="preview-question-text">${idx+1}. ${escapeHtml(q.text)}</div>
                         <div class="preview-question-meta">
-                            <span>📌 ${escapeHtml(q.type_display)}</span>
-                            <span>⭐ ${q.max_score} نمره</span>
+                            <span>${escapeHtml(q.type_display)}</span>
+                            <span>${q.max_score} نمره</span>
                         </div>
                     </div>
                 `).join('') + '</div>';

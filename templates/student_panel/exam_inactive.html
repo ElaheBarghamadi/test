@@ -135,9 +135,9 @@
         <div class="notice-exam">
             📝 <strong>{{ exam.title }}</strong>
             <div class="notice-times">
-                {% if start_time_jalali %}<span class="time-chip">🕐 شروع: {{ start_time_jalali }}</span>{% endif %}
-                {% if end_time_jalali %}<span class="time-chip">🏁 پایان: {{ end_time_jalali }}</span>{% endif %}
-                <span class="time-chip">⏱ مدت: {{ exam.duration_minutes }} دقیقه</span>
+                {% if start_time_jalali %}<span class="time-chip">شروع: {{ start_time_jalali }}</span>{% endif %}
+                {% if end_time_jalali %}<span class="time-chip">پایان: {{ end_time_jalali }}</span>{% endif %}
+                <span class="time-chip">مدت: {{ exam.duration_minutes }} دقیقه</span>
             </div>
         </div>
 

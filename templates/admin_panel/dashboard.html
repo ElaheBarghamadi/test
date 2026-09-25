@@ -16,47 +16,47 @@
 {% block content %}
 {% include 'admin_panel/_admin_nav.html' %}
 
-<div class="page-title">🛡️ داشبورد مدیریت سامانه</div>
+<div class="page-title">داشبورد مدیریت سامانه</div>
 
 <!-- آمار کلی -->
 <div class="stats stats-4x">
     <div class="stat-card students">
         <div class="stat-number">{{ stats.total_students }}</div>
-        <div class="stat-label">👥 دانش‌آموزان</div>
+        <div class="stat-label">دانش‌آموزان</div>
     </div>
     <div class="stat-card active">
         <div class="stat-number">{{ stats.total_teachers }}</div>
-        <div class="stat-label">🧑🏫 معلم‌ها</div>
+        <div class="stat-label">معلم‌ها</div>
     </div>
     <div class="stat-card ongoing">
         <div class="stat-number">{{ stats.total_exams }}</div>
-        <div class="stat-label">📝 کل آزمون‌ها</div>
+        <div class="stat-label">کل آزمون‌ها</div>
     </div>
     <div class="stat-card active">
         <div class="stat-number">{{ stats.active_exams }}</div>
-        <div class="stat-label">✅ آزمون فعال</div>
+        <div class="stat-label">آزمون فعال</div>
     </div>
     <div class="stat-card ongoing">
         <div class="stat-number">{{ stats.total_attempts }}</div>
-        <div class="stat-label">🚀 تلاش‌های آزمون</div>
+        <div class="stat-label">تلاش‌های آزمون</div>
     </div>
     <div class="stat-card students">
         <div class="stat-number">{{ stats.submitted_attempts }}</div>
-        <div class="stat-label">📥 ثبت‌نهایی‌شده</div>
+        <div class="stat-label">ثبت‌نهایی‌شده</div>
     </div>
     <div class="stat-card inactive">
         <div class="stat-number">{{ stats.total_answers }}</div>
-        <div class="stat-label">✍️ پاسخ‌ها</div>
+        <div class="stat-label">پاسخ‌ها</div>
     </div>
     <div class="stat-card inactive">
         <div class="stat-number">{{ stats.graded_answers }}</div>
-        <div class="stat-label">💯 تصحیح‌شده</div>
+        <div class="stat-label">تصحیح‌شده</div>
     </div>
 </div>
 
 <!-- روند ۶ ماه اخیر -->
 <div class="card" style="margin-bottom:14px;">
-    <div class="section-title">📈 روند شش ماه اخیر</div>
+    <div class="section-title">روند شش ماه اخیر</div>
     <div class="month-bars">
         {% for m in monthly_stats %}
         <div class="mb" title="{{ m.month }}: {{ m.exams }} آزمون، {{ m.attempts }} ثبت">
@@ -67,13 +67,13 @@
         {% endfor %}
     </div>
     <div style="display:flex; gap:16px; justify-content:center; margin-top:8px; font-size:.7rem; color:var(--ink3); font-weight:600;">
-        <span>🟨 آزمون ساخته‌شده</span><span>🟩 ثبت نهایی</span>
+        <span>آزمون ساخته‌شده</span><span>ثبت نهایی</span>
     </div>
 </div>
 
 <!-- آمار پایه‌ها -->
 <div class="card" style="margin-bottom:14px;">
-    <div class="section-title">🎓 وضعیت پایه‌های تحصیلی</div>
+    <div class="section-title">وضعیت پایه‌های تحصیلی</div>
     {% if grade_stats %}
     <table>
         <thead>
@@ -97,14 +97,14 @@
         </tbody>
     </table>
     {% else %}
-    <div class="empty-state">📭 هنوز پایه‌ای تعریف نشده است.</div>
+    <div class="empty-state">هنوز پایه‌ای تعریف نشده است.</div>
     {% endif %}
 </div>
 
 <div class="admin-cols">
     <!-- آخرین آزمون‌ها -->
     <div class="card">
-        <div class="section-title">📝 آخرین آزمون‌ها</div>
+        <div class="section-title">آخرین آزمون‌ها</div>
         {% if exams_data %}
         {% for row in exams_data %}
         <div class="list-row">
@@ -119,13 +119,13 @@
         </div>
         {% endfor %}
         {% else %}
-        <div class="empty-state">📭 هنوز آزمونی ساخته نشده است.</div>
+        <div class="empty-state">هنوز آزمونی ساخته نشده است.</div>
         {% endif %}
     </div>
 
     <!-- آخرین کاربران -->
     <div class="card">
-        <div class="section-title">👥 آخرین کاربران</div>
+        <div class="section-title">آخرین کاربران</div>
         {% if recent_users %}
         {% for u in recent_users %}
         <div class="list-row">
@@ -134,19 +134,19 @@
                 <div class="muted">@{{ u.username }} · {{ u.date_joined|to_jalali }}</div>
             </div>
             <span class="status-badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'teacher' %}status-ongoing{% else %}status-completed{% endif %}">
-                {% if u.role == 'admin' %}🛡️ ادمین{% elif u.role == 'teacher' %}🧑‍🏫 معلم{% else %}👥 دانش‌آموز{% endif %}
+                {% if u.role == 'admin' %}ادمین{% elif u.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %}
             </span>
         </div>
         {% endfor %}
         {% else %}
-        <div class="empty-state">📭 کاربری ثبت نشده است.</div>
+        <div class="empty-state">کاربری ثبت نشده است.</div>
         {% endif %}
     </div>
 </div>
 
 <!-- فعالیت‌های اخیر -->
 <div class="card" style="margin-top:14px;">
-    <div class="section-title">⚡ فعالیت‌های اخیر</div>
+    <div class="section-title">فعالیت‌های اخیر</div>
     {% if recent_activities %}
     {% for a in recent_activities %}
     <div class="list-row">
@@ -155,7 +155,7 @@
     </div>
     {% endfor %}
     {% else %}
-    <div class="empty-state">📭 هنوز فعالیتی ثبت نشده است.</div>
+    <div class="empty-state">هنوز فعالیتی ثبت نشده است.</div>
     {% endif %}
 </div>
 {% endblock %}

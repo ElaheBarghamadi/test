@@ -26,13 +26,13 @@
     </div>
 
     <div class="card">
-        <h3 style="margin-bottom: 10px;">➕ ساخت گروه جدید</h3>
+        <h3 style="margin-bottom: 10px;">ساخت گروه جدید</h3>
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
             <div class="group-form-row" style="margin-bottom: 10px;">
                 <input type="text" name="name" required placeholder="نام گروه (مثلاً کلاس ۹ الف)">
-                <button type="submit" class="btn btn-gold">💾 ساخت گروه</button>
+                <button type="submit" class="btn btn-gold">ساخت گروه</button>
             </div>
             <div class="member-grid">
                 {% for s in students %}
@@ -42,7 +42,7 @@
                     </label>
                 </div>
                 {% empty %}
-                <div class="empty-state">📭 دانش‌آموزی ثبت نشده است.</div>
+                <div class="empty-state">دانش‌آموزی ثبت نشده است.</div>
                 {% endfor %}
             </div>
         </form>
@@ -57,7 +57,7 @@
             <div class="group-head">
                 <span class="group-name">👥 {{ g.name }} <span class="info-stat">{{ g.students.count }} نفر</span></span>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                    <button type="submit" class="btn btn-green">💾 ذخیره اعضا</button>
+                    <button type="submit" class="btn btn-green">ذخیره اعضا</button>
                 </div>
             </div>
             <div class="member-grid">
@@ -75,7 +75,7 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="group_id" value="{{ g.id }}">
-            <button type="submit" class="btn btn-danger">🗑️ حذف گروه</button>
+            <button type="submit" class="btn btn-danger">حذف گروه</button>
         </form>
     </div>
     {% empty %}

@@ -170,21 +170,21 @@
 
 {% block content %}
 <div class="bank-topbar">
-    <div class="page-title" style="margin:0;">📚 بانک سوال مشترک</div>
+    <div class="page-title" style="margin:0;">بانک سوال مشترک</div>
     <div class="actions">
-        <a class="btn btn-gold" href="{% url 'bank_question_new' %}{% if folder_id %}?folder={{ folder_id }}{% endif %}">➕ سوال جدید</a>
-        <button class="btn btn-secondary" id="btnNewF" type="button">📁 پوشه جدید</button>
+        <a class="btn btn-gold" href="{% url 'bank_question_new' %}{% if folder_id %}?folder={{ folder_id }}{% endif %}">سوال جدید</a>
+        <button class="btn btn-secondary" id="btnNewF" type="button">پوشه جدید</button>
         <form method="post" action="{% url 'bank_seed_sample' %}" style="display:inline;"
               onsubmit="return confirm('بانک آماده (پایه‌ها، درس‌ها و فصل‌ها با ده‌ها سوال) به بانک شما اضافه شود؟ سوال‌های فعلی دست نمی‌خورند.');">
             {% csrf_token %}
-            <button class="btn btn-secondary" type="submit">✨ بارگذاری بانک نمونه</button>
+            <button class="btn btn-secondary" type="submit">بارگذاری بانک نمونه</button>
         </form>
     </div>
 </div>
 
 <!-- فرم پوشه جدید -->
 <div class="card collapsible" id="newFBox">
-    <div class="section-title">📁 ساخت پوشه جدید</div>
+    <div class="section-title">ساخت پوشه جدید</div>
     <form method="post" action="{% url 'bank_folder_add' %}" class="newf-form">
         {% csrf_token %}
         <input type="text" name="name" required maxlength="80" placeholder="نام پوشه، مثلاً «فصل ۳ — کسرها»">
@@ -194,7 +194,7 @@
             <option value="{{ f.id }}" {% if current_folder and current_folder.id == f.id %}selected{% endif %}>داخل: {{ f.path }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="btn btn-gold">📁 ساخت پوشه</button>
+        <button type="submit" class="btn btn-gold">ساخت پوشه</button>
     </form>
 </div>
 
@@ -209,12 +209,12 @@
     <!-- درخت پوشه‌ها -->
     <aside class="card folder-tree" id="folderTree">
         <div class="tree-head">
-            <span>🗂️ پوشه‌ها</span>
+            <span>پوشه‌ها</span>
             <button type="button" class="tree-toggle" id="treeToggle" aria-label="نمایش پوشه‌ها">▾</button>
         </div>
         <nav class="tree-body">
             <a class="tree-link {% if not folder_id %}on{% endif %}" href="{% url 'question_bank' %}">
-                <span class="tl-name">📚 همهٔ سوال‌ها</span><span class="cnt">{{ total_count }}</span></a>
+                <span class="tl-name">همهٔ سوال‌ها</span><span class="cnt">{{ total_count }}</span></a>
             {% for f in folders %}
             <a class="tree-link {% if current_folder and current_folder.id == f.id %}on{% endif %}"
                href="?folder={{ f.id }}" style="padding-right: {{ f.indent|add:12 }}px;" title="{{ f.path }}">
@@ -222,14 +222,14 @@
                 <span class="cnt">{{ f.cnt }}</span></a>
             {% endfor %}
             <a class="tree-link {% if folder_id == 'none' %}on{% endif %}" href="?folder=none">
-                <span class="tl-name">🗃️ بدون پوشه</span><span class="cnt">{{ unfiled_count }}</span></a>
+                <span class="tl-name">بدون پوشه</span><span class="cnt">{{ unfiled_count }}</span></a>
         </nav>
     </aside>
 
     <section class="bank-main">
         <!-- مسیر -->
         <div class="crumbs">
-            <a href="{% url 'question_bank' %}">📚 بانک سوال</a>
+            <a href="{% url 'question_bank' %}">بانک سوال</a>
             {% for c in breadcrumb %}<span class="sep">‹</span>{% if forloop.last %}<b>{{ c.name }}</b>{% else %}<a href="?folder={{ c.id }}">{{ c.name }}</a>{% endif %}{% endfor %}
             {% if folder_id == 'none' %}<span class="sep">‹</span><b>بدون پوشه</b>{% endif %}
         </div>
@@ -248,7 +248,7 @@
                         <option value="{{ f.id }}" {% if current_folder.parent_id == f.id %}selected{% endif %}>{{ f.path }}</option>
                         {% endif %}{% endfor %}
                     </select>
-                    <button class="btn btn-edit" type="submit">✏️ ذخیره نام/مکان</button>
+                    <button class="btn btn-edit" type="submit">ذخیره نام/مکان</button>
                 </form>
                 <form method="post" action="{% url 'bank_folder_import' current_folder.id %}">
                     {% csrf_token %}
@@ -256,11 +256,11 @@
                         <option value="">کل پوشه به آزمون…</option>
                         {% for e in exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
                     </select>
-                    <button class="btn btn-gold" type="submit" {% if not current_folder.cnt %}disabled{% endif %}>📥 افزودن همه</button>
+                    <button class="btn btn-gold" type="submit" {% if not current_folder.cnt %}disabled{% endif %}>افزودن همه</button>
                 </form>
                 <form method="post" action="{% url 'bank_folder_delete' current_folder.id %}" onsubmit="return confirm('پوشه حذف شود؟ سوال‌ها و زیرپوشه‌ها به پوشهٔ والد منتقل می‌شوند.');">
                     {% csrf_token %}
-                    <button class="btn btn-delete" type="submit">🗑️ حذف پوشه</button>
+                    <button class="btn btn-delete" type="submit">حذف پوشه</button>
                 </form>
             </div>
         </div>
@@ -282,7 +282,7 @@
         <!-- جستجو و فیلتر -->
         <form method="get" class="card bank-filter">
             {% if folder_id %}<input type="hidden" name="folder" value="{{ folder_id }}">{% endif %}
-            <input type="search" name="q" value="{{ q }}" placeholder="🔍 جستجو در متن سوال یا پاسخ…">
+            <input type="search" name="q" value="{{ q }}" placeholder="جستجو در متن سوال یا پاسخ…">
             <select name="type">
                 <option value="">همهٔ انواع</option>
                 {% for v, l in type_choices %}<option value="{{ v }}" {% if qtype == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
@@ -298,7 +298,7 @@
         <!-- لیست سوال‌ها -->
         <div class="card">
             <div class="list-head">
-                <div class="section-title" style="margin:0;">📝 سوال‌ها <small>({{ banks|length }} مورد)</small></div>
+                <div class="section-title" style="margin:0;">سوال‌ها <small>({{ banks|length }} مورد)</small></div>
                 {% if banks %}<label class="chk selall"><input type="checkbox" id="selAll"> انتخاب همه</label>{% endif %}
             </div>
 
@@ -311,13 +311,13 @@
                     <option value="">ریشهٔ بانک</option>
                     {% for f in folders %}<option value="{{ f.id }}">{{ f.path }}</option>{% endfor %}
                 </select>
-                <button class="btn btn-secondary" name="action" value="move" type="submit">🚚 انتقال</button>
+                <button class="btn btn-secondary" name="action" value="move" type="submit">انتقال</button>
                 <select name="exam_id">
                     <option value="">انتخاب آزمون…</option>
                     {% for e in exams %}<option value="{{ e.id }}">{{ e.title }}</option>{% endfor %}
                 </select>
-                <button class="btn btn-gold" name="action" value="import" type="submit">📥 به آزمون</button>
-                <button class="btn btn-danger" name="action" value="delete" type="submit">🗑️ حذف</button>
+                <button class="btn btn-gold" name="action" value="import" type="submit">به آزمون</button>
+                <button class="btn btn-danger" name="action" value="delete" type="submit">حذف</button>
             </form>
 
             <div class="bank-list">
@@ -346,7 +346,7 @@
                         {% if b.folder %}<a class="tag folder-tag" href="?folder={{ b.folder_id }}">📁 {{ b.folder.name }}</a>{% endif %}
                         <span class="tag t-{{ b.question_type }}">{{ b.get_question_type_display }}</span>
                         <span class="tag d-{{ b.difficulty }}">{{ b.get_difficulty_display }}</span>
-                        <span class="tag">⭐ بارم {{ b.max_score|floatformat:"-2" }}</span>
+                        <span class="tag">بارم {{ b.max_score|floatformat:"-2" }}</span>
                         <span class="tag">🔁 {{ b.use_count }} بار</span>
                         {% if b.correct_answer and b.question_type != 'multiple_choice' and b.question_type != 'matching' %}
                         <span class="tag ans">✅ {% if b.correct_answer == 'true' %}صحیح{% elif b.correct_answer == 'false' %}غلط{% else %}{{ b.correct_answer|truncatewords:8 }}{% endif %}</span>
@@ -387,7 +387,7 @@
             {% else %}
             <div class="empty-state">
                 📭 {% if filtered %}سوالی با این فیلتر پیدا نشد.{% else %}این بخش سوالی ندارد.{% endif %}
-                <a href="#" onclick="document.getElementById('btnNewQ').click(); return false;">➕ افزودن سوال</a>
+                <a href="#" onclick="document.getElementById('btnNewQ').click(); return false;">افزودن سوال</a>
             </div>
             {% endif %}
         </div>

@@ -124,16 +124,16 @@
 
     <!-- تب‌ها -->
     <div class="tabs">
-        <button class="tab-btn active" data-tab="info">📋 اطلاعات آزمون</button>
-        <button class="tab-btn" data-tab="settings">⚙️ تنظیمات آزمون</button>
-        <button class="tab-btn" data-tab="cheats">⚠️ گزارش تخلفات</button>
-        <button class="tab-btn" data-tab="students">👥 دانش‌آموزان</button>
+        <button class="tab-btn active" data-tab="info">اطلاعات آزمون</button>
+        <button class="tab-btn" data-tab="settings">تنظیمات آزمون</button>
+        <button class="tab-btn" data-tab="cheats">گزارش تخلفات</button>
+        <button class="tab-btn" data-tab="students">دانش‌آموزان</button>
     </div>
 
     <!-- تب 1: اطلاعات اصلی -->
     <div id="tab-info" class="tab-content active">
         <div class="card">
-            <div class="card-title">📋 اطلاعات اصلی آزمون</div>
+            <div class="card-title">اطلاعات اصلی آزمون</div>
             <form method="post">
                 {% csrf_token %}
                 <div class="form-row">
@@ -152,30 +152,30 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>⏱️ مدت زمان (دقیقه)</label>
+                        <label>مدت زمان (دقیقه)</label>
                         <input type="number" name="duration" value="{{ exam.duration_minutes }}" required min="1" max="180">
                     </div>
                     <div class="form-group">
-                        <label>📅 زمان شروع</label>
+                        <label>زمان شروع</label>
                         <input type="datetime-local" name="start_time" value="{{ start_miladi }}" required>
-                        <div class="jalali-date">📅 شمسی: <span>{{ start_jalali }}</span></div>
+                        <div class="jalali-date">شمسی: <span>{{ start_jalali }}</span></div>
                     </div>
                     <div class="form-group">
-                        <label>🏁 زمان پایان</label>
+                        <label>زمان پایان</label>
                         <input type="datetime-local" name="end_time" value="{{ end_miladi }}" required>
-                        <div class="jalali-date">📅 شمسی: <span>{{ end_jalali }}</span></div>
+                        <div class="jalali-date">شمسی: <span>{{ end_jalali }}</span></div>
                     </div>
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" name="show_score" id="show_score" {% if exam.show_score_to_student %}checked{% endif %}>
-                    <label for="show_score">📊 نمایش نمره نهایی به دانش‌آموز</label>
+                    <label for="show_score">نمایش نمره نهایی به دانش‌آموز</label>
                 </div>
                 <div class="checkbox-group">
                     <input type="checkbox" name="is_active" id="is_active" {% if exam.is_active %}checked{% endif %}>
-                    <label for="is_active">✅ فعال بودن آزمون</label>
+                    <label for="is_active">فعال بودن آزمون</label>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" name="save_info" class="btn-save">💾 ذخیره تغییرات</button>
+                    <button type="submit" name="save_info" class="btn-save">ذخیره تغییرات</button>
                     <a href="{% url 'edit_exam' exam.id %}" class="btn-danger">← مدیریت سوالات</a>
                 </div>
             </form>
@@ -185,78 +185,78 @@
     <!-- تب 2: تنظیمات آزمون -->
     <div id="tab-settings" class="tab-content">
         <div class="card">
-            <div class="card-title">⚙️ تنظیمات آزمون</div>
+            <div class="card-title">تنظیمات آزمون</div>
             <form method="post">
                 {% csrf_token %}
 
                 <!-- تنظیمات تایمر -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">⏱️ تنظیمات زمان (تایمر)</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">تنظیمات زمان (تایمر)</h4>
                     <div class="checkbox-group">
                         <label style="min-width: 100px;">نوع تایمر:</label>
                         <select name="timer_type" style="width: 250px;">
-                            <option value="floating" {% if exam.timer_type == 'floating' %}selected{% endif %}>🏃 تایم شناور</option>
-                            <option value="fixed" {% if exam.timer_type == 'fixed' %}selected{% endif %}>🔒 تایم ثابت</option>
+                            <option value="floating" {% if exam.timer_type == 'floating' %}selected{% endif %}>تایم شناور</option>
+                            <option value="fixed" {% if exam.timer_type == 'fixed' %}selected{% endif %}>تایم ثابت</option>
                         </select>
                     </div>
                 </div>
 
                 <!-- تنظیمات نمایش سوالات -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">📄 تنظیمات نمایش سوالات</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">تنظیمات نمایش سوالات</h4>
                     <div class="checkbox-group">
                         <input type="checkbox" name="random_questions" id="random_questions" {% if exam.random_questions %}checked{% endif %}>
-                        <label for="random_questions">🎲 نمایش تصادفی سوالات برای هر دانش‌آموز</label>
+                        <label for="random_questions">نمایش تصادفی سوالات برای هر دانش‌آموز</label>
                     </div>
                     <div class="checkbox-group">
                         <label>نحوه نمایش سوالات:</label>
                         <select name="show_questions_mode">
-                            <option value="all" {% if exam.show_questions_mode == 'all' %}selected{% endif %}>📑 همه سوالات در یک صفحه</option>
-                            <option value="one_by_one" {% if exam.show_questions_mode == 'one_by_one' %}selected{% endif %}>📄 هر سوال در یک صفحه</option>
+                            <option value="all" {% if exam.show_questions_mode == 'all' %}selected{% endif %}>همه سوالات در یک صفحه</option>
+                            <option value="one_by_one" {% if exam.show_questions_mode == 'one_by_one' %}selected{% endif %}>هر سوال در یک صفحه</option>
                         </select>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" name="show_back_button" id="show_back_button" {% if exam.show_back_button %}checked{% endif %}>
-                        <label for="show_back_button">🔙 نمایش دکمه بازگشت به سوال قبلی</label>
+                        <label for="show_back_button">نمایش دکمه بازگشت به سوال قبلی</label>
                     </div>
                 </div>
 
                 <!-- تنظیمات امنیتی -->
                 <div style="margin-bottom: 24px;">
-                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">🛡️ تنظیمات امنیتی</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">تنظیمات امنیتی</h4>
                     <div class="checkbox-group">
                         <input type="checkbox" name="enable_anti_cheat" id="enable_anti_cheat" {% if exam.enable_anti_cheat %}checked{% endif %}>
-                        <label for="enable_anti_cheat">✅ فعال کردن سیستم تشخیص تقلب</label>
+                        <label for="enable_anti_cheat">فعال کردن سیستم تشخیص تقلب</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" name="prevent_tab_switch" id="prevent_tab_switch" {% if exam.prevent_tab_switch %}checked{% endif %}>
-                        <label for="prevent_tab_switch">🚫 جلوگیری از تغییر تب</label>
+                        <label for="prevent_tab_switch">جلوگیری از تغییر تب</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" name="prevent_copy_paste" id="prevent_copy_paste" {% if exam.prevent_copy_paste %}checked{% endif %}>
-                        <label for="prevent_copy_paste">📋 جلوگیری از کپی/پیست</label>
+                        <label for="prevent_copy_paste">جلوگیری از کپی/پیست</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" name="track_ip" id="track_ip" {% if exam.track_ip %}checked{% endif %}>
-                        <label for="track_ip">🌐 ردیابی IP دانش‌آموزان</label>
+                        <label for="track_ip">ردیابی IP دانش‌آموزان</label>
                     </div>
                 </div>
 
                 <!-- تنظیمات پاسخ تشریحی -->
                 <div style="margin-bottom: 20px;">
-                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">📝 تنظیمات پاسخ تشریحی</h4>
+                    <h4 style="margin-bottom: 12px; color: #a8d8d2; font-size: 0.9rem;">تنظیمات پاسخ تشریحی</h4>
                     <div class="checkbox-group">
                         <input type="checkbox" name="allow_teacher_answer" id="allow_teacher_answer" {% if exam.allow_teacher_answer %}checked{% endif %}>
-                        <label for="allow_teacher_answer">👨‍🏫 معلم می‌تواند پاسخ تشریحی وارد کند</label>
+                        <label for="allow_teacher_answer">معلم می‌تواند پاسخ تشریحی وارد کند</label>
                     </div>
                     <div class="checkbox-group">
                         <input type="checkbox" name="show_answers_after_exam" id="show_answers_after_exam" {% if exam.show_answers_after_exam %}checked{% endif %}>
-                        <label for="show_answers_after_exam">📖 نمایش پاسخ صحیح بعد از اتمام آزمون</label>
+                        <label for="show_answers_after_exam">نمایش پاسخ صحیح بعد از اتمام آزمون</label>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" name="save_settings" class="btn-save">💾 ذخیره تنظیمات</button>
+                    <button type="submit" name="save_settings" class="btn-save">ذخیره تنظیمات</button>
                 </div>
             </form>
         </div>
@@ -266,8 +266,8 @@
     <div id="tab-cheats" class="tab-content">
         <div class="card">
             <div class="card-title">
-                ⚠️ گزارش تخلفات دانش‌آموزان
-                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-save" style="background: #35565d; padding: 6px 16px; font-size: 0.7rem;">🔍 گزارش کامل</a>
+                گزارش تخلفات دانش‌آموزان
+                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-save" style="background: #35565d; padding: 6px 16px; font-size: 0.7rem;">گزارش کامل</a>
             </div>
 
             {% if cheats_stats %}
@@ -279,7 +279,7 @@
             </div>
             {% endif %}
 
-            <h4 style="margin-bottom: 15px; color: #d4b88c; font-size: 0.85rem;">🕐 آخرین تخلفات</h4>
+            <h4 style="margin-bottom: 15px; color: #d4b88c; font-size: 0.85rem;">آخرین تخلفات</h4>
             <div class="cheat-list">
                 {% if recent_cheats %}
                     {% for cheat in recent_cheats %}
@@ -290,7 +290,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div style="text-align: center; padding: 40px; color: #7fa8ad;">📭 هنوز تخلفی ثبت نشده است</div>
+                    <div style="text-align: center; padding: 40px; color: #7fa8ad;">هنوز تخلفی ثبت نشده است</div>
                 {% endif %}
             </div>
         </div>
@@ -300,7 +300,7 @@
     <div id="tab-students" class="tab-content">
         <div class="card">
             <div class="card-title">
-                👥 دانش‌آموزان شرکت‌کننده
+                دانش‌آموزان شرکت‌کننده
                 <span class="selected-count" id="selectedCount">0 نفر</span>
             </div>
 
@@ -320,7 +320,7 @@
             <div class="filter-box">
                 <div class="filter-row">
                     <div class="filter-item">
-                        <label>🔍 فیلتر بر اساس پایه</label>
+                        <label>فیلتر بر اساس پایه</label>
                         <select id="filterGrade">
                             <option value="all">همه پایه‌ها</option>
                             {% for grade in grades %}
@@ -329,7 +329,7 @@
                         </select>
                     </div>
                     <div class="filter-item">
-                        <label>🔎 جستجوی نام</label>
+                        <label>جستجوی نام</label>
                         <input type="text" id="searchName" placeholder="نام دانش‌آموز...">
                     </div>
                     <div class="filter-item">
@@ -339,25 +339,25 @@
             </div>
 
             <div style="display: flex; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                <span style="color:#7fa8ad; font-size:0.7rem;">📋 لیست دانش‌آموزان</span>
+                <span style="color:#7fa8ad; font-size:0.7rem;">لیست دانش‌آموزان</span>
                 <div>
-                    <button type="button" id="selectAllBtn" class="btn-save" style="padding: 5px 14px; font-size: 0.72rem;">✅ انتخاب همه</button>
-                    <button type="button" id="deselectAllBtn" class="btn-danger" style="padding: 5px 14px; font-size: 0.72rem;">❌ لغو همه</button>
+                    <button type="button" id="selectAllBtn" class="btn-save" style="padding: 5px 14px; font-size: 0.72rem;">انتخاب همه</button>
+                    <button type="button" id="deselectAllBtn" class="btn-danger" style="padding: 5px 14px; font-size: 0.72rem;">لغو همه</button>
                 </div>
             </div>
 
             <div class="students-list" id="studentsList">
-                <div style="text-align: center; padding: 40px; color:#7fa8ad;">⏳ در حال بارگذاری...</div>
+                <div style="text-align: center; padding: 40px; color:#7fa8ad;">در حال بارگذاری...</div>
             </div>
 
             <form method="post" id="studentsForm" style="margin-top: 20px;">
                 {% csrf_token %}
                 <input type="hidden" name="student_ids" id="selectedStudentsInput">
-                <button type="submit" name="save_students" class="btn-save">💾 ذخیره لیست دانش‌آموزان</button>
+                <button type="submit" name="save_students" class="btn-save">ذخیره لیست دانش‌آموزان</button>
             </form>
 
             <div class="info-note">
-                💡 نکته: فقط دانش‌آموزانی که در این لیست انتخاب شوند، می‌توانند در آزمون شرکت کنند.
+                نکته: فقط دانش‌آموزانی که در این لیست انتخاب شوند، می‌توانند در آزمون شرکت کنند.
             </div>
         </div>
     </div>
@@ -379,7 +379,7 @@
             applyFilters();
             updateSelectedCount();
         } catch (error) {
-            document.getElementById('studentsList').innerHTML = '<div style="text-align:center;padding:40px;color:#7fa8ad;">❌ خطا در بارگذاری</div>';
+            document.getElementById('studentsList').innerHTML = '<div style="text-align:center;padding:40px;color:#7fa8ad;">خطا در بارگذاری</div>';
         }
     }
 
@@ -397,7 +397,7 @@
     function renderStudentsList(filtered) {
         const container = document.getElementById('studentsList');
         if (filtered.length === 0) {
-            container.innerHTML = '<div style="text-align:center;padding:40px;color:#7fa8ad;">📭 دانش‌آموزی یافت نشد</div>';
+            container.innerHTML = '<div style="text-align:center;padding:40px;color:#7fa8ad;">دانش‌آموزی یافت نشد</div>';
             return;
         }
         let html = '';
