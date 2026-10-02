@@ -46,6 +46,16 @@ def _login_clear_fails(username):
     cache.delete(f'login:fail:user:{username}')
 
 
+def _sec(request, user=None, username='', event_type='login', severity='info', detail=''):
+    """ثبت رویداد امنیتی — بدون وابستگی سخت به admin_panel (اگر نبود، بی‌صدا رد می‌شود)"""
+    try:
+        from admin_panel.models import record_security_event
+        record_security_event(request, user=user, username=username,
+                              event_type=event_type, severity=severity, detail=detail)
+    except Exception:
+        pass
+
+
 def login_view(request):
     """صفحه ورود یکسان برای همه نقش‌ها"""
     # اگر کاربر وارد شده بود، بره به پنل خودش
@@ -64,6 +74,8 @@ def login_view(request):
 
         # ⚠️ قفل موقت پس از تلاش‌های ناموفق متعدد
         if _login_locked(request, username):
+            _sec(request, username=username, event_type='login_locked', severity='critical',
+                 detail='تعداد تلاش‌های ناموفق ورود از حد مجاز گذشت؛ حساب موقتاً قفل شد.')
             return render(request, 'login.html', {
                 'error': 'تعداد تلاش‌های ناموفق زیاد بود. لطفاً چند دقیقه دیگر دوباره تلاش کنید.',
                 'locked': True,
@@ -74,6 +86,8 @@ def login_view(request):
         if user is not None:
             _login_clear_fails(username)
             auth_login(request, user)
+            _sec(request, user=user, event_type='login', severity='info',
+                 detail='ورود موفق به سامانه')
 
             # هدایت بر اساس نقش
             if user.role == 'admin':
@@ -85,6 +99,8 @@ def login_view(request):
             return redirect('/')
         else:
             _login_register_fail(request, username)
+            _sec(request, username=username, event_type='login_failed', severity='warning',
+                 detail='نام کاربری یا رمز عبور اشتباه بود.')
             return render(request, 'login.html', {'error': 'نام کاربری یا رمز عبور اشتباه است'})
 
     return render(request, 'login.html')
@@ -93,6 +109,9 @@ def login_view(request):
 @require_http_methods(["POST"])
 def logout_view(request):
     """خروج از سیستم — فقط با درخواست POST (جلوگیری از خروج اجباری با لینک مخرب)"""
+    if request.user.is_authenticated:
+        _sec(request, user=request.user, event_type='logout', severity='info',
+             detail='خروج از حساب توسط خود کاربر')
     logout(request)
     return redirect('login')
 

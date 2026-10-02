@@ -430,9 +430,9 @@
     </style>
     {% block extra_css %}{% endblock %}
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=4">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=5">
-    <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=6">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=8">
+    <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=7">
 </head>
 <body>
 <a class="skip-to-content" href="#mainContent">پرش به محتوای اصلی</a>
@@ -466,9 +466,10 @@
                     <a href="{{ u3 }}" class="nav-link {% if u3 in p %}active{% endif %}" {% if u3 in p %}aria-current="page"{% endif %}>بانک سوال</a>
                     <a href="{{ u4 }}" class="nav-link {% if u4 in p %}active{% endif %}" {% if u4 in p %}aria-current="page"{% endif %}>گروه‌ها</a>
                 {% elif user.role == 'student' %}
-                    {% url 'student_dashboard' as u1 %}
-                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">آزمون‌های من</a>
-                    <a href="{{ u1 }}#results" class="nav-link {% if 'result' in p %}active{% endif %}">نتایج من</a>
+                    {% url 'student_dashboard' as u1 %}{% url 'student_results' as u2 %}
+                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}" {% if p == u1 %}aria-current="page"{% endif %}>آزمون‌های من</a>
+                    <a href="{{ u2 }}" class="nav-link {% if u2 in p or '/result/' in p %}active{% endif %}" {% if u2 in p %}aria-current="page"{% endif %}>نتایج من</a>
+                    <a href="{{ u1 }}#announcements" class="nav-link {% if p == u1 %}active{% endif %}">اطلاعیه‌ها{% if bell_count %} <b style="background:#ff5a5f;color:#fff;border-radius:999px;padding:0 6px;font-size:.66rem;margin-inline-start:4px">{{ bell_count }}</b>{% endif %}</a>
                 {% endif %}
             {% endif %}
         </nav>
@@ -476,22 +477,30 @@
         <div class="nav-actions">
             {% if user.is_authenticated %}
                 {% if user.role == 'student' %}
-                <details class="bell-menu">
-                    <summary title="اطلاعیه‌ها" aria-label="اطلاعیه‌ها">
+                <details class="bell-menu" id="bellMenu">
+                    <summary title="اطلاعیه‌ها" aria-label="اطلاعیه‌ها{% if bell_count %} — {{ bell_count }} مورد{% endif %}">
                         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                         {% if bell_count %}<b>{{ bell_count }}</b>{% endif %}
                     </summary>
                     <div class="bell-items">
+                        <div class="bell-head">
+                            <b>اطلاعیه‌ها</b>
+                            {% if bell_count %}<span class="cnt">{{ bell_count }} مورد</span>{% endif %}
+                            <a href="{% url 'student_dashboard' %}#announcements">مرکز اطلاعیه‌ها</a>
+                        </div>
                         {% if bell_announcements %}
                             {% for a in bell_announcements %}
                             <div class="bell-item">
                                 <div class="bell-title">{{ a.title }}</div>
                                 {% if a.body %}<div class="bell-body">{{ a.body|truncatewords:18 }}</div>{% endif %}
-                                <div class="bell-time">{{ a.created_at|to_jalali }}</div>
+                                <div class="bell-time">🕒 {{ a.created_at|to_jalali }}{% if a.grade %} · پایهٔ {{ a.grade.get_name_display }}{% else %} · همهٔ پایه‌ها{% endif %}</div>
                             </div>
                             {% endfor %}
+                            <div class="bell-foot">
+                                <a href="{% url 'student_dashboard' %}#announcements">مشاهدهٔ همهٔ اطلاعیه‌ها ←</a>
+                            </div>
                         {% else %}
-                            <div class="bell-empty">اطلاعیه‌ای نیست</div>
+                            <div class="bell-empty">📭 اطلاعیه‌ای نیست</div>
                         {% endif %}
                     </div>
                 </details>
@@ -515,6 +524,8 @@
                             <a href="{% url 'question_bank' %}">بانک سوال</a>
                         {% elif user.role == 'student' %}
                             <a href="{% url 'student_dashboard' %}">آزمون‌های من</a>
+                            <a href="{% url 'student_results' %}">نتایج و کارنامه</a>
+                            <a href="{% url 'student_dashboard' %}#announcements">اطلاعیه‌ها</a>
                         {% endif %}
                         <form method="post" action="{% url 'logout_view' %}" class="logout-form">
                             {% csrf_token %}
@@ -570,7 +581,8 @@
                 <a href="{% url 'groups' %}" class="sidebar-link">گروه‌ها</a>
             {% elif user.role == 'student' %}
                 <a href="{% url 'student_dashboard' %}" class="sidebar-link">داشبورد</a>
-                <a href="{% url 'student_dashboard' %}#results" class="sidebar-link">نتایج من</a>
+                <a href="{% url 'student_results' %}" class="sidebar-link">نتایج من</a>
+                <a href="{% url 'student_dashboard' %}#announcements" class="sidebar-link">اطلاعیه‌ها{% if bell_count %} ({{ bell_count }}){% endif %}</a>
             {% endif %}
             <form method="post" action="{% url 'logout_view' %}" class="logout-form">
                 {% csrf_token %}
@@ -597,33 +609,7 @@
     {% block content %}{% endblock %}
 </main>
 
-<footer class="footer site-footer">
-    <div class="sf-inner">
-        <div class="sf-brand">
-            <span class="sf-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg></span>
-            <b>سامانه آزمون</b>
-        </div>
-        <nav class="sf-links" aria-label="پیوندهای پایین صفحه">
-        {% if user.is_authenticated %}
-            {% if user.role == 'admin' %}
-                <a href="{% url 'admin_dashboard' %}">داشبورد</a>
-                <a href="{% url 'manage_users' %}">کاربران</a>
-                <a href="{% url 'manage_exams' %}">آزمون‌ها</a>
-            {% elif user.role == 'teacher' %}
-                <a href="{% url 'teacher_dashboard' %}">آزمون‌ها</a>
-                <a href="{% url 'question_bank' %}">بانک سوال</a>
-                <a href="{% url 'groups' %}">گروه‌ها</a>
-            {% else %}
-                <a href="{% url 'student_dashboard' %}">آزمون‌های من</a>
-                <a href="{% url 'student_dashboard' %}#results">نتایج</a>
-            {% endif %}
-        {% else %}
-            <a href="{% url 'login' %}">ورود</a>
-        {% endif %}
-        </nav>
-        <span class="sf-copy">© ۱۴۰۵ · همهٔ حقوق محفوظ است</span>
-    </div>
-</footer>
+{% include "_footer.html" %}
 
 <script>
     // ========== Sidebar Menu (از راست باز می‌شود) ==========
@@ -716,6 +702,17 @@
         const t = e.target.closest('[data-confirm]');
         if (t && !confirm(t.dataset.confirm)) { e.preventDefault(); e.stopImmediatePropagation(); }
     }, true);
+
+    // ========== زنگوله: بستن با کلیک بیرون یا ESC ==========
+    const bellMenu = document.getElementById('bellMenu');
+    if (bellMenu) {
+        document.addEventListener('click', function (e) {
+            if (bellMenu.open && !bellMenu.contains(e.target)) bellMenu.open = false;
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && bellMenu.open) bellMenu.open = false;
+        });
+    }
 
     // سایه هدر هنگام اسکرول
     const siteHeader = document.getElementById('siteHeader');

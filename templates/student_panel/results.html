@@ -1,0 +1,539 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block title %}نتایج من | سامانه آزمون{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ---------- سربرگ صفحه ---------- */
+    .rs-hero {
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #0b3c49 0%, #0f7078 55%, #1fa89c 100%);
+        border-radius: 22px; padding: 24px; color: #fff; margin-bottom: 18px;
+        box-shadow: 0 16px 38px rgba(11, 60, 73, .24);
+    }
+    .rs-hero::after {
+        content: ''; position: absolute; inset-block-start: -70px; inset-inline-end: -50px;
+        width: 240px; height: 240px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,.16), transparent 70%);
+    }
+    .rs-hero-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; position: relative; z-index: 1; }
+    .rs-hero h1 { font-size: 1.3rem; font-weight: 800; margin: 0 0 4px; color: #fff; }
+    .rs-hero p { font-size: .82rem; opacity: .8; margin: 0; }
+
+    .rs-gpa {
+        margin-inline-start: auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .rs-ring { position: relative; width: 96px; height: 96px; flex: 0 0 auto; }
+    .rs-ring svg { transform: rotate(-90deg); }
+    .rs-ring circle { fill: none; stroke-width: 9; stroke-linecap: round; }
+    .rs-ring .bg { stroke: rgba(255,255,255,.18); }
+    .rs-ring .fg { stroke: #7ff0e0; transition: stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1); }
+    .rs-ring-val {
+        position: absolute; inset: 0; display: grid; place-items: center; text-align: center; line-height: 1.3;
+    }
+    .rs-ring-val b { font-size: 1.4rem; font-weight: 800; display: block; }
+    .rs-ring-val span { font-size: .62rem; opacity: .75; }
+    .rs-hero-stat { display: flex; flex-direction: column; gap: 1px; min-width: 78px; }
+    .rs-hero-stat b { font-size: 1.2rem; font-weight: 800; }
+    .rs-hero-stat span { font-size: .7rem; opacity: .75; }
+    .rs-print {
+        display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+        background: #fff; color: #0e5e66; border: none; padding: 10px 18px; border-radius: 12px;
+        font-family: inherit; font-size: .8rem; font-weight: 800; text-decoration: none; transition: .18s;
+    }
+    .rs-print:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.2); }
+
+    /* ---------- کنترل‌ها ---------- */
+    .rs-controls {
+        display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+        background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+        padding: 12px 14px; margin-bottom: 16px;
+    }
+    .rs-search { position: relative; flex: 1 1 220px; min-width: 0; }
+    .rs-search input { width: 100%; padding-inline-start: 38px !important; }
+    .rs-search svg { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: var(--ink3); pointer-events: none; }
+    .rs-seg { display: flex; gap: 4px; background: var(--card2); border: 1px solid var(--line); border-radius: 999px; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+    .rs-seg::-webkit-scrollbar { display: none; }
+    .rs-seg button {
+        border: none; background: transparent; cursor: pointer; font-family: inherit;
+        font-size: .78rem; font-weight: 700; color: var(--ink2); padding: 7px 15px;
+        border-radius: 999px; white-space: nowrap; transition: .18s;
+    }
+    .rs-seg button:hover { color: var(--gold3); }
+    .rs-seg button.on { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #fff; box-shadow: 0 3px 10px rgba(15,112,120,.24); }
+    .rs-sort { flex: 0 0 auto; }
+    .rs-count { font-size: .76rem; color: var(--ink3); font-weight: 700; margin-inline-start: auto; white-space: nowrap; }
+
+    /* ---------- جدول نتایج ---------- */
+    .rs-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 2px rgba(8,45,52,.04); }
+    .rs-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .rs-table { width: 100%; border-collapse: collapse; font-size: .84rem; min-width: 720px; }
+    .rs-table th {
+        text-align: right; font-size: .72rem; font-weight: 800; color: var(--ink3);
+        padding: 13px 14px; border-bottom: 1.5px solid var(--line); background: var(--card2);
+        white-space: nowrap; position: sticky; top: 0; z-index: 2;
+    }
+    .rs-table td { padding: 14px; border-bottom: 1px solid var(--line2); color: var(--ink2); vertical-align: middle; }
+    .rs-table tbody tr.rs-row:hover { background: var(--card2); }
+    .rs-table tbody tr.rs-row:last-child td { border-bottom: none; }
+    .rs-exam { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .rs-exam-ic {
+        width: 36px; height: 36px; border-radius: 12px; flex: 0 0 auto; display: grid; place-items: center;
+        background: var(--goldsoft); color: var(--gold3); font-size: .9rem;
+    }
+    .rs-exam-txt { min-width: 0; }
+    .rs-exam-txt b { display: block; font-size: .88rem; color: var(--ink); font-weight: 800; }
+    .rs-exam-txt small { font-size: .72rem; color: var(--ink3); }
+    .rs-score { display: flex; align-items: baseline; gap: 4px; font-weight: 800; color: var(--ink); }
+    .rs-score small { font-size: .72rem; color: var(--ink3); font-weight: 600; }
+    .rs-bar { display: flex; align-items: center; gap: 9px; min-width: 130px; }
+    .rs-bar-track { flex: 1; height: 8px; border-radius: 999px; background: var(--line2); overflow: hidden; }
+    .rs-bar-track i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+    .rs-bar-track i.mid { background: linear-gradient(90deg, #f0b429, #b96c07); }
+    .rs-bar-track i.low { background: linear-gradient(90deg, #ef6a6a, #bd2222); }
+    .rs-bar b { font-size: .78rem; min-width: 42px; text-align: center; }
+    .rs-tag {
+        display: inline-flex; align-items: center; gap: 5px; font-size: .7rem; font-weight: 800;
+        padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+        background: var(--goldsoft); color: var(--gold3); border: 1px solid #bfe8e2;
+    }
+    .rs-tag.ok { background: var(--oksoft); color: var(--ok); border-color: var(--okline); }
+    .rs-tag.warn { background: var(--warnsoft); color: var(--warn); border-color: var(--warnline); }
+    .rs-tag.err { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
+    .rs-tag.mute { background: #eef3f3; color: var(--ink3); border-color: var(--line); }
+    .rs-toggle {
+        width: 32px; height: 32px; border-radius: 10px; cursor: pointer; flex: 0 0 auto;
+        display: grid; place-items: center; color: var(--ink2);
+        background: var(--card2); border: 1px solid var(--line); transition: .18s;
+    }
+    .rs-toggle:hover { border-color: var(--gold); color: var(--gold3); }
+    .rs-toggle svg { transition: transform .25s ease; }
+    tr.rs-open .rs-toggle svg { transform: rotate(180deg); }
+    tr.rs-open .rs-toggle { background: var(--goldsoft); color: var(--gold3); border-color: #bfe8e2; }
+
+    /* ---------- ردیف بازشو: ریزنمرات ---------- */
+    tr.rs-detail > td { padding: 0; border-bottom: 1px solid var(--line2); background: linear-gradient(180deg, var(--card2), transparent); }
+    .rs-detail-in { display: none; padding: 16px 18px; }
+    tr.rs-detail.on .rs-detail-in { display: block; animation: rsFade .22s ease; }
+    @keyframes rsFade { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+    .rs-detail-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .rs-detail-head b { font-size: .84rem; color: var(--ink); }
+    .rs-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .rs-qgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 9px; }
+    .rs-q {
+        background: #fff; border: 1px solid var(--line2); border-radius: 13px; padding: 11px 12px;
+        display: flex; flex-direction: column; gap: 5px; transition: .18s;
+    }
+    .rs-q:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(8,45,52,.08); }
+    .rs-q-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .rs-q-num { font-size: .74rem; font-weight: 800; color: var(--ink3); }
+    .rs-q-type { font-size: .66rem; color: var(--ink3); background: var(--card2); padding: 1px 8px; border-radius: 999px; }
+    .rs-q-score { font-size: .95rem; font-weight: 800; color: var(--ink); }
+    .rs-q-score span { font-size: .7rem; color: var(--ink3); font-weight: 600; }
+    .rs-q-bar { height: 5px; border-radius: 999px; background: var(--line2); overflow: hidden; }
+    .rs-q-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 999px; }
+    .rs-q.pending .rs-q-score { color: var(--warn); }
+    .rs-q.blank .rs-q-score { color: var(--ink3); }
+    .rs-detail-foot { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 13px; border-top: 1px dashed var(--line); }
+
+    /* ---------- خلاصه کارنامه ---------- */
+    .rs-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-top: 18px; }
+    .rs-sum-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+    .rs-sum-card h4 { font-size: .78rem; color: var(--ink3); font-weight: 700; margin: 0 0 8px; }
+    .rs-sum-card .big { font-size: 1.24rem; font-weight: 800; color: var(--ink); }
+    .rs-sum-card p { font-size: .76rem; color: var(--ink2); margin: 4px 0 0; line-height: 1.9; }
+
+    .rs-empty { text-align: center; padding: 46px 20px; }
+    .rs-empty .ic { font-size: 2.4rem; margin-bottom: 8px; }
+    .rs-empty b { display: block; font-size: .95rem; color: var(--ink); margin-bottom: 4px; }
+    .rs-empty span { font-size: .8rem; color: var(--ink3); }
+
+    /* ---------- موبایل: جدول به کارت ---------- */
+    @media (max-width: 860px) {
+        .rs-hero { padding: 18px 16px; border-radius: 18px; }
+        .rs-gpa { margin-inline-start: 0; width: 100%; justify-content: space-between; gap: 14px; }
+        .rs-ring { width: 78px; height: 78px; }
+        .rs-ring-val b { font-size: 1.14rem; }
+        .rs-controls { padding: 10px; gap: 8px; }
+        .rs-search { flex: 1 1 100%; }
+        .rs-seg { flex: 1 1 100%; }
+        .rs-sort { flex: 1 1 auto; }
+        .rs-sort select { width: 100%; }
+        .rs-count { flex: 1 1 100%; margin-inline-start: 0; text-align: center; }
+
+        .rs-scroll { overflow-x: visible; }
+        .rs-table { min-width: 0; }
+        .rs-table thead { display: none; }
+        .rs-table, .rs-table tbody, .rs-table tr, .rs-table td { display: block; width: 100%; }
+        .rs-table tbody tr.rs-row {
+            border: 1px solid var(--line); border-radius: 16px; padding: 12px;
+            margin-bottom: 10px; background: var(--card); box-shadow: 0 1px 2px rgba(8,45,52,.04);
+        }
+        .rs-table tbody tr.rs-row:hover { transform: none; }
+        .rs-table td { border: none; padding: 5px 0; display: flex; align-items: center; gap: 10px; }
+        .rs-table td::before {
+            content: attr(data-label); font-size: .72rem; font-weight: 700; color: var(--ink3);
+            flex: 0 0 84px;
+        }
+        .rs-table td.rs-cell-exam { padding-bottom: 9px; }
+        .rs-table td.rs-cell-exam::before { display: none; }
+        .rs-exam { width: 100%; }
+        .rs-bar { flex: 1; }
+        .rs-cell-actions { justify-content: flex-end; gap: 8px; border-top: 1px dashed var(--line); padding-top: 10px !important; margin-top: 6px; }
+        tr.rs-detail > td { border: none; background: none; }
+        .rs-detail-in { padding: 12px 10px; }
+        tr.rs-detail.on { border: 1px solid var(--line); border-radius: 14px; margin: -6px 0 12px; background: var(--card2); }
+        .rs-qgrid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+        .rs-summary { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 460px) {
+        .rs-hero h1 { font-size: 1.12rem; }
+        .rs-hero-stat { min-width: 62px; }
+        .rs-hero-stat b { font-size: 1.02rem; }
+        .rs-print { width: 100%; justify-content: center; }
+        .rs-summary { grid-template-columns: 1fr; }
+        .rs-qgrid { grid-template-columns: 1fr 1fr; }
+        .rs-table td::before { flex-basis: 74px; }
+    }
+    @media print {
+        .rs-controls, .rs-toggle, .rs-cell-actions, .rs-print { display: none !important; }
+        .rs-detail-in { display: block !important; }
+        .rs-hero { background: #0f7078 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <!-- ================= سربرگ + معدل ================= -->
+    <section class="rs-hero">
+        <div class="rs-hero-row">
+            <div>
+                <h1>نتایج و کارنامهٔ من</h1>
+                <p>همهٔ آزمون‌ها، نمره‌ها و ریزنمرات در یک نگاه — {{ user.grade.get_name_display|default:'' }}</p>
+            </div>
+
+            <div class="rs-gpa">
+                <div class="rs-ring" title="معدل از ۲۰">
+                    <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+                        <circle class="bg" cx="48" cy="48" r="41"></circle>
+                        <circle class="fg" cx="48" cy="48" r="41"
+                                stroke-dasharray="257.6"
+                                stroke-dashoffset="257.6"
+                                data-pct="{{ overall_percentage }}"></circle>
+                    </svg>
+                    <span class="rs-ring-val"><b>{{ overall_average|floatformat:2 }}</b><span>از ۲۰</span></span>
+                </div>
+
+                <div class="rs-hero-stat"><b>{{ counts.submitted }}</b><span>آزمون ثبت‌شده</span></div>
+                <div class="rs-hero-stat"><b>{{ counts.published }}</b><span>نتیجهٔ منتشرشده</span></div>
+                <div class="rs-hero-stat"><b>{{ overall_percentage }}٪</b><span>میانگین درصد</span></div>
+
+                <button type="button" class="rs-print" onclick="window.print()">🖨️ چاپ کارنامه</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= کنترل‌ها ================= -->
+    <div class="rs-controls">
+        <div class="rs-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="rsSearch" placeholder="جستجو در نام آزمون یا درس…" aria-label="جستجوی آزمون">
+        </div>
+
+        <div class="rs-seg" id="rsStatus" role="group" aria-label="فیلتر وضعیت">
+            <button type="button" class="on" data-status="all">همه <b>({{ counts.total }})</b></button>
+            <button type="button" data-status="submitted">ثبت‌شده <b>({{ counts.submitted }})</b></button>
+            <button type="button" data-status="published">نتیجهٔ منتشرشده <b>({{ counts.published }})</b></button>
+            <button type="button" data-status="pending">در انتظار</button>
+        </div>
+
+        <div class="rs-sort">
+            <select id="rsSort" aria-label="مرتب‌سازی">
+                <option value="date">جدیدترین</option>
+                <option value="score-desc">بیشترین نمره</option>
+                <option value="score-asc">کمترین نمره</option>
+                <option value="name">نام آزمون</option>
+            </select>
+        </div>
+
+        <span class="rs-count" id="rsCount">{{ counts.total }} آزمون</span>
+    </div>
+
+    <!-- ================= جدول نتایج ================= -->
+    <div class="rs-card">
+        {% if rows %}
+        <div class="rs-scroll">
+            <table class="rs-table" id="rsTable">
+                <thead>
+                <tr>
+                    <th>آزمون</th>
+                    <th>وضعیت</th>
+                    <th>نمره</th>
+                    <th>درصد</th>
+                    <th>نمره از ۲۰</th>
+                    <th>تاریخ</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for r in rows %}
+                <tr class="rs-row" data-status="{{ r.status }}" data-published="{{ r.published|yesno:'1,0' }}"
+                    data-search="{{ r.title }} {{ r.grade }} {{ r.teacher }}"
+                    data-date="{{ r.date_iso }}" data-score="{{ r.percentage }}"
+                    data-submitted="{{ r.status|yesno:'' }}">
+                    <td class="rs-cell-exam" data-label="آزمون">
+                        <div class="rs-exam">
+                            <span class="rs-exam-ic" aria-hidden="true">
+                                {% if r.status == 'submitted' %}✅{% elif r.status == 'in_progress' %}⏳{% elif r.status == 'timeout' %}⌛{% else %}📄{% endif %}
+                            </span>
+                            <span class="rs-exam-txt">
+                                <b>{{ r.title }}</b>
+                                <small>{{ r.grade }} · {{ r.teacher }} · {{ r.questions }} سوال</small>
+                            </span>
+                        </div>
+                    </td>
+
+                    <td data-label="وضعیت">
+                        {% if r.status == 'submitted' %}<span class="rs-tag ok">ثبت نهایی</span>
+                        {% elif r.status == 'in_progress' %}<span class="rs-tag warn">در حال انجام</span>
+                        {% elif r.status == 'timeout' %}<span class="rs-tag err">اتمام زمان</span>
+                        {% else %}<span class="rs-tag mute">شروع نشده</span>{% endif %}
+                        {% if r.published and r.status != 'not_started' %}
+                            {% if r.result == 'pass' %}<span class="rs-tag ok" style="margin-inline-start:5px">قبول</span>
+                            {% elif r.result == 'mid' %}<span class="rs-tag warn" style="margin-inline-start:5px">مشروط</span>
+                            {% else %}<span class="rs-tag err" style="margin-inline-start:5px">نیاز به تلاش</span>{% endif %}
+                        {% endif %}
+                    </td>
+
+                    <td data-label="نمره">
+                        {% if r.published and r.status != 'not_started' %}
+                        <span class="rs-score">{{ r.score|floatformat:1 }}<small>/ {{ r.possible|floatformat:1 }}</small></span>
+                        {% elif r.status == 'not_started' %}<span class="rs-tag mute">—</span>
+                        {% else %}<span class="rs-tag mute" title="معلم نمایش نمره را فعال نکرده است">محرمانه</span>{% endif %}
+                    </td>
+
+                    <td data-label="درصد">
+                        {% if r.published and r.status != 'not_started' %}
+                        <div class="rs-bar">
+                            <span class="rs-bar-track"><i class="{% if r.result == 'mid' %}mid{% elif r.result == 'fail' %}low{% endif %}" style="width:{{ r.percentage }}%"></i></span>
+                            <b>{{ r.percentage }}٪</b>
+                        </div>
+                        {% else %}<span style="color:var(--ink3); font-size:.78rem">—</span>{% endif %}
+                    </td>
+
+                    <td data-label="از ۲۰">
+                        {% if r.published and r.status != 'not_started' %}<b>{{ r.score20|floatformat:2 }}</b>
+                        {% else %}<span style="color:var(--ink3); font-size:.78rem">—</span>{% endif %}
+                    </td>
+
+                    <td data-label="تاریخ" style="font-size:.76rem">{{ r.date_jalali|default:'—' }}</td>
+
+                    <td class="rs-cell-actions">
+                        {% if r.can_detail and r.status != 'not_started' %}
+                        <a class="rs-tag" href="{% url 'exam_result_detail' r.exam.id %}" style="text-decoration:none">جزئیات پاسخ‌ها</a>
+                        {% endif %}
+                        {% if r.breakdown %}
+                        <button type="button" class="rs-toggle" aria-label="نمایش ریزنمرات" data-target="d{{ forloop.counter }}">
+                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% if r.breakdown %}
+                <tr class="rs-detail" id="d{{ forloop.counter }}">
+                    <td colspan="7">
+                        <div class="rs-detail-in">
+                            <div class="rs-detail-head">
+                                <b>ریزنمرات «{{ r.title }}»</b>
+                                <div class="rs-chips">
+                                    <span class="rs-tag mute">{{ r.questions }} سوال</span>
+                                    <span class="rs-tag {% if r.answered == r.questions %}ok{% else %}warn{% endif %}">{{ r.answered }} پاسخ داده‌شده</span>
+                                    <span class="rs-tag {% if r.graded == r.questions %}ok{% else %}mute{% endif %}">{{ r.graded }} تصحیح‌شده</span>
+                                    <span class="rs-tag">نمرهٔ کل: {{ r.score|floatformat:1 }} از {{ r.possible|floatformat:1 }}</span>
+                                </div>
+                            </div>
+
+                            <div class="rs-qgrid">
+                                {% for q in r.breakdown %}
+                                <div class="rs-q {% if q.score is None %}{% if q.answered %}pending{% else %}blank{% endif %}{% endif %}">
+                                    <div class="rs-q-top">
+                                        <span class="rs-q-num">سوال {{ q.order }}</span>
+                                        <span class="rs-q-type">{{ q.type }}</span>
+                                    </div>
+                                    <div class="rs-q-score">
+                                        {% if q.score is None %}
+                                            {% if q.answered %}در انتظار تصحیح{% else %}بدون پاسخ{% endif %}
+                                        {% else %}
+                                            {{ q.score|floatformat:1 }} <span>/ {{ q.max|floatformat:1 }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if q.score is not None and q.max %}
+                                    <span class="rs-q-bar"><i style="width:{% widthratio q.score q.max 100 %}%"></i></span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="rs-detail-foot">
+                                {% if r.can_detail %}
+                                <a class="rs-tag ok" href="{% url 'exam_result_detail' r.exam.id %}" style="text-decoration:none; padding:8px 16px">
+                                    مشاهدهٔ پاسخ‌نامهٔ کامل ←
+                                </a>
+                                {% endif %}
+                                <span class="rs-tag mute" style="padding:8px 16px">
+                                    ثبت: {{ r.date_jalali|default:'—' }}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="rs-empty" id="rsNoMatch" hidden>
+            <div class="ic">🔍</div>
+            <b>موردی با این فیلترها پیدا نشد</b>
+            <span>فیلتر وضعیت یا عبارت جستجو را تغییر دهید.</span>
+        </div>
+        {% else %}
+        <div class="rs-empty">
+            <div class="ic">📭</div>
+            <b>هنوز نتیجه‌ای ثبت نشده است</b>
+            <span>پس از شرکت در آزمون و تصحیح آن توسط معلم، نتیجهٔ شما همین‌جا نمایش داده می‌شود.</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================= خلاصه ================= -->
+    <div class="rs-summary">
+        <div class="rs-sum-card">
+            <h4>معدل کل (از ۲۰)</h4>
+            <div class="big">{{ overall_average|floatformat:2 }}</div>
+            <p>
+                {% if overall_average >= 17 %}عالی! عملکرد شما بسیار چشمگیر است.
+                {% elif overall_average >= 15 %}خیلی خوب — در مسیر درستی هستید.
+                {% elif overall_average >= 12 %}قابل قبول؛ با کمی تلاش بیشتر بهتر هم می‌شوید.
+                {% elif overall_average >= 10 %}نیاز به تلاش بیشتر دارید.
+                {% elif overall_average > 0 %}زمان مطالعهٔ جدی فرا رسیده است.
+                {% else %}هنوز نمره‌ای منتشر نشده است.{% endif %}
+            </p>
+        </div>
+
+        <div class="rs-sum-card">
+            <h4>بهترین نتیجه</h4>
+            {% if best %}
+            <div class="big">{{ best.percentage }}٪</div>
+            <p>{{ best.title }} — {{ best.score|floatformat:1 }} از {{ best.possible|floatformat:1 }}</p>
+            {% else %}<div class="big">—</div><p>نتیجهٔ منتشرشده‌ای وجود ندارد.</p>{% endif %}
+        </div>
+
+        <div class="rs-sum-card">
+            <h4>نیازمند تقویت</h4>
+            {% if worst %}
+            <div class="big">{{ worst.percentage }}٪</div>
+            <p>{{ worst.title }} — روی این درس بیشتر وقت بگذارید.</p>
+            {% else %}<div class="big">—</div><p>نتیجهٔ منتشرشده‌ای وجود ندارد.</p>{% endif %}
+        </div>
+
+        <div class="rs-sum-card">
+            <h4>وضعیت کلی</h4>
+            <div class="big">{{ counts.passed }} قبولی</div>
+            <p>
+                {{ counts.submitted }} آزمون ثبت‌شده · {{ counts.in_progress }} نیمه‌تمام
+                {% if counts.hidden %} · {{ counts.hidden }} نتیجهٔ محرمانه{% endif %}
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function () {
+    const FA = '۰۱۲۳۴۵۶۷۸۹';
+    const fa = n => String(n).replace(/\d/g, d => FA[d]);
+    document.querySelectorAll('.rs-seg button b, .rs-count, .rs-hero-stat b').forEach(el => {
+        if (/^\d+$/.test(el.textContent.trim())) el.textContent = fa(el.textContent.trim());
+    });
+    const cnt = document.getElementById('rsCount');
+
+    /* حلقهٔ معدل */
+    const ring = document.querySelector('.rs-ring .fg');
+    if (ring) {
+        const C = 2 * Math.PI * 41;
+        ring.setAttribute('stroke-dasharray', C.toFixed(1));
+        const pct = Math.max(0, Math.min(100, parseFloat(ring.dataset.pct) || 0));
+        requestAnimationFrame(() => { ring.style.strokeDashoffset = (C * (1 - pct / 100)).toFixed(1); });
+    }
+
+    /* ردیف بازشو */
+    document.querySelectorAll('.rs-toggle').forEach(btn => btn.addEventListener('click', () => {
+        const row = document.getElementById(btn.dataset.target);
+        if (!row) return;
+        const open = row.classList.toggle('on');
+        btn.closest('tr').classList.toggle('rs-open', open);
+        btn.setAttribute('aria-expanded', String(open));
+        if (open) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }));
+
+    /* فیلتر + جستجو + مرتب‌سازی */
+    const table = document.getElementById('rsTable');
+    const tbody = table && table.querySelector('tbody');
+    const rows = tbody ? Array.from(tbody.querySelectorAll('tr.rs-row')) : [];
+    let status = 'all';
+
+    function apply() {
+        const q = (document.getElementById('rsSearch').value || '').trim().toLowerCase();
+        let shown = 0;
+        rows.forEach(r => {
+            const st = r.dataset.status;
+            const pub = r.dataset.published === '1';
+            let ok = true;
+            if (status === 'submitted') ok = (st === 'submitted' || st === 'timeout');
+            else if (status === 'published') ok = pub && st !== 'not_started';
+            else if (status === 'pending') ok = (st === 'submitted' || st === 'timeout') && !pub;
+            if (ok && q) ok = (r.dataset.search || '').toLowerCase().includes(q);
+            r.style.display = ok ? '' : 'none';
+            const d = document.getElementById(r.querySelector('.rs-toggle') ? r.querySelector('.rs-toggle').dataset.target : '');
+            if (d) d.style.display = ok ? '' : 'none';
+            if (!ok && d) { d.classList.remove('on'); r.classList.remove('rs-open'); }
+            if (ok) shown++;
+        });
+        if (cnt) cnt.textContent = fa(shown) + ' آزمون';
+        const nm = document.getElementById('rsNoMatch');
+        if (nm) nm.hidden = shown !== 0;
+    }
+
+    document.querySelectorAll('#rsStatus button').forEach(b => b.addEventListener('click', () => {
+        document.querySelectorAll('#rsStatus button').forEach(x => x.classList.remove('on'));
+        b.classList.add('on'); status = b.dataset.status; apply();
+    }));
+    const search = document.getElementById('rsSearch');
+    if (search) search.addEventListener('input', apply);
+
+    const sort = document.getElementById('rsSort');
+    if (sort && tbody) sort.addEventListener('change', () => {
+        const mode = sort.value;
+        const pairs = rows.map(r => ({ row: r, detail: r.nextElementSibling && r.nextElementSibling.classList.contains('rs-detail') ? r.nextElementSibling : null }));
+        const key = p => {
+            if (mode === 'score-desc') return -parseFloat(p.row.dataset.score || 0);
+            if (mode === 'score-asc') return parseFloat(p.row.dataset.score || 999);
+            if (mode === 'name') return p.row.dataset.search || '';
+            return p.row.dataset.date || '';
+        };
+        pairs.sort((a, b) => {
+            const ka = key(a), kb = key(b);
+            if (typeof ka === 'string') return mode === 'name' ? ka.localeCompare(kb, 'fa') : (ka < kb ? 1 : -1);
+            return ka - kb;
+        });
+        pairs.forEach(p => { tbody.appendChild(p.row); if (p.detail) tbody.appendChild(p.detail); });
+    });
+})();
+</script>
+{% endblock %}

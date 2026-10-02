@@ -9,13 +9,16 @@ from django.utils import timezone
 from django.db.models import Count, Sum, Avg, Q, F
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.core.cache import cache
+from django.views.decorators.http import require_http_methods
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 
 from accounts.models import User, Grade
-from exams.models import Exam, Question, StudentAnswer, ExamAttempt, CheatAttempt, ExamLog
-from .models import SystemSetting
+from exams.models import (Exam, Question, StudentAnswer, ExamAttempt, CheatAttempt,
+                          ExamLog, ExamSession)
+from .models import SystemSetting, SecurityEvent, record_security_event, parse_user_agent
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import json
@@ -462,6 +465,10 @@ def add_user(request):
 
         user.save()
 
+        record_security_event(request, user=request.user, event_type='account_created',
+                              severity='notice',
+                              detail=f'ساخت حساب «{user.username}» با نقش {user.get_role_display()}')
+
         return JsonResponse({'success': True, 'user_id': user.id, 'message': 'کاربر با موفقیت اضافه شد'})
 
     except Exception as e:
@@ -534,13 +541,21 @@ def edit_user(request, user_id):
         else:
             user.student_code = None
 
+        password_changed = False
         if password and password.strip():
             if len(password) >= 6:
                 user.set_password(password)
+                password_changed = True
             else:
                 return JsonResponse({'error': 'رمز عبور باید حداقل 6 کاراکتر باشد'}, status=400)
 
         user.save()
+
+        record_security_event(request, user=request.user,
+                              event_type='password_changed' if password_changed else 'profile_updated',
+                              severity='notice',
+                              detail=(f'{"بازنشانی رمز عبور" if password_changed else "ویرایش مشخصات"} '
+                                      f'کاربر «{user.username}» توسط مدیر'))
 
         return JsonResponse({'success': True, 'message': 'کاربر با موفقیت ویرایش شد'})
 
@@ -559,8 +574,408 @@ def delete_user(request, user_id):
     if user.id == request.user.id:
         return JsonResponse({'error': 'نمی‌توانید خودتان را حذف کنید'}, status=400)
 
+    record_security_event(request, user=request.user, event_type='account_deleted',
+                          severity='warning', detail=f'حذف حساب کاربری «{user.username}» (شناسه {user_id})')
     user.delete()
     return JsonResponse({'success': True, 'message': 'کاربر با موفقیت حذف شد'})
+
+
+# ============================================================================
+#  صفحهٔ «جزئیات کاربر» — پروفایل، نشست‌های فعال، دستگاه/آی‌پی، فعالیت، امنیت
+# ============================================================================
+
+_SESSION_STORE = None
+
+
+def _session_engine():
+    """موتور نشست فعلی (پیش‌فرض: django.contrib.sessions.backends.db)"""
+    global _SESSION_STORE
+    if _SESSION_STORE is None:
+        from importlib import import_module
+        from django.conf import settings as dj
+        _SESSION_STORE = import_module(dj.SESSION_ENGINE).SessionStore
+    return _SESSION_STORE
+
+
+def _user_login_sessions(user):
+    """نشست‌های ورودِ فعال کاربر (کوکی نشست) با اطلاعات دستگاه و زمان انقضا"""
+    from django.contrib.sessions.models import Session
+    now = timezone.now()
+    rows = []
+    qs = Session.objects.filter(expire_date__gt=now).order_by('-expire_date')
+    for s in qs:
+        try:
+            data = s.get_decoded()
+        except Exception:
+            continue
+        if str(data.get('_auth_user_id')) != str(user.id):
+            continue
+        rows.append({
+            'session_key': s.session_key,
+            'expire_date': s.expire_date,
+            'expires_in': s.expire_date - now,
+            'is_current': False,   # بعداً با نشست جاری مقایسه می‌شود
+        })
+    return rows
+
+
+def _attempt_score(student, exam):
+    """(نمره کسب‌شده، نمره کل، درصد) برای یک دانش‌آموز در یک آزمون"""
+    total = Decimal('0')
+    possible = Decimal('0')
+    for q in exam.questions.all():
+        possible += to_decimal(q.max_score)
+    for a in StudentAnswer.objects.filter(student=student, question__exam=exam).select_related('question'):
+        if a.score_obtained is not None:
+            total += to_decimal(a.score_obtained)
+    pct = float(total / possible * 100) if possible > 0 else 0.0
+    return float(total), float(possible), round(pct, 1)
+
+
+def _relative_fa(dt_value, now=None):
+    """«۳ ساعت پیش» / «دیروز» — خروجی فارسی با ارقام فارسی"""
+    if not dt_value:
+        return '—'
+    now = now or timezone.now()
+    if timezone.is_naive(dt_value):
+        dt_value = timezone.make_aware(dt_value)
+    delta = now - dt_value
+    secs = int(delta.total_seconds())
+    fa = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
+    if secs < 0:
+        return 'در آینده'
+    if secs < 60:
+        return 'همین حالا'
+    if secs < 3600:
+        return f'{secs // 60} دقیقه پیش'.translate(fa)
+    if secs < 86400:
+        return f'{secs // 3600} ساعت پیش'.translate(fa)
+    if secs < 172800:
+        return 'دیروز'
+    if secs < 86400 * 30:
+        return f'{secs // 86400} روز پیش'.translate(fa)
+    if secs < 86400 * 365:
+        return f'{secs // (86400 * 30)} ماه پیش'.translate(fa)
+    return f'{secs // (86400 * 365)} سال پیش'.translate(fa)
+
+
+def _remaining_fa(dt_value, now=None):
+    """زمان باقی‌مانده تا انقضای نشست: «۱۱ ساعت و ۲۰ دقیقه مانده»"""
+    if not dt_value:
+        return '—'
+    now = now or timezone.now()
+    if timezone.is_naive(dt_value):
+        dt_value = timezone.make_aware(dt_value)
+    secs = int((dt_value - now).total_seconds())
+    fa = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
+    if secs <= 0:
+        return 'منقضی شده'
+    d, rem = divmod(secs, 86400)
+    h, rem = divmod(rem, 3600)
+    m = rem // 60
+    parts = []
+    if d:
+        parts.append(f'{d} روز')
+    if h:
+        parts.append(f'{h} ساعت')
+    if not d and m:
+        parts.append(f'{m} دقیقه')
+    if not parts:
+        parts.append('کمتر از ۱ دقیقه')
+    return (' و '.join(parts) + ' مانده').translate(fa)
+
+
+@login_required
+def user_detail(request, user_id):
+    """جزئیات کامل یک کاربر برای مدیر: مشخصات، نشست‌ها، دستگاه/آی‌پی، فعالیت، امنیت"""
+    if request.user.role != 'admin':
+        raise PermissionDenied('دسترسی غیرمجاز')
+
+    target = get_object_or_404(User.objects.select_related('grade'), id=user_id)
+    now = timezone.now()
+
+    # ---------------- نشست‌های ورود فعال ----------------
+    login_sessions = _user_login_sessions(target)
+    current_key = request.session.session_key
+    for s in login_sessions:
+        s['is_current'] = (target.id == request.user.id and s['session_key'] == current_key)
+        s['remaining'] = _remaining_fa(s['expire_date'], now)
+
+    # ---------------- نشست‌های آزمون (IP / User-Agent) ----------------
+    exam_sessions = (ExamSession.objects.filter(student=target)
+                     .select_related('exam').order_by('-last_activity')[:30])
+    exam_sessions_data = []
+    for es in exam_sessions:
+        info = parse_user_agent(es.user_agent)
+        exam_sessions_data.append({
+            'obj': es,
+            'exam_title': es.exam.title,
+            'ip': es.ip_address or 'ثبت نشده',
+            'browser': info['browser'],
+            'os': info['os'],
+            'device': info['device'],
+            'raw_ua': es.user_agent or '',
+            'started': es.started_at,
+            'last_activity': es.last_activity,
+            'last_activity_rel': _relative_fa(es.last_activity, now),
+            'is_active': es.is_active,
+            'cheat_count': es.cheats.count(),
+        })
+
+    # ---------------- دستگاه‌ها و آی‌پی‌های یکتا ----------------
+    devices, ips = [], []
+    seen_dev, seen_ip = set(), set()
+    for row in exam_sessions_data + [{
+        'browser': e.browser, 'os': e.os, 'device': e.device, 'ip_address': e.ip_address,
+        'created_at': e.created_at
+    } for e in SecurityEvent.objects.filter(user=target).order_by('-created_at')[:200]]:
+        dev_key = (row.get('device'), row.get('os'), row.get('browser'))
+        if any(dev_key) and dev_key not in seen_dev:
+            seen_dev.add(dev_key)
+            when = row.get('created_at') or row.get('last_activity')
+            devices.append({'device': row.get('device') or 'نامشخص', 'os': row.get('os') or 'نامشخص',
+                            'browser': row.get('browser') or 'نامشخص', 'last_seen': when,
+                            'last_seen_rel': _relative_fa(when, now)})
+        ip_val = row.get('ip_address') or row.get('ip')
+        if ip_val and ip_val not in seen_ip:
+            seen_ip.add(ip_val)
+            when = row.get('created_at') or row.get('last_activity')
+            ips.append({'ip': ip_val, 'last_seen': when, 'last_seen_rel': _relative_fa(when, now)})
+
+    # ---------------- آزمون‌ها و تلاش‌ها ----------------
+    if target.role == 'student':
+        exams = (Exam.objects.filter(students=target)
+                 .select_related('teacher', 'grade').order_by('-end_time'))
+        attempts = {a.exam_id: a for a in ExamAttempt.objects.filter(student=target)}
+        exam_rows = []
+        for ex in exams:
+            att = attempts.get(ex.id)
+            row = {
+                'exam': ex,
+                'attempt': att,
+                'status': att.status if att else 'not_started',
+                'status_text': att.get_status_display() if att else 'شروع نشده',
+                'teacher': ex.teacher.get_full_name() or ex.teacher.username,
+                'questions': ex.questions.count(),
+                'score': None, 'possible': None, 'percentage': None,
+                'submitted_rel': _relative_fa(att.submitted_at, now) if att and att.submitted_at else '—',
+            }
+            if att and att.status in ('submitted', 'timeout'):
+                row['score'], row['possible'], row['percentage'] = _attempt_score(target, ex)
+            exam_rows.append(row)
+
+        scored = [r for r in exam_rows if r['percentage'] is not None and r['exam'].show_score_to_student]
+        avg_pct = sum(r['percentage'] for r in scored) / len(scored) if scored else 0
+        gpa20 = round(avg_pct / 100 * 20, 2)
+
+        activity = {
+            'exams_assigned': len(exam_rows),
+            'started': sum(1 for r in exam_rows if r['status'] in ('in_progress', 'submitted', 'timeout')),
+            'submitted': sum(1 for r in exam_rows if r['status'] == 'submitted'),
+            'not_started': sum(1 for r in exam_rows if r['status'] == 'not_started'),
+            'average_percentage': round(avg_pct, 1),
+            'gpa20': gpa20,
+            'answers': StudentAnswer.objects.filter(student=target).count(),
+            'graded_answers': StudentAnswer.objects.filter(student=target, score_obtained__isnull=False).count(),
+        }
+    else:
+        if target.role == 'teacher':
+            exams = (Exam.objects.filter(teacher=target)
+                     .select_related('grade').order_by('-created_at'))
+        else:
+            exams = Exam.objects.none()
+        exam_rows = [{
+            'exam': ex, 'attempt': None, 'status': 'teacher', 'status_text': 'برگزارکننده',
+            'teacher': '—', 'questions': ex.questions.count(),
+            'score': None, 'possible': None, 'percentage': None,
+            'submitted_rel': '—',
+            'participants': ex.students.count(),
+            'submits': ExamAttempt.objects.filter(exam=ex, status='submitted').count(),
+        } for ex in exams]
+        activity = {
+            'exams_assigned': len(exam_rows),
+            'started': 0, 'submitted': 0, 'not_started': 0,
+            'average_percentage': 0, 'gpa20': 0,
+            'answers': 0, 'graded_answers': 0,
+            'questions_created': Question.objects.filter(exam__teacher=target).count()
+            if target.role == 'teacher' else 0,
+        }
+
+    # ---------------- رفتار مشکوک در آزمون ----------------
+    cheats = (CheatAttempt.objects.filter(session__student=target)
+              .select_related('session__exam').order_by('-created_at')[:20])
+    cheats_data = [{
+        'type_text': c.get_cheat_type_display(),
+        'cheat_type': c.cheat_type,
+        'detail': c.detail or '—',
+        'exam': c.session.exam.title,
+        'ip': c.session.ip_address or '—',
+        'when': c.created_at,
+        'when_rel': _relative_fa(c.created_at, now),
+    } for c in cheats]
+
+    # ---------------- رویدادهای امنیتی ----------------
+    events = SecurityEvent.objects.filter(
+        Q(user=target) | Q(username_snapshot=target.username)
+    ).order_by('-created_at')[:100]
+    events_data = [{
+        'type_text': e.get_event_type_display(),
+        'event_type': e.event_type,
+        'severity': e.severity,
+        'severity_text': e.get_severity_display(),
+        'ip': e.ip_address or '—',
+        'device_label': e.device_label,
+        'detail': e.detail or '—',
+        'when': e.created_at,
+        'when_rel': _relative_fa(e.created_at, now),
+    } for e in events]
+
+    # ---------------- لاگ فعالیت در آزمون ----------------
+    exam_logs = (ExamLog.objects.filter(session__student=target)
+                 .select_related('session__exam').order_by('-timestamp')[:20])
+    logs_data = [{
+        'action': l.action, 'page_url': l.page_url or '—', 'exam': l.session.exam.title,
+        'when': l.timestamp, 'when_rel': _relative_fa(l.timestamp, now),
+    } for l in exam_logs]
+
+    # ---------------- آخرین رویداد امنیتی برای «آخرین فعالیت» ----------------
+    last_event = events[0] if events else None
+    last_activity_at = max([d for d in [
+        target.last_login,
+        last_event.created_at if last_event else None,
+        exam_sessions_data[0]['last_activity'] if exam_sessions_data else None,
+    ] if d], default=None)
+
+    security_summary = {
+        'logins': SecurityEvent.objects.filter(user=target, event_type='login').count(),
+        'failed': SecurityEvent.objects.filter(user=target, event_type='login_failed').count(),
+        'locked': SecurityEvent.objects.filter(user=target, event_type='login_locked').count(),
+        'cheats': CheatAttempt.objects.filter(session__student=target).count(),
+        'sessions': len(login_sessions),
+        'unique_ips': len(ips),
+        'unique_devices': len(devices),
+        'risk': 'low',
+    }
+    if security_summary['locked'] or security_summary['cheats'] >= 3:
+        security_summary['risk'] = 'high'
+    elif security_summary['failed'] >= 3 or security_summary['cheats']:
+        security_summary['risk'] = 'medium'
+
+    password_age_days = None
+    if last_event and last_event.event_type == 'password_changed':
+        password_age_days = (now - last_event.created_at).days
+
+    context = {
+        'u': target,
+        'grades': Grade.objects.all(),
+        'session_count': len(login_sessions) + len(exam_sessions_data),
+        'is_self': target.id == request.user.id,
+        'login_sessions': login_sessions,
+        'exam_sessions': exam_sessions_data,
+        'devices': devices[:8],
+        'ips': ips[:10],
+        'exam_rows': exam_rows,
+        'activity': activity,
+        'cheats': cheats_data,
+        'events': events_data,
+        'logs': logs_data,
+        'security': security_summary,
+        'password_age_days': password_age_days,
+        'last_activity_at': last_activity_at,
+        'last_activity_rel': _relative_fa(last_activity_at, now),
+        'days_since_joined': (now - target.date_joined).days if target.date_joined else 0,
+        'now': now,
+    }
+    return render(request, 'admin_panel/user_detail.html', context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def user_terminate_sessions(request, user_id):
+    """پایان همهٔ نشست‌های فعال یک کاربر (خروج اجباری از همه دستگاه‌ها)"""
+    if request.user.role != 'admin':
+        raise PermissionDenied('دسترسی غیرمجاز')
+
+    from django.contrib.sessions.models import Session
+    target = get_object_or_404(User, id=user_id)
+    now = timezone.now()
+    killed = 0
+    for s in Session.objects.filter(expire_date__gt=now):
+        try:
+            data = s.get_decoded()
+        except Exception:
+            continue
+        if str(data.get('_auth_user_id')) != str(target.id):
+            continue
+        is_current = (target.id == request.user.id and s.session_key == request.session.session_key)
+        if is_current:
+            continue
+        s.delete()
+        killed += 1
+
+    # کش «یک نشست برای هر کاربر» هم پاک شود
+    cache.delete(f'user_session_{target.id}')
+
+    record_security_event(request, user=request.user, event_type='session_revoked',
+                          severity='notice',
+                          detail=f'پایان {killed} نشست فعال کاربر «{target.username}» توسط مدیر')
+    messages.success(request, f'{killed} نشست فعال پایان یافت.' if killed else 'نشست فعالی پیدا نشد.')
+    return redirect('user_detail', user_id=target.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def user_toggle_active(request, user_id):
+    """فعال/غیرفعال کردن حساب کاربری (بدون حذف اطلاعات)"""
+    if request.user.role != 'admin':
+        raise PermissionDenied('دسترسی غیرمجاز')
+
+    target = get_object_or_404(User, id=user_id)
+    if target.id == request.user.id:
+        messages.error(request, 'نمی‌توانید حساب خودتان را غیرفعال کنید.')
+        return redirect('user_detail', user_id=target.id)
+
+    target.is_active = not target.is_active
+    target.save(update_fields=['is_active'])
+
+    if not target.is_active:
+        from django.contrib.sessions.models import Session
+        for s in Session.objects.filter(expire_date__gt=timezone.now()):
+            try:
+                if str(s.get_decoded().get('_auth_user_id')) == str(target.id):
+                    s.delete()
+            except Exception:
+                continue
+        cache.delete(f'user_session_{target.id}')
+
+    record_security_event(request, user=request.user, event_type='profile_updated',
+                          severity='notice',
+                          detail=f'حساب «{target.username}» {"فعال" if target.is_active else "غیرفعال"} شد')
+    messages.success(request, 'حساب کاربر غیرفعال شد.' if not target.is_active else 'حساب کاربر فعال شد.')
+    return redirect('user_detail', user_id=target.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def user_reset_password(request, user_id):
+    """بازنشانی رمز عبور به رمز موقت و اجبار به تغییر آن"""
+    if request.user.role != 'admin':
+        raise PermissionDenied('دسترسی غیرمجاز')
+
+    import secrets
+    target = get_object_or_404(User, id=user_id)
+    temp = request.POST.get('password', '').strip() or secrets.token_urlsafe(6)
+    if len(temp) < 6:
+        messages.error(request, 'رمز عبور باید حداقل ۶ کاراکتر باشد.')
+        return redirect('user_detail', user_id=target.id)
+
+    target.set_password(temp)
+    target.save(update_fields=['password'])
+    record_security_event(request, user=request.user, event_type='password_changed',
+                          severity='notice',
+                          detail=f'بازنشانی رمز عبور «{target.username}» توسط مدیر')
+    messages.success(request, f'رمز عبور کاربر «{target.username}» به «{temp}» تغییر یافت.')
+    return redirect('user_detail', user_id=target.id)
 
 
 @login_required

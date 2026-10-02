@@ -132,38 +132,225 @@
     .site-header .userDropdown, .site-header #userDropdown { display: none; } /* در سایدبار موجود است */
 }
 
-/* ---------------- Footer (ساده و مدرن) ---------------- */
-.site-footer.footer {
-    margin-top: 48px; padding: 0; width: 100%; text-align: right;
-    background: #fff; border: none; border-top: 1px solid #e3efec; box-shadow: none; backdrop-filter: none; color: #6b8a90;
+/* ================== فوتر مدرن و کاملاً ریسپانسیو (هم‌خانواده با هدر مینیمال) ========== */
+.site-footer {
+    position: relative; overflow: hidden; margin-top: 56px;
+    background: #fff; color: var(--ink2); text-align: right;
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
 }
-.site-footer .sf-inner {
-    max-width: 1240px; margin: 0 auto; padding: 18px 20px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap;
+/* خط گرادیانی نازک بالای فوتر */
+.site-footer::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), #0f7078 45%, transparent 92%);
+    opacity: .85;
 }
-.site-footer .sf-brand { display: inline-flex; align-items: center; gap: 8px; color: #0f2f36; font-size: .9rem; }
-.site-footer .sf-mark { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #2ec4b6, #0f7078); }
-.site-footer .sf-links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
-.site-footer .sf-links a { font-size: .82rem; font-weight: 600; color: #6b8a90; text-decoration: none; padding: 6px 0; transition: color .2s; }
-.site-footer .sf-links a:hover { color: #0f7078; }
-.site-footer .sf-copy { font-size: .76rem; color: #9ab0b4; }
-@media (max-width: 720px) {
-    .site-footer.footer { margin-top: 32px; }
-    .site-footer .sf-inner { flex-direction: column; justify-content: center; text-align: center; padding: 18px 16px calc(16px + env(safe-area-inset-bottom)); gap: 10px; }
-    .site-footer .sf-links { justify-content: center; }
+.ft-glow {
+    position: absolute; inset-block-end: -200px; inset-inline-start: -90px;
+    width: 420px; height: 420px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(46, 196, 182, .1), transparent 70%);
 }
-@media print { .site-header, .site-footer { display: none !important; } }
-.main-content { flex: 1 0 auto; }
 
-/* ===== پیام‌ها و وضعیت‌های تعاملی (UX) ===== */
-.site-message { position: relative; transition: opacity .25s, transform .25s; }
-.site-message .sm-text { flex: 1; }
-.site-message .sm-close { border: none; background: transparent; cursor: pointer; color: inherit; opacity: .55; font-size: .8rem; width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; }
-.site-message .sm-close:hover { opacity: 1; background: rgba(0,0,0,.06); }
-.site-message.bye { opacity: 0; transform: translateY(-6px); }
-button.is-busy { opacity: .7; cursor: progress; }
-.nav-link[aria-current="page"] { font-weight: 800; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
-:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid rgba(46,196,182,.55); outline-offset: 2px; }
-.skip-to-content { position: absolute; inset-inline-start: -9999px; top: 8px; z-index: 5000; background: #0f7078; color: #fff; padding: 10px 16px; border-radius: 10px; }
-.skip-to-content:focus { inset-inline-start: 8px; }
+.ft-inner {
+    position: relative; z-index: 1; max-width: 1240px; margin: 0 auto;
+    padding: 40px 28px 24px;
+    display: grid; grid-template-columns: minmax(230px, 1.5fr) repeat(3, minmax(150px, 1fr));
+    gap: 32px 26px;
+}
+
+/* ---------- ستون برند ---------- */
+.ft-brand { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+.ft-logo {
+    width: 40px; height: 40px; border-radius: 12px; flex: 0 0 auto;
+    display: grid; place-items: center; color: #fff;
+    background: var(--gold2); transition: transform .3s ease, background .3s ease;
+}
+.ft-brand:hover .ft-logo { transform: rotate(-8deg) scale(1.05); background: var(--gold); }
+.ft-brand-text { display: flex; flex-direction: column; line-height: 1.6; }
+.ft-brand-text b { color: var(--ink); font-size: .95rem; font-weight: 700; }
+.ft-brand-text small { color: var(--ink3); font-size: .72rem; }
+.ft-about { font-size: .8rem; line-height: 2.1; color: var(--ink2); margin-top: 14px; max-width: 42ch; }
+.ft-socials { display: flex; gap: 8px; margin-top: 16px; }
+.ft-soc {
+    width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center;
+    color: var(--ink2); text-decoration: none; background: #fff;
+    border: 1px solid var(--line); transition: .2s ease;
+}
+.ft-soc:hover { background: var(--goldsoft); border-color: var(--gold); color: var(--gold2); transform: translateY(-2px); }
+
+/* ---------- سرستون‌ها ---------- */
+.ft-col { min-width: 0; }
+.ft-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    width: 100%; background: none; border: none; cursor: default; padding: 0;
+    font-family: inherit; text-align: right; margin-bottom: 15px;
+}
+.ft-head h4 { color: var(--ink); font-size: .88rem; font-weight: 700; margin: 0; position: relative; padding-bottom: 9px; }
+.ft-head h4::after {
+    content: ""; position: absolute; inset-block-end: 0; inset-inline-start: 0;
+    width: 26px; height: 2px; border-radius: 2px; background: var(--gold);
+}
+.ft-chev { color: var(--ink3); display: none; transition: transform .25s ease; flex: 0 0 auto; }
+.ft-head[aria-expanded="true"] .ft-chev { transform: rotate(180deg); }
+
+/* ---------- فهرست لینک‌ها ---------- */
+.ft-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ft-list a {
+    display: flex; align-items: center; gap: 9px; text-decoration: none;
+    color: var(--ink2); font-size: .81rem; font-weight: 500;
+    padding: 6px 8px; margin-inline: -8px; border-radius: 10px;
+    transition: color .2s, background .2s, padding .2s;
+}
+.ft-list a:hover { color: var(--gold2); background: var(--goldsoft); padding-inline-start: 13px; }
+.ft-dot { width: 5px; height: 5px; border-radius: 50%; flex: 0 0 auto; background: var(--line); transition: .2s; }
+.ft-list a:hover .ft-dot { background: var(--gold); transform: scale(1.6); }
+
+/* ---------- تماس ---------- */
+.ft-contact { gap: 11px; }
+.ft-contact li { display: flex; align-items: flex-start; gap: 11px; }
+.ft-c-ic {
+    width: 31px; height: 31px; border-radius: 10px; flex: 0 0 auto; display: grid; place-items: center;
+    color: var(--gold2); background: var(--goldsoft); border: 1px solid #dcefed;
+}
+.ft-c-text { display: flex; flex-direction: column; line-height: 1.7; min-width: 0; }
+.ft-c-text small { font-size: .7rem; color: var(--ink3); }
+.ft-c-text b { font-size: .8rem; color: var(--ink); font-weight: 700; word-break: break-word; }
+.ft-c-text b a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--line); }
+.ft-c-text b a:hover { color: var(--gold2); border-bottom-color: var(--gold); }
+
+.ft-status {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 15px;
+    padding: 6px 13px; border-radius: 999px; font-size: .73rem; font-weight: 700;
+    color: var(--ok); background: var(--oksoft); border: 1px solid var(--okline);
+}
+.ft-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(21, 122, 59, .5); animation: ftPulse 2.4s infinite; }
+@keyframes ftPulse { 70% { box-shadow: 0 0 0 8px rgba(21, 122, 59, 0); } 100% { box-shadow: 0 0 0 0 rgba(21, 122, 59, 0); } }
+
+/* ---------- نوار پایینی (تیره برای کنتراست) ---------- */
+.ft-bottom { position: relative; z-index: 1; background: var(--ink); }
+.ft-bottom-inner {
+    max-width: 1240px; margin: 0 auto; padding: 14px 28px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.ft-copy { font-size: .75rem; color: rgba(255, 255, 255, .62); margin: 0; }
+.ft-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-inline-start: auto; }
+.ft-chip {
+    font-size: .69rem; font-weight: 600; color: rgba(255, 255, 255, .72);
+    background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .12);
+    padding: 3px 11px; border-radius: 999px; max-width: 58vw;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ft-top {
+    width: 36px; height: 36px; border-radius: 11px; cursor: pointer; flex: 0 0 auto;
+    display: grid; place-items: center; color: #fff;
+    background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18);
+    transition: .2s ease;
+}
+.ft-top:hover { background: var(--gold); border-color: transparent; color: #06323a; transform: translateY(-2px); }
+
+/* ---------- مودال راهنما ---------- */
+.ft-modal {
+    position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center;
+    background: rgba(10, 30, 35, .5); backdrop-filter: blur(5px); padding: 18px;
+    opacity: 0; transition: opacity .2s ease;
+}
+.ft-modal.show { opacity: 1; }
+.ft-modal-card {
+    position: relative; width: min(620px, 100%); max-height: 82vh; overflow: auto;
+    background: #fff; color: var(--ink); border-radius: 20px; padding: 26px 26px 22px;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .3);
+    transform: translateY(14px) scale(.98); transition: transform .22s ease;
+}
+.ft-modal.show .ft-modal-card { transform: none; }
+.ft-modal-card h3 { font-size: 1.02rem; font-weight: 700; margin-bottom: 12px; padding-inline-end: 34px; }
+.ft-modal-body { font-size: .85rem; line-height: 2.1; color: var(--ink2); }
+.ft-modal-body ol, .ft-modal-body ul { padding-inline-start: 20px; display: grid; gap: 6px; }
+.ft-modal-body dt { font-weight: 700; color: var(--ink); margin-top: 8px; }
+.ft-modal-body dd { margin: 0; }
+.ft-modal-close {
+    position: absolute; top: 14px; inset-inline-end: 14px;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    background: var(--card2); border: 1px solid var(--line); color: var(--ink2);
+    font-size: .8rem; display: grid; place-items: center; transition: .2s;
+}
+.ft-modal-close:hover { background: var(--errsoft); color: var(--err); transform: rotate(90deg); }
+
+/* ================== واکنش‌گرایی فوتر ================== */
+@media (max-width: 1080px) {
+    .ft-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 22px; padding: 34px 22px 22px; }
+    .ft-brand-col { grid-column: 1 / -1; }
+    .ft-about { max-width: 74ch; }
+}
+@media (max-width: 820px) {
+    .site-footer { margin-top: 40px; }
+    .ft-inner { grid-template-columns: 1fr; gap: 2px; padding: 26px 18px 16px; }
+    .ft-brand-col { margin-bottom: 16px; }
+
+    /* ستون‌ها در موبایل به آکاردئون تبدیل می‌شوند */
+    .ft-col:not(.ft-brand-col) { border-top: 1px solid var(--line2); }
+    .ft-head { cursor: pointer; padding: 13px 2px; margin-bottom: 0; }
+    .ft-head h4 { padding-bottom: 0; }
+    .ft-head h4::after { display: none; }
+    .ft-chev { display: block; }
+    .ft-list { max-height: 0; overflow: hidden; opacity: 0;
+        transition: max-height .3s ease, opacity .25s ease, padding .3s ease; padding: 0 2px; }
+    .ft-list.ft-open { max-height: 560px; opacity: 1; padding: 2px 2px 15px; }
+    .ft-status { margin: 2px 2px 16px; }
+
+    .ft-bottom-inner { padding: 13px 18px; justify-content: center; text-align: center; position: relative; }
+    .ft-meta { margin-inline-start: 0; justify-content: center; width: 100%; }
+    .ft-top { position: absolute; inset-block-start: 8px; inset-inline-end: 12px; width: 32px; height: 32px; }
+}
+@media (max-width: 400px) {
+    .ft-inner { padding: 22px 14px 14px; }
+    .ft-brand-text b { font-size: .9rem; }
+    .ft-about { font-size: .77rem; }
+    .ft-chip { max-width: 100%; }
+    .ft-modal-card { padding: 22px 18px 18px; border-radius: 18px; }
+}
+@media print { .site-footer { display: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+    .ft-pulse { animation: none; }
+    .ft-list, .ft-modal, .ft-modal-card { transition: none; }
+}
+
+/* ---------------- پنل زنگولهٔ اطلاعیه‌ها (هدر) ---------------- */
+.site-header .bell-items {
+    position: absolute; top: calc(100% + 12px); inset-inline-end: 0; z-index: 1200;
+    width: min(370px, calc(100vw - 28px));
+    background: #fff; border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: 0 22px 50px rgba(6, 42, 51, .28);
+    padding: 8px; display: grid; gap: 6px; max-height: min(70vh, 520px); overflow: auto;
+    animation: bellIn .18s ease; transform-origin: top right;
+}
+@keyframes bellIn { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+.site-header .bell-head {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px 10px;
+    border-bottom: 1px solid var(--line2); margin-bottom: 4px;
+}
+.site-header .bell-head b { font-size: .84rem; color: var(--ink); }
+.site-header .bell-head .cnt {
+    background: var(--errsoft); color: var(--err); border: 1px solid var(--errline);
+    font-size: .68rem; font-weight: 800; padding: 1px 8px; border-radius: 999px;
+}
+.site-header .bell-head a { margin-inline-start: auto; font-size: .74rem; font-weight: 800; color: var(--gold3); text-decoration: none; }
+.site-header .bell-head a:hover { text-decoration: underline; }
+.site-header .bell-item {
+    background: var(--card2); border: 1px solid var(--line2); border-radius: 13px; padding: 10px 12px;
+    transition: .18s;
+}
+.site-header .bell-item:hover { border-color: #bfe8e2; background: var(--goldsoft); }
+.site-header .bell-title { font-size: .84rem; font-weight: 800; color: var(--ink); }
+.site-header .bell-body { font-size: .76rem; color: var(--ink2); line-height: 1.9; margin-top: 3px; }
+.site-header .bell-time { font-size: .7rem; color: var(--ink3); margin-top: 5px; }
+.site-header .bell-foot { padding: 9px 10px 5px; text-align: center; }
+.site-header .bell-foot a {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #fff;
+    font-size: .78rem; font-weight: 800; padding: 8px 18px; border-radius: 999px; width: 100%;
+    justify-content: center;
+}
+.site-header .bell-foot a:hover { filter: brightness(1.08); }
+@media (max-width: 420px) {
+    .site-header .bell-items { width: calc(100vw - 20px); inset-inline-end: -60px; }
+}

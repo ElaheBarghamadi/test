@@ -1,75 +1,307 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load jalali_tags %}
 
-{% block title %}داشبورد دانش‌آموز | پلتفرم آزمون{% endblock %}
+{% block title %}داشبورد دانش‌آموز | سامانه آزمون{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* این صفحه از سیستم طراحی مشترک (site.css) استفاده می‌کند؛ فقط چیدمان خاص صفحه */
-    .welcome-card { padding: 18px 16px; }
-    .welcome-title { font-size: 1.15rem; }
-    .exam-card { gap: 10px; }
-    .report-card { margin-top: 10px; }
-    .total-row {
-        display: flex; justify-content: space-between; gap: 8px;
-        font-weight: 800; color: var(--gold3); font-size: .85rem;
-        border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 8px;
+    /* ---------- خوش‌آمدگویی ---------- */
+    .welcome-card { position: relative; overflow: hidden; }
+    .welcome-card::after {
+        content: ''; position: absolute; inset-block-start: -40px; inset-inline-end: -30px;
+        width: 160px; height: 160px; border-radius: 50%; pointer-events: none;
+        background: radial-gradient(circle, rgba(46,196,182,.14), transparent 70%);
     }
-    @media (max-width: 420px) {
-        .info-two-columns { grid-template-columns: 1fr 1fr; gap: 6px; }
-        .info-badge .value { font-size: .74rem; }
+    .welcome-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .welcome-avatar {
+        width: 52px; height: 52px; border-radius: 18px; flex: 0 0 auto; display: grid; place-items: center;
+        font-size: 1.3rem; font-weight: 800; color: #fff;
+        background: linear-gradient(140deg, var(--gold), var(--gold2));
+        box-shadow: 0 8px 18px rgba(15,112,120,.24);
     }
+    .welcome-meta { flex: 1 1 180px; min-width: 0; }
 
+    /* ---------- آزمون بعدی ---------- */
     .next-exam { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
-        background: linear-gradient(135deg, #0b3c49, #0f7078 60%, #2ec4b6); color: #fff; border-radius: 20px; padding: 18px 20px; margin: 14px 0 18px;
-        box-shadow: 0 14px 34px rgba(15,112,120,.25); }
+        background: linear-gradient(135deg, #0b3c49, #0f7078 60%, #2ec4b6); color: #fff; border-radius: 20px; padding: 18px 20px; margin: 0 0 18px;
+        box-shadow: 0 14px 34px rgba(15,112,120,.25); position: relative; overflow: hidden; }
+    .next-exam::after {
+        content: ''; position: absolute; inset-block-end: -70px; inset-inline-end: 40px;
+        width: 200px; height: 200px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,.14), transparent 70%);
+    }
+    .next-exam > * { position: relative; z-index: 1; }
     .next-exam .ne-label { font-size: .78rem; opacity: .9; font-weight: 700; }
     .next-exam .ne-title { font-size: 1.15rem; font-weight: 800; margin: 2px 0; }
     .next-exam .ne-meta { font-size: .8rem; opacity: .85; }
     .next-exam .ne-btn { background: #fff !important; color: #0f5f68 !important; min-height: 46px; padding: 0 26px; display: inline-flex; align-items: center; border-radius: 14px; font-weight: 800; text-decoration: none; }
     .countdown { display: block; font-size: .72rem; opacity: .85; }
     @media (max-width: 600px) { .next-exam .ne-btn { width: 100%; justify-content: center; } }
+
+    /* ================= مرکز اطلاعیه‌ها ================= */
+    .an-hub { background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(8,45,52,.04); }
+    .an-head {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        padding: 16px 20px; border-bottom: 1px solid var(--line2);
+        background: linear-gradient(120deg, var(--goldsoft), transparent 65%);
+    }
+    .an-head-ic {
+        width: 42px; height: 42px; border-radius: 14px; flex: 0 0 auto; display: grid; place-items: center;
+        background: linear-gradient(140deg, var(--gold), var(--gold2)); color: #fff;
+        box-shadow: 0 6px 16px rgba(15,112,120,.26); position: relative;
+    }
+    .an-head-ic .badge {
+        position: absolute; top: -6px; inset-inline-end: -6px; min-width: 20px; height: 20px;
+        padding: 0 5px; border-radius: 999px; background: #ff5a5f; color: #fff;
+        font-size: .68rem; font-weight: 800; display: grid; place-items: center;
+        border: 2px solid var(--card); box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    }
+    .an-head-txt { flex: 1 1 160px; min-width: 0; }
+    .an-head-txt h2 { font-size: 1rem; font-weight: 800; color: var(--ink); margin: 0; }
+    .an-head-txt p { font-size: .76rem; color: var(--ink2); margin: 2px 0 0; }
+    .an-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .an-btn {
+        display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+        background: var(--card); color: var(--ink2); border: 1.5px solid var(--line);
+        padding: 8px 15px; border-radius: 999px; font-family: inherit;
+        font-size: .78rem; font-weight: 700; text-decoration: none; transition: .18s;
+    }
+    .an-btn:hover { border-color: var(--gold); color: var(--gold3); background: var(--goldsoft); transform: translateY(-1px); }
+    .an-btn.primary { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #fff; border-color: transparent; }
+    .an-btn.primary:hover { color: #fff; filter: brightness(1.08); }
+
+    .an-list { padding: 14px 16px; display: grid; gap: 10px; }
+    .an-item {
+        position: relative; display: flex; gap: 13px; align-items: flex-start;
+        background: var(--card2); border: 1px solid var(--line2); border-radius: 16px;
+        padding: 14px 16px; transition: .2s ease;
+    }
+    .an-item:hover { border-color: #bfe8e2; box-shadow: 0 6px 18px rgba(8,45,52,.07); }
+    .an-item.unread { background: linear-gradient(120deg, #fff, var(--goldsoft)); border-color: #bfe8e2; }
+    .an-item.unread::before {
+        content: ''; position: absolute; inset-block: 14px; inset-inline-start: 0; width: 4px;
+        border-radius: 0 4px 4px 0; background: linear-gradient(180deg, var(--gold), var(--gold2));
+    }
+    .an-rail { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .an-ic {
+        width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+        background: #fff; border: 1px solid var(--line); color: var(--gold3); font-size: 1rem;
+    }
+    .an-item.unread .an-ic { background: linear-gradient(140deg, var(--gold), var(--gold2)); color: #fff; border-color: transparent; }
+    .an-rail .an-line { flex: 1; width: 2px; background: var(--line2); border-radius: 2px; min-height: 0; }
+    .an-main { flex: 1 1 auto; min-width: 0; }
+    .an-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .an-title { font-size: .92rem; font-weight: 800; color: var(--ink); margin: 0; word-break: break-word; }
+    .an-chip {
+        font-size: .66rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: nowrap;
+        background: var(--goldsoft); color: var(--gold3); border: 1px solid #bfe8e2;
+    }
+    .an-chip.new { background: #ff5a5f; color: #fff; border-color: transparent; animation: anPop .3s ease; }
+    .an-chip.grade { background: #eef3f3; color: var(--ink2); border-color: var(--line); }
+    .an-chip.teacher { background: #fff4e3; color: var(--warn); border-color: var(--warnline); }
+    .an-chip.admin { background: #fdecec; color: var(--err); border-color: var(--errline); }
+    @keyframes anPop { from { transform: scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .an-body { font-size: .83rem; color: var(--ink2); line-height: 2.1; margin-top: 7px; white-space: pre-line; word-break: break-word; }
+    .an-body.clamped { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 2; }
+    .an-foot { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin-top: 10px; }
+    .an-meta { font-size: .72rem; color: var(--ink3); display: inline-flex; align-items: center; gap: 5px; }
+    .an-more {
+        margin-inline-start: auto; border: none; background: transparent; cursor: pointer;
+        color: var(--gold3); font-family: inherit; font-size: .76rem; font-weight: 800;
+        display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 8px; transition: .18s;
+    }
+    .an-more:hover { background: var(--goldsoft); }
+    .an-more svg { transition: transform .25s ease; }
+    .an-item.expanded .an-more svg { transform: rotate(180deg); }
+    .an-empty { text-align: center; padding: 30px 16px; color: var(--ink3); }
+    .an-empty .ic { font-size: 2rem; margin-bottom: 6px; }
+    .an-empty b { display: block; font-size: .88rem; color: var(--ink2); }
+    .an-empty span { font-size: .78rem; }
+    .an-foot-bar { padding: 12px 16px; border-top: 1px solid var(--line2); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--card2); }
+    .an-foot-bar small { font-size: .74rem; color: var(--ink3); }
+
+    /* ================= خلاصه نتایج ================= */
+    .rs-strip { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 20px; margin-bottom: 18px; }
+    .rs-strip-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .rs-strip-head h2 { font-size: 1rem; font-weight: 800; color: var(--ink); margin: 0; }
+    .rs-strip-head p { font-size: .76rem; color: var(--ink3); margin: 2px 0 0; }
+    .rs-strip-head .an-btn { margin-inline-start: auto; }
+    .rs-mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+    .rs-mini {
+        display: flex; align-items: center; gap: 12px; text-decoration: none;
+        background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 14px;
+        transition: .18s;
+    }
+    .rs-mini:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 18px rgba(8,45,52,.08); }
+    .rs-mini-ring { position: relative; width: 46px; height: 46px; flex: 0 0 auto; }
+    .rs-mini-ring svg { transform: rotate(-90deg); }
+    .rs-mini-ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+    .rs-mini-ring .bg { stroke: var(--line2); }
+    .rs-mini-ring .fg { stroke: var(--gold); }
+    .rs-mini-ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: .68rem; font-weight: 800; color: var(--ink); }
+    .rs-mini-txt { min-width: 0; flex: 1; }
+    .rs-mini-txt strong { display: block; font-size: .84rem; color: var(--ink); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rs-mini-txt span { font-size: .72rem; color: var(--ink3); }
+    .rs-avg { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+    .rs-avg-item { display: flex; flex-direction: column; }
+    .rs-avg-item b { font-size: 1.14rem; font-weight: 800; color: var(--gold3); }
+    .rs-avg-item span { font-size: .72rem; color: var(--ink3); }
+
+    /* ---------- کارنامه ---------- */
+    .report-card { margin-top: 0; }
+    .total-row { display: flex; justify-content: space-between; gap: 8px; font-weight: 800; color: var(--gold3); font-size: .85rem;
+        border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 8px; }
+
+    /* ---------- موبایل ---------- */
+    @media (max-width: 720px) {
+        .an-head { padding: 14px; }
+        .an-head-actions { width: 100%; }
+        .an-head-actions .an-btn { flex: 1 1 auto; justify-content: center; }
+        .an-list { padding: 12px; }
+        .an-item { padding: 13px 12px; gap: 10px; }
+        .an-rail .an-line { display: none; }
+        .an-ic { width: 34px; height: 34px; border-radius: 11px; font-size: .9rem; }
+        .an-title { font-size: .88rem; }
+        .an-body { font-size: .81rem; }
+        .an-more { margin-inline-start: 0; }
+        .rs-strip { padding: 14px; }
+        .rs-strip-head .an-btn { margin-inline-start: 0; width: 100%; justify-content: center; }
+        .rs-mini-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .rs-mini { padding: 10px; }
+        .rs-mini-ring { width: 40px; height: 40px; }
+    }
+    @media (max-width: 420px) {
+        .info-two-columns { grid-template-columns: 1fr 1fr; gap: 6px; }
+        .info-badge .value { font-size: .74rem; }
+        .rs-mini-grid { grid-template-columns: 1fr; }
+        .welcome-avatar { width: 44px; height: 44px; font-size: 1.1rem; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- کارت خوش‌آمدگویی -->
+
+    <!-- ================= کارت خوش‌آمدگویی ================= -->
     <div class="welcome-card">
-        <div class="welcome-title">سلام {{ user.get_full_name|default:user.username }} ☕</div>
-        <div class="welcome-subtitle">به سامانه آزمون آنلاین خوش آمدید</div>
+        <div class="welcome-top">
+            <span class="welcome-avatar" aria-hidden="true">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
+            <div class="welcome-meta">
+                <div class="welcome-title">سلام {{ user.get_full_name|default:user.username }} 👋</div>
+                <div class="welcome-subtitle">امروز هم یک قدم به هدفت نزدیک‌تر شو</div>
+            </div>
+        </div>
         <div class="info-stats">
-            <div class="info-stat">پایه: {{ user.grade.get_name_display|default:'تعریف نشده' }}</div>
+            <div class="info-stat">🎓 پایه: {{ user.grade.get_name_display|default:'تعریف نشده' }}</div>
             <div class="info-stat">📋 {{ exams_with_status|length }} آزمون</div>
-            <div class="info-stat">✅ {{ completed_results|length }} آزمون ثبت شده</div>
-            {% if show_report_card %}
-            <div class="info-stat">معدل: {{ overall_average|floatformat:1|default:'---' }}</div>
-            {% endif %}
+            <div class="info-stat">✅ {{ results_summary.submitted_count }} ثبت‌شده</div>
+            <div class="info-stat">📊 {{ results_summary.published_count }} نتیجهٔ منتشرشده</div>
+            {% if unread_count %}<div class="info-stat">🔔 {{ unread_count }} اطلاعیهٔ جدید</div>{% endif %}
         </div>
     </div>
 
+    <!-- ================= آزمون قابل شروع ================= -->
     {% if next_exam %}
     <div class="next-exam" role="region" aria-label="آزمون قابل شروع">
         <div>
-            <div class="ne-label">{% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}آزمون نیمه‌تمام دارید{% else %}همین حالا می‌توانید شرکت کنید{% endif %}</div>
+            <div class="ne-label">{% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}⏳ آزمون نیمه‌تمام دارید{% else %}🟢 همین حالا می‌توانید شرکت کنید{% endif %}</div>
             <div class="ne-title">{{ next_exam.exam.title }}</div>
             <div class="ne-meta">{{ next_exam.questions_count }} سوال · {{ next_exam.exam.duration_minutes }} دقیقه · تا {{ next_exam.end_time_jalali }} باز است</div>
         </div>
         <a href="{% url 'take_exam' next_exam.hashed_id %}" class="btn-start ne-btn"
            {% if not next_exam.attempt %}data-confirm="با شروع آزمون، زمان {{ next_exam.exam.duration_minutes }} دقیقه‌ای شما آغاز می‌شود. آماده‌اید؟"{% endif %}>
-            {% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}▶️ ادامه آزمون{% else %}شروع آزمون{% endif %}
+            {% if next_exam.attempt and next_exam.attempt.status == 'in_progress' %}ادامهٔ آزمون ←{% else %}شروع آزمون ←{% endif %}
         </a>
     </div>
     {% endif %}
 
-    <!-- بخش 1: لیست آزمون‌ها -->
+    <!-- ================= مرکز اطلاعیه‌ها ================= -->
+    <section class="an-hub" id="announcements" aria-labelledby="anTitle">
+        <div class="an-head">
+            <span class="an-head-ic" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}
+            </span>
+            <div class="an-head-txt">
+                <h2 id="anTitle">اطلاعیه‌ها</h2>
+                <p>
+                    {% if unread_count %}{{ unread_count }} اطلاعیهٔ خوانده‌نشده دارید
+                    {% elif announcements %}همهٔ اطلاعیه‌ها را دیده‌اید
+                    {% else %}اطلاعیه‌ای منتشر نشده است{% endif %}
+                </p>
+            </div>
+            <div class="an-head-actions">
+                {% if unread_count %}
+                <form method="post" action="{% url 'student_dashboard' %}" style="margin:0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="read_announcements">
+                    <button type="submit" class="an-btn" data-no-lock>✓ علامت همه به‌عنوان خوانده‌شده</button>
+                </form>
+                {% endif %}
+                <button type="button" class="an-btn primary" id="anToggleAll">نمایش همهٔ متن‌ها</button>
+            </div>
+        </div>
+
+        <div class="an-list" id="anList">
+            {% for a in announcements %}
+            <article class="an-item {% if a.is_new %}unread{% endif %}" data-id="{{ a.id }}">
+                <div class="an-rail" aria-hidden="true">
+                    <span class="an-ic">{% if a.author_role == 'admin' %}🛡️{% elif a.author_role == 'teacher' %}👨‍🏫{% else %}📣{% endif %}</span>
+                    {% if not forloop.last %}<span class="an-line"></span>{% endif %}
+                </div>
+
+                <div class="an-main">
+                    <div class="an-title-row">
+                        <h3 class="an-title">{{ a.title }}</h3>
+                        {% if a.is_new %}<span class="an-chip new">جدید</span>{% endif %}
+                        <span class="an-chip {% if a.audience_all %}{% else %}grade{% endif %}">
+                            {% if a.audience_all %}همهٔ پایه‌ها{% else %}پایهٔ {{ a.grade_label }}{% endif %}
+                        </span>
+                        {% if a.age_hours < 24 %}<span class="an-chip teacher">امروز</span>{% endif %}
+                    </div>
+
+                    {% if a.body %}
+                    <div class="an-body clamped">{{ a.body }}</div>
+                    {% endif %}
+
+                    <div class="an-foot">
+                        <span class="an-meta" title="{{ a.date_jalali }}">🕒 {{ a.date_jalali }}</span>
+                        <span class="an-meta">✍️ {{ a.author }}{% if a.author_role == 'admin' %} — مدیر سامانه{% elif a.author_role == 'teacher' %} — معلم{% endif %}</span>
+                        {% if a.body %}
+                        <button type="button" class="an-more" aria-expanded="false">
+                            <span class="an-more-txt">ادامهٔ مطلب</span>
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div class="an-empty">
+                <div class="ic">📭</div>
+                <b>اطلاعیه‌ای وجود ندارد</b>
+                <span>به‌محض انتشار اطلاعیهٔ جدید از سوی معلم یا مدیر، همین‌جا نمایش داده می‌شود.</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if announcements|length > 4 %}
+        <div class="an-foot-bar">
+            <small>فقط {{ announcements|length }} اطلاعیهٔ آخر نمایش داده می‌شود.</small>
+            <button type="button" class="an-btn" id="anShowMore" style="margin-inline-start:auto">نمایش موارد بیشتر ↓</button>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- ================= آزمون‌های من ================= -->
     <div class="section-title">آزمون‌های من</div>
     <div class="exams-grid">
         {% for item in exams_with_status %}
         <div class="exam-card {{ item.status_class }}">
             <div class="exam-title">{{ item.exam.title }}</div>
 
-            <!-- اطلاعات کامل -->
             <div class="info-two-columns">
                 <div class="info-badge">
                     <span class="label">تاریخ شروع</span>
@@ -89,8 +321,6 @@
                 </div>
             </div>
 
-
-            <!-- وضعیت -->
             <div>
                 <span class="status-badge {{ item.status_badge_class }}">{{ item.status_text }}</span>
                 {% if item.attempt and item.attempt.status == 'submitted' %}
@@ -100,12 +330,15 @@
                 {% endif %}
             </div>
 
-            <!-- دکمه اقدام -->
             {% if item.attempt and item.attempt.status == 'submitted' %}
-                <div class="btn-disabled">ثبت شده - غیرقابل ویرایش</div>
+                {% if item.exam.show_score_to_student %}
+                <a href="{% url 'student_results' %}" class="btn-result">مشاهدهٔ نتیجه</a>
+                {% else %}
+                <div class="btn-disabled">ثبت شده - منتظر اعلام نتیجه</div>
+                {% endif %}
             {% elif item.can_start and item.exam.is_active %}
                 {% if item.attempt and item.attempt.status == 'in_progress' %}
-                    <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start">▶️ ادامه آزمون</a>
+                    <a href="{% url 'take_exam' item.hashed_id %}" class="btn-start">ادامهٔ آزمون ←</a>
                 {% elif item.exam.start_time > now %}
                     <div class="btn-disabled">شروع از {{ item.start_time_jalali }} <span class="countdown" data-start="{{ item.start_iso }}"></span></div>
                 {% else %}
@@ -124,68 +357,59 @@
         {% endfor %}
     </div>
 
-    {% if bell_announcements %}
-    <div class="card announce-card student-announce">
-        <h3 style="margin-bottom: 8px;">اطلاعیه‌های معلم</h3>
-        <div class="announce-list">
-            {% for a in bell_announcements %}
-            <div class="announce-item">
-                <div>
-                    <b>{{ a.title }}</b>
-                    {% if a.body %}<div class="announce-body">{{ a.body|truncatewords:24 }}</div>{% endif %}
-                    <div class="announce-time">{{ a.created_at|to_jalali }}</div>
-                </div>
+    <!-- ================= خلاصه نتایج ================= -->
+    <section class="rs-strip" aria-labelledby="rsTitle">
+        <div class="rs-strip-head">
+            <div>
+                <h2 id="rsTitle">نتایج من</h2>
+                <p>
+                    {% if results_summary.published_count %}{{ results_summary.published_count }} نتیجهٔ منتشرشده
+                        {% if results_summary.hidden_count %} · {{ results_summary.hidden_count }} نتیجهٔ محرمانه{% endif %}
+                    {% else %}هنوز نتیجه‌ای منتشر نشده است{% endif %}
+                </p>
             </div>
+            <a href="{% url 'student_results' %}" class="an-btn primary">صفحهٔ کامل نتایج و کارنامه ←</a>
+        </div>
+
+        {% if results_summary.top %}
+        <div class="rs-mini-grid">
+            {% for r in results_summary.top %}
+            <a class="rs-mini" href="{% url 'student_results' %}#{{ r.exam.id }}">
+                <span class="rs-mini-ring">
+                    <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+                        <circle class="bg" cx="23" cy="23" r="19"></circle>
+                        <circle class="fg" cx="23" cy="23" r="19"
+                                stroke-dasharray="119.4"
+                                stroke-dashoffset="{{ 119.4|floatformat:1 }}"></circle>
+                    </svg>
+                    <b data-pct="{{ r.percentage }}">{{ r.percentage }}٪</b>
+                </span>
+                <span class="rs-mini-txt">
+                    <strong>{{ r.exam.title }}</strong>
+                    <span>{{ r.score|floatformat:1 }} از {{ r.total_possible|floatformat:1 }} · {{ r.date_jalali }}</span>
+                </span>
+            </a>
             {% endfor %}
         </div>
-    </div>
-    {% endif %}
 
-    <!-- بخش 2: نتایج آزمون‌ها -->
-    <div class="section-title">نتایج منتشر شده</div>
-    <div class="exams-grid">
-        {% for result in completed_results %}
-            {% if result.show_score %}
-            <div class="exam-card completed">
-                <div class="exam-title">{{ result.exam.title }}</div>
-
-                <div class="info-two-columns">
-                    <div class="info-badge">
-                        <span class="label">تاریخ ثبت</span>
-                        <span class="value">{{ result.date_jalali|default:'-' }}</span>
-                    </div>
-                    <div class="info-badge">
-                        <span class="label">تعداد سوالات</span>
-                        <span class="value">{{ result.exam.questions.count }}</span>
-                    </div>
-                </div>
-
-                <div class="score-circle">
-                    <span class="score-number">{{ result.score|floatformat:1 }}</span>
-                    <span class="score-total"> / {{ result.total_possible|floatformat:1 }}</span>
-                </div>
-
-                <div class="progress-bar">
-                    <div class="progress-fill
-                        {% if result.percentage >= 70 %}fill-high
-                        {% elif result.percentage >= 50 %}fill-mid
-                        {% else %}fill-low{% endif %}"
-                        style="width: {{ result.percentage }}%;"></div>
-                </div>
-
-                <div style="text-align: center; font-size: 0.7rem; color: #4a6b72; margin-bottom: 8px;">
-                    درصد: {{ result.percentage }}%
-                </div>
-
-                <a href="{% url 'exam_result_detail' result.exam.id %}" class="btn-result">مشاهده جزئیات</a>
-            </div>
+        <div class="rs-avg">
+            <div class="rs-avg-item"><b>{{ overall_average|floatformat:2 }}</b><span>معدل از ۲۰</span></div>
+            {% if results_summary.best %}
+            <div class="rs-avg-item"><b>{{ results_summary.best.percentage }}٪</b><span>بهترین نتیجه</span></div>
             {% endif %}
-        {% empty %}
-        <div class="empty-state">هنوز نتیجه‌ای منتشر نشده است.</div>
-        {% endfor %}
-    </div>
+            <div class="rs-avg-item"><b>{{ results_summary.submitted_count }}</b><span>آزمون ثبت‌شده</span></div>
+            <a href="{% url 'student_results' %}" class="an-btn" style="margin-inline-start:auto">ریزنمرات همهٔ آزمون‌ها</a>
+        </div>
+        {% else %}
+        <div class="an-empty">
+            <div class="ic">📭</div>
+            <b>هنوز نتیجه‌ای منتشر نشده است</b>
+            <span>پس از تصحیح آزمون‌ها و فعال‌شدن نمایش نمره توسط معلم، نتایج در این بخش و صفحهٔ «نتایج من» نمایش داده می‌شود.</span>
+        </div>
+        {% endif %}
+    </section>
 
-    <!-- بخش 3: کارنامه کامل -->
+    <!-- ================= کارنامه کامل ================= -->
     {% if show_report_card and report_data %}
     <div class="report-card">
         <div class="report-header">
@@ -204,12 +428,7 @@
             <table class="report-table" id="reportTable">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>نام آزمون</th>
-                        <th>نمره</th>
-                        <th>درصد</th>
-                        <th>وضعیت</th>
-                        <th>تاریخ</th>
+                        <th>#</th><th>نام آزمون</th><th>نمره</th><th>درصد</th><th>وضعیت</th><th>تاریخ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -220,13 +439,9 @@
                         <td>{{ exam_result.score|floatformat:1 }} / {{ exam_result.total_possible|floatformat:1 }}</td>
                         <td>{{ exam_result.percentage }}%</td>
                         <td>
-                            {% if exam_result.percentage >= 70 %}
-                                <span class="grade-pass">✓ قبول</span>
-                            {% elif exam_result.percentage >= 50 %}
-                                <span class="grade-warning">مشروط</span>
-                            {% else %}
-                                <span class="grade-fail">مردود</span>
-                            {% endif %}
+                            {% if exam_result.percentage >= 70 %}<span class="grade-pass">✓ قبول</span>
+                            {% elif exam_result.percentage >= 50 %}<span class="grade-warning">مشروط</span>
+                            {% else %}<span class="grade-fail">مردود</span>{% endif %}
                         </td>
                         <td style="font-size: 0.7rem;">{{ exam_result.date_jalali|default:'-' }}</td>
                     </tr>
@@ -240,70 +455,98 @@
                 </tfoot>
             </table>
         </div>
-
-        <div class="average-box">
-            <div class="average-label">معدل کل شما</div>
-            <div class="average-value">{{ overall_average|floatformat:2 }}</div>
-            <div class="average-message">
-                {% if overall_average >= 17 %}
-                    عالی! عملکرد شما بسیار چشمگیر است. در این مسیر ادامه دهید.
-                {% elif overall_average >= 15 %}
-                    خیلی خوب! در مسیر درستی هستید و می‌توانید بهتر هم شوید.
-                {% elif overall_average >= 12 %}
-                    قابل قبول، با کمی تلاش بیشتر می‌توانید نتیجه بهتری بگیرید.
-                {% elif overall_average >= 10 %}
-                    نیاز به تلاش بیشتر دارید. روی نقاط ضعف خود کار کنید.
-                {% else %}
-                    زمان برای مطالعه جدی فرا رسیده است. از همین الان شروع کنید.
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    {% elif show_report_card and not report_data %}
-    <div class="report-card" style="text-align: center; padding: 50px;">
-        <div style="font-size: 50px; margin-bottom: 15px;">📭</div>
-        <p style="color: #4a6b72;">هنوز نتیجه‌ای برای نمایش در کارنامه وجود ندارد.</p>
-        <p style="color: #6f9499; font-size: 0.8rem; margin-top: 8px;">پس از تصحیح آزمون‌ها و انتشار نتایج، کارنامه شما در اینجا نمایش داده می‌شود.</p>
     </div>
     {% endif %}
 </div>
 
 <script>
+(function () {
+    /* ---------- اطلاعیه‌ها: باز/بسته کردن متن ---------- */
+    const items = Array.from(document.querySelectorAll('.an-item'));
+    items.forEach(item => {
+        const btn = item.querySelector('.an-more');
+        const body = item.querySelector('.an-body');
+        if (!btn || !body) return;
+        btn.addEventListener('click', () => {
+            const open = item.classList.toggle('expanded');
+            body.classList.toggle('clamped', !open);
+            btn.setAttribute('aria-expanded', String(open));
+            btn.querySelector('.an-more-txt').textContent = open ? 'بستن متن' : 'ادامهٔ مطلب';
+        });
+    });
+
+    /* نمایش همهٔ متن‌ها با یک کلیک */
+    const toggleAll = document.getElementById('anToggleAll');
+    if (toggleAll) {
+        let allOpen = false;
+        toggleAll.addEventListener('click', () => {
+            allOpen = !allOpen;
+            items.forEach(item => {
+                const body = item.querySelector('.an-body');
+                const btn = item.querySelector('.an-more');
+                if (!body) return;
+                item.classList.toggle('expanded', allOpen);
+                body.classList.toggle('clamped', !allOpen);
+                if (btn) {
+                    btn.setAttribute('aria-expanded', String(allOpen));
+                    btn.querySelector('.an-more-txt').textContent = allOpen ? 'بستن متن' : 'ادامهٔ مطلب';
+                }
+            });
+            toggleAll.textContent = allOpen ? 'بستن همهٔ متن‌ها' : 'نمایش همهٔ متن‌ها';
+        });
+    }
+
+    /* نمایش موارد بیشتر (فقط ۴ مورد اول باز باشد) */
+    const showMore = document.getElementById('anShowMore');
+    if (showMore) {
+        items.slice(4).forEach(i => { i.hidden = true; });
+        let expanded = false;
+        showMore.addEventListener('click', () => {
+            expanded = !expanded;
+            items.slice(4).forEach(i => { i.hidden = !expanded; });
+            showMore.textContent = expanded ? 'نمایش موارد کمتر ↑' : 'نمایش موارد بیشتر ↓';
+        });
+    }
+
+    /* ---------- حلقهٔ درصد نتایج ---------- */
+    document.querySelectorAll('.rs-mini-ring b[data-pct]').forEach(b => {
+        const svg = b.parentElement.querySelector('.fg');
+        if (!svg) return;
+        const C = 2 * Math.PI * 19;
+        const pct = Math.max(0, Math.min(100, parseFloat(b.dataset.pct) || 0));
+        svg.setAttribute('stroke-dasharray', C.toFixed(1));
+        svg.style.strokeDashoffset = (C * (1 - pct / 100)).toFixed(1);
+        if (pct < 50) svg.style.stroke = '#ef6a6a';
+        else if (pct < 70) svg.style.stroke = '#f0b429';
+    });
+
+    /* ---------- فیلتر نیمسال کارنامه ---------- */
     document.querySelectorAll('.semester-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             const semester = this.dataset.semester;
             document.querySelectorAll('.semester-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
-            const rows = document.querySelectorAll('#reportTable tbody tr');
-            rows.forEach(row => {
-                const rowSemester = row.dataset.semester;
-                if (semester === 'all') {
-                    row.style.display = '';
-                } else if (rowSemester === semester) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            document.querySelectorAll('#reportTable tbody tr').forEach(row => {
+                row.style.display = (semester === 'all' || row.dataset.semester === semester) ? '' : 'none';
             });
         });
     });
-</script>
 
-<script>
-(function () {
+    /* ---------- شمارش معکوس شروع آزمون ---------- */
     const FA = '۰۱۲۳۴۵۶۷۸۹', fa = n => String(n).replace(/\d/g, d => FA[d]);
     const els = document.querySelectorAll('.countdown[data-start]');
-    if (!els.length) return;
-    function tick() {
-        const now = Date.now();
-        els.forEach(e => {
-            const ms = new Date(e.dataset.start) - now;
-            if (ms <= 0) { e.textContent = 'باز شد — صفحه را تازه کنید'; return; }
-            const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60;
-            e.textContent = '(' + (d ? fa(d) + ' روز و ' : '') + (h ? fa(h) + ' ساعت و ' : '') + fa(m) + ' دقیقه دیگر)';
-        });
+    if (els.length) {
+        const tick = () => {
+            const now = Date.now();
+            els.forEach(e => {
+                const ms = new Date(e.dataset.start) - now;
+                if (ms <= 0) { e.textContent = 'باز شد — صفحه را تازه کنید'; return; }
+                const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60;
+                e.textContent = '(' + (d ? fa(d) + ' روز و ' : '') + (h ? fa(h) + ' ساعت و ' : '') + fa(m) + ' دقیقه دیگر)';
+            });
+        };
+        tick(); setInterval(tick, 30000);
     }
-    tick(); setInterval(tick, 30000);
 })();
 </script>
 {% endblock %}

@@ -482,10 +482,55 @@ def student_dashboard(request):
                 'grade_name': result['exam'].grade.get_name_display() if result['exam'].grade else '',
             })
 
+    # ---------------- اطلاعیه‌ها (با وضعیت خوانده‌شده در نشست) ----------------
+    from django.db.models import Q as _Q
+    from exams.models import Announcement
+    announcements_qs = Announcement.objects.filter(
+        _Q(grade__isnull=True) | _Q(grade_id=student.grade_id)
+    ).select_related('created_by', 'grade').order_by('-created_at')
+
+    if request.method == 'POST' and request.POST.get('action') == 'read_announcements':
+        request.session['read_announcements'] = [a.id for a in announcements_qs[:60]]
+        return redirect('student_dashboard')
+
+    read_ids = set(request.session.get('read_announcements') or [])
+    announcements = []
+    for a in announcements_qs[:30]:
+        announcements.append({
+            'id': a.id,
+            'title': a.title,
+            'body': a.body or '',
+            'grade_label': a.grade.get_name_display() if a.grade else 'همهٔ پایه‌ها',
+            'audience_all': a.grade_id is None,
+            'author': (a.created_by.get_full_name() or a.created_by.username) if a.created_by else 'سامانه',
+            'author_role': a.created_by.role if a.created_by else '',
+            'date_jalali': to_jalali(a.created_at),
+            'created_at': a.created_at,
+            'is_new': a.id not in read_ids,
+            'age_hours': max(0, int((now - a.created_at).total_seconds() // 3600)),
+        })
+    unread_count = sum(1 for a in announcements if a['is_new'])
+
+    # ---------------- نتایج: خلاصه برای داشبورد (صفحهٔ کامل: /student/results/) -------
+    published = [r for r in completed_results if r['show_score']]
+    published.sort(key=lambda r: (r['attempt'].submitted_at or r['attempt'].started_at
+                                 or r['exam'].end_time), reverse=True)
+    results_summary = {
+        'published': published,
+        'top': published[:3],
+        'published_count': len(published),
+        'hidden_count': len(completed_results) - len(published),
+        'submitted_count': len(completed_results),
+        'best': max(published, key=lambda r: r['percentage'], default=None),
+    }
+
     return render(request, 'student_panel/dashboard.html', {
         'exams_with_status': exams_with_status,
         'next_exam': next_exam,
         'completed_results': completed_results,
+        'results_summary': results_summary,
+        'announcements': announcements,
+        'unread_count': unread_count,
         'now': now,
         'overall_average': round(overall_average, 2),
         'total_possible_sum': float(total_possible_sum),
@@ -493,6 +538,129 @@ def student_dashboard(request):
         'report_data': report_data,
         'current_semester': get_current_semester(),
     })
+
+@login_required
+def student_results(request):
+    """صفحهٔ «نتایج من» — همهٔ نتایج، ریزنمرات و کارنامه در یک صفحه"""
+    if request.user.role != 'student':
+        return redirect('/')
+
+    student = request.user
+    now = timezone.now()
+
+    # نمایش کارنامه (تنظیم مدیر)
+    try:
+        from admin_panel.models import SystemSetting
+        show_report_card = SystemSetting.get_setting('show_report_card_to_students', False)
+    except Exception:
+        show_report_card = getattr(settings, 'SHOW_REPORT_CARD', False)
+
+    attempts = (ExamAttempt.objects.filter(student=student)
+                .select_related('exam', 'exam__grade', 'exam__teacher')
+                .order_by('-submitted_at', '-started_at'))
+
+    rows = []
+    published, hidden = 0, 0
+    sum_score = Decimal('0')
+    sum_possible = Decimal('0')
+
+    for att in attempts:
+        exam = att.exam
+        # نمره‌ها از همهٔ آزمون‌های «ثبت‌شده» محاسبه می‌شود (حتی اگر معلم نمره را پنهان کرده باشد)
+        score = Decimal('0')
+        possible = Decimal('0')
+        answered = 0
+        graded = 0
+        if att.status in ('submitted', 'timeout'):
+            answers = (StudentAnswer.objects.filter(student=student, question__exam=exam)
+                       .select_related('question'))
+            for a in answers:
+                possible += Decimal(str(a.question.max_score or 0))
+                if a.answer_text or a.answer_image:
+                    answered += 1
+                if a.score_obtained is not None:
+                    score += Decimal(str(a.score_obtained))
+                    graded += 1
+            if not possible:
+                possible = sum((Decimal(str(q.max_score or 0)) for q in exam.questions.all()), Decimal('0'))
+
+        pct = round(float(score) / float(possible) * 100, 1) if possible else 0.0
+        score20 = round(pct / 100 * 20, 2)
+
+        # ریزنمرات (فقط وقتی مجاز به دیدن نمره باشد)
+        breakdown = []
+        if exam.show_score_to_student:
+            for q in exam.questions.all().order_by('order'):
+                a = StudentAnswer.objects.filter(student=student, question=q).first()
+                got = float(a.score_obtained) if a and a.score_obtained is not None else None
+                breakdown.append({
+                    'order': q.order,
+                    'type': q.get_question_type_display(),
+                    'max': float(q.max_score or 0),
+                    'score': got,
+                    'answered': bool(a and (a.answer_text or a.answer_image)),
+                    'graded': got is not None,
+                })
+
+        published_here = bool(exam.show_score_to_student)
+        rows.append({
+            'exam': exam,
+            'attempt': att,
+            'status': att.status,
+            'status_text': att.get_status_display(),
+            'title': exam.title,
+            'grade': exam.grade.get_name_display() if exam.grade else '—',
+            'teacher': exam.teacher.get_full_name() or exam.teacher.username,
+            'questions': exam.questions.count(),
+            'answered': answered,
+            'graded': graded,
+            'score': float(score),
+            'possible': float(possible),
+            'percentage': pct,
+            'score20': score20,
+            'published': published_here,
+            'can_detail': published_here or bool(exam.show_answers_after_exam),
+            'date_jalali': to_jalali(att.submitted_at or att.started_at or exam.end_time),
+            'date_iso': (att.submitted_at or att.started_at or exam.end_time).isoformat(),
+            'semester': get_exam_semester(exam),
+            'breakdown': breakdown,
+            'result': 'pass' if pct >= 70 else ('mid' if pct >= 50 else 'fail'),
+        })
+        if att.status in ('submitted', 'timeout'):
+            if published_here:
+                published += 1
+                sum_score += score
+                sum_possible += possible
+            else:
+                hidden += 1
+
+    overall_pct = float(sum_score) / float(sum_possible) * 100 if sum_possible else 0.0
+    overall_avg = round(overall_pct / 100 * 20, 2)
+
+    counts = {
+        'total': len(rows),
+        'submitted': sum(1 for r in rows if r['status'] == 'submitted'),
+        'in_progress': sum(1 for r in rows if r['status'] == 'in_progress'),
+        'not_started': sum(1 for r in rows if r['status'] == 'not_started'),
+        'published': published,
+        'hidden': hidden,
+        'passed': sum(1 for r in rows if r['published'] and r['result'] == 'pass'),
+    }
+    best = max((r for r in rows if r['published'] and r['possible']), key=lambda r: r['percentage'], default=None)
+    worst = min((r for r in rows if r['published'] and r['possible']), key=lambda r: r['percentage'], default=None)
+
+    return render(request, 'student_panel/results.html', {
+        'rows': rows,
+        'counts': counts,
+        'overall_average': overall_avg,
+        'overall_percentage': round(overall_pct, 1),
+        'best': best,
+        'worst': worst,
+        'show_report_card': show_report_card,
+        'current_semester': get_current_semester(),
+        'now': now,
+    })
+
 
 @login_required
 @exam_access_required

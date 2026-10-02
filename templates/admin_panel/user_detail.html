@@ -1,0 +1,750 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load jalali_tags %}
+
+{% block title %}جزئیات کاربر — {{ u.get_full_name|default:u.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ud-wrap { display: grid; gap: 16px; }
+
+    /* ---------- سربرگ کاربر ---------- */
+    .ud-hero {
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #0b3c49 0%, #0f7078 55%, #1fa89c 100%);
+        border-radius: 22px; padding: 22px 24px; color: #fff;
+        box-shadow: 0 16px 38px rgba(11, 60, 73, .26);
+    }
+    .ud-hero::after {
+        content: ''; position: absolute; inset-block-start: -60px; inset-inline-end: -40px;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%);
+        pointer-events: none;
+    }
+    .ud-crumbs { display: flex; align-items: center; gap: 6px; font-size: .76rem; opacity: .85; margin-bottom: 14px; flex-wrap: wrap; }
+    .ud-crumbs a { color: #fff; text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,.45); }
+    .ud-crumbs a:hover { border-bottom-style: solid; }
+    .ud-hero-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
+    .ud-avatar {
+        width: 76px; height: 76px; border-radius: 24px; flex: 0 0 auto;
+        display: grid; place-items: center; font-size: 2rem; font-weight: 800; color: #0e5e66;
+        background: linear-gradient(140deg, #fff, #c8f6ef);
+        box-shadow: 0 8px 20px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .ud-identity { flex: 1 1 240px; min-width: 0; }
+    .ud-name { font-size: 1.32rem; font-weight: 800; line-height: 1.5; word-break: break-word; }
+    .ud-handle { font-size: .82rem; opacity: .82; direction: ltr; display: inline-block; }
+    .ud-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+    .ud-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.26);
+        color: #fff; padding: 4px 12px; border-radius: 999px;
+        font-size: .74rem; font-weight: 700; backdrop-filter: blur(4px);
+    }
+    .ud-pill.on { background: #4ade80; border-color: transparent; color: #052e16; }
+    .ud-pill.off { background: rgba(0,0,0,.28); border-color: rgba(255,255,255,.2); }
+    .ud-pill.warn { background: #fbbf24; border-color: transparent; color: #451a03; }
+    .ud-hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ud-btn {
+        display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+        background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.3); color: #fff;
+        padding: 9px 16px; border-radius: 12px; font-family: inherit;
+        font-size: .8rem; font-weight: 700; text-decoration: none; transition: .18s;
+    }
+    .ud-btn:hover { background: rgba(255,255,255,.3); transform: translateY(-1px); }
+    .ud-btn.solid { background: #fff; color: #0e5e66; border-color: #fff; }
+    .ud-btn.solid:hover { background: #e6fffb; }
+    .ud-btn.danger { background: rgba(255, 90, 95, .25); border-color: rgba(255, 140, 145, .5); }
+    .ud-btn.danger:hover { background: rgba(255, 90, 95, .45); }
+
+    /* ---------- خلاصه آمار ---------- */
+    .ud-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; }
+    .ud-kpi {
+        background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+        padding: 14px 16px; display: flex; flex-direction: column; gap: 2px;
+        box-shadow: 0 1px 2px rgba(8,45,52,.04);
+    }
+    .ud-kpi b { font-size: 1.34rem; font-weight: 800; color: var(--gold3); line-height: 1.5; }
+    .ud-kpi span { font-size: .74rem; color: var(--ink2); font-weight: 600; }
+    .ud-kpi.alert b { color: var(--err); }
+    .ud-kpi.good b { color: var(--ok); }
+
+    /* ---------- تب‌ها ---------- */
+    .ud-tabs {
+        display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+        padding: 5px; background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    }
+    .ud-tabs::-webkit-scrollbar { display: none; }
+    .ud-tab {
+        flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
+        color: var(--ink2); font-family: inherit; font-size: .82rem; font-weight: 700;
+        padding: 9px 18px; border-radius: 999px; transition: .18s; white-space: nowrap;
+        display: inline-flex; align-items: center; gap: 7px;
+    }
+    .ud-tab:hover { background: var(--goldsoft); color: var(--gold3); }
+    .ud-tab.on { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #fff; box-shadow: 0 4px 12px rgba(15,112,120,.25); }
+    .ud-tab .cnt {
+        background: rgba(255,255,255,.25); border-radius: 999px; padding: 0 7px;
+        font-size: .7rem; font-weight: 800; min-width: 20px; text-align: center;
+    }
+    .ud-tab:not(.on) .cnt { background: var(--goldsoft); color: var(--gold3); }
+    .ud-pane { display: none; }
+    .ud-pane.on { display: block; animation: udFade .22s ease; }
+    @keyframes udFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ---------- کارت و جدول داخلی ---------- */
+    .ud-card {
+        background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+        padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(8,45,52,.04);
+    }
+    .ud-card:last-child { margin-bottom: 0; }
+    .ud-card > h3 {
+        font-size: .94rem; font-weight: 800; color: var(--ink); margin-bottom: 14px;
+        display: flex; align-items: center; gap: 9px;
+    }
+    .ud-card > h3 .ic {
+        width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
+        background: var(--goldsoft); color: var(--gold3); flex: 0 0 auto;
+    }
+    .ud-card > h3 small { font-size: .72rem; color: var(--ink3); font-weight: 600; margin-inline-start: auto; }
+    .ud-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .ud-dl { display: grid; grid-template-columns: minmax(96px, auto) 1fr; gap: 9px 14px; font-size: .84rem; }
+    .ud-dl dt { color: var(--ink3); font-weight: 600; font-size: .78rem; }
+    .ud-dl dd { color: var(--ink); font-weight: 700; word-break: break-word; margin: 0; }
+    .ud-dl dd.mono, .ud-mono { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; direction: ltr; text-align: right; font-size: .8rem; }
+
+    .ud-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    .ud-table th {
+        text-align: right; font-size: .72rem; font-weight: 800; color: var(--ink3);
+        padding: 8px 10px; border-bottom: 1.5px solid var(--line); white-space: nowrap;
+    }
+    .ud-table td { padding: 11px 10px; border-bottom: 1px solid var(--line2); vertical-align: middle; color: var(--ink2); }
+    .ud-table tr:last-child td { border-bottom: none; }
+    .ud-table tbody tr:hover { background: var(--card2); }
+    .ud-table td b { color: var(--ink); }
+    .ud-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ---------- نشست‌ها ---------- */
+    .ud-sessions { display: grid; gap: 10px; }
+    .ud-session {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 14px;
+    }
+    .ud-session.current { border-color: #bfe8e2; background: var(--goldsoft); }
+    .ud-s-ic {
+        width: 38px; height: 38px; border-radius: 12px; flex: 0 0 auto; display: grid; place-items: center;
+        background: #fff; border: 1px solid var(--line); color: var(--gold3);
+    }
+    .ud-s-main { flex: 1 1 200px; min-width: 0; }
+    .ud-s-title { font-size: .84rem; font-weight: 800; color: var(--ink); display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    .ud-s-sub { font-size: .74rem; color: var(--ink3); margin-top: 2px; }
+    .ud-tag {
+        display: inline-block; font-size: .68rem; font-weight: 800; padding: 1px 8px; border-radius: 999px;
+        background: var(--goldsoft); color: var(--gold3); border: 1px solid #bfe8e2;
+    }
+    .ud-tag.ok { background: var(--oksoft); color: var(--ok); border-color: var(--okline); }
+    .ud-tag.warn { background: var(--warnsoft); color: var(--warn); border-color: var(--warnline); }
+    .ud-tag.err { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
+    .ud-tag.mute { background: #eef3f3; color: var(--ink3); border-color: var(--line); }
+
+    /* ---------- تایم‌لاین رویدادها ---------- */
+    .ud-timeline { position: relative; padding-inline-start: 22px; display: grid; gap: 4px; }
+    .ud-timeline::before {
+        content: ''; position: absolute; inset-block: 6px; inset-inline-start: 6px; width: 2px;
+        background: linear-gradient(180deg, var(--line), transparent); border-radius: 2px;
+    }
+    .ud-ev { position: relative; padding: 9px 0; }
+    .ud-ev::before {
+        content: ''; position: absolute; inset-inline-start: -22px; top: 16px;
+        width: 10px; height: 10px; border-radius: 50%; background: var(--gold);
+        box-shadow: 0 0 0 3px var(--goldsoft);
+    }
+    .ud-ev.warning::before { background: #f0b429; box-shadow: 0 0 0 3px var(--warnsoft); }
+    .ud-ev.critical::before { background: var(--err); box-shadow: 0 0 0 3px var(--errsoft); }
+    .ud-ev.notice::before { background: #3b82f6; box-shadow: 0 0 0 3px #e6efff; }
+    .ud-ev-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ud-ev-title { font-size: .84rem; font-weight: 800; color: var(--ink); }
+    .ud-ev-time { font-size: .72rem; color: var(--ink3); margin-inline-start: auto; }
+    .ud-ev-meta { font-size: .76rem; color: var(--ink2); margin-top: 3px; display: flex; gap: 6px 14px; flex-wrap: wrap; }
+    .ud-ev-detail { font-size: .78rem; color: var(--ink3); margin-top: 4px; line-height: 1.8; }
+
+    /* ---------- ریسک امنیتی ---------- */
+    .ud-risk { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .ud-risk-badge {
+        padding: 8px 18px; border-radius: 12px; font-weight: 800; font-size: .84rem;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .ud-risk-badge.low { background: var(--oksoft); color: var(--ok); border: 1px solid var(--okline); }
+    .ud-risk-badge.medium { background: var(--warnsoft); color: var(--warn); border: 1px solid var(--warnline); }
+    .ud-risk-badge.high { background: var(--errsoft); color: var(--err); border: 1px solid var(--errline); }
+    .ud-risk-note { font-size: .78rem; color: var(--ink2); flex: 1 1 220px; line-height: 1.9; }
+
+    /* ---------- نمودار میله‌ای درصد ---------- */
+    .ud-bar { height: 7px; border-radius: 999px; background: var(--line2); overflow: hidden; min-width: 70px; }
+    .ud-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+    .ud-bar i.mid { background: linear-gradient(90deg, #f0b429, #b96c07); }
+    .ud-bar i.low { background: linear-gradient(90deg, #ef6a6a, #bd2222); }
+
+    .ud-empty { text-align: center; color: var(--ink3); font-size: .84rem; padding: 26px 12px; }
+    .ud-form-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .ud-form-inline input[type=text] { flex: 1 1 180px; min-width: 0; }
+
+    /* ---------- ریسپانسیو ---------- */
+    @media (max-width: 760px) {
+        .ud-hero { padding: 18px 16px; border-radius: 18px; }
+        .ud-hero-row { gap: 14px; }
+        .ud-avatar { width: 60px; height: 60px; border-radius: 18px; font-size: 1.5rem; }
+        .ud-name { font-size: 1.12rem; }
+        .ud-hero-actions { width: 100%; }
+        .ud-hero-actions .ud-btn { flex: 1 1 auto; justify-content: center; }
+        .ud-card { padding: 14px; border-radius: 16px; }
+        .ud-grid2 { grid-template-columns: 1fr; }
+        .ud-dl { grid-template-columns: 1fr; gap: 2px 0; }
+        .ud-dl dt { margin-top: 8px; }
+        .ud-tabs { border-radius: 14px; }
+        .ud-tab { padding: 9px 14px; font-size: .8rem; }
+        .ud-kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 420px) {
+        .ud-kpis { grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ud-kpi { padding: 11px 12px; }
+        .ud-kpi b { font-size: 1.14rem; }
+        .ud-session { padding: 11px; }
+        .ud-ev-time { margin-inline-start: 0; width: 100%; }
+    }
+    @media print {
+        .ud-tabs, .ud-hero-actions, .ud-btn { display: none !important; }
+        .ud-pane { display: block !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'admin_panel/_admin_nav.html' %}
+
+<div class="ud-wrap">
+
+    <!-- ================= سربرگ کاربر ================= -->
+    <section class="ud-hero">
+        <nav class="ud-crumbs" aria-label="مسیر">
+            <a href="{% url 'admin_dashboard' %}">داشبورد</a>
+            <span>/</span>
+            <a href="{% url 'manage_users' %}">مدیریت کاربران</a>
+            <span>/</span>
+            <span>{{ u.get_full_name|default:u.username }}</span>
+        </nav>
+
+        <div class="ud-hero-row">
+            <div class="ud-avatar" aria-hidden="true">{{ u.get_full_name|default:u.username|slice:":1"|upper }}</div>
+
+            <div class="ud-identity">
+                <div class="ud-name">{{ u.get_full_name|default:'بدون نام' }}</div>
+                <div class="ud-handle">@{{ u.username }}</div>
+                <div class="ud-badges">
+                    <span class="ud-pill">
+                        {% if u.role == 'admin' %}🛡️ مدیر سیستم
+                        {% elif u.role == 'teacher' %}👨‍🏫 معلم
+                        {% else %}🎓 دانش‌آموز{% endif %}
+                    </span>
+                    {% if u.is_active %}
+                        <span class="ud-pill on">● حساب فعال</span>
+                    {% else %}
+                        <span class="ud-pill off">○ حساب غیرفعال</span>
+                    {% endif %}
+                    {% if u.is_superuser %}<span class="ud-pill warn">دسترسی کامل</span>{% endif %}
+                    {% if u.grade %}<span class="ud-pill">پایه {{ u.grade.get_name_display }}</span>{% endif %}
+                    {% if security.sessions %}
+                        <span class="ud-pill">{{ security.sessions }} نشست فعال</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="ud-hero-actions">
+                <button type="button" class="ud-btn js-edit-user" data-id="{{ u.id }}">✏️ ویرایش</button>
+                {% if not is_self %}
+                <form method="post" action="{% url 'user_terminate_sessions' u.id %}" style="margin:0">
+                    {% csrf_token %}
+                    <button type="submit" class="ud-btn danger"
+                            data-confirm="همهٔ نشست‌های فعال این کاربر پایان یابد؟ او از همهٔ دستگاه‌ها خارج می‌شود.">
+                        ⏻ پایان نشست‌ها
+                    </button>
+                </form>
+                <form method="post" action="{% url 'user_toggle_active' u.id %}" style="margin:0">
+                    {% csrf_token %}
+                    <button type="submit" class="ud-btn"
+                            data-confirm="{% if u.is_active %}حساب این کاربر غیرفعال شود؟ تا فعال‌سازی مجدد نمی‌تواند وارد شود.{% else %}حساب این کاربر فعال شود؟{% endif %}">
+                        {% if u.is_active %}🚫 غیرفعال‌سازی{% else %}✅ فعال‌سازی{% endif %}
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'manage_users' %}" class="ud-btn solid">↩ بازگشت به فهرست</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= KPI ================= -->
+    <div class="ud-kpis">
+        {% if u.role == 'student' %}
+        <div class="ud-kpi"><b>{{ activity.exams_assigned }}</b><span>آزمون اختصاص‌یافته</span></div>
+        <div class="ud-kpi good"><b>{{ activity.submitted }}</b><span>آزمون ثبت‌شده</span></div>
+        <div class="ud-kpi"><b>{{ activity.average_percentage }}٪</b><span>میانگین درصد</span></div>
+        <div class="ud-kpi"><b>{{ activity.gpa20 }}</b><span>معدل از ۲۰</span></div>
+        {% elif u.role == 'teacher' %}
+        <div class="ud-kpi"><b>{{ activity.exams_assigned }}</b><span>آزمون ساخته‌شده</span></div>
+        <div class="ud-kpi"><b>{{ activity.questions_created }}</b><span>سوال طراحی‌شده</span></div>
+        {% else %}
+        <div class="ud-kpi"><b>{{ days_since_joined }}</b><span>روز عضویت</span></div>
+        {% endif %}
+        <div class="ud-kpi {% if security.sessions %}good{% endif %}"><b>{{ security.sessions }}</b><span>نشست فعال</span></div>
+        <div class="ud-kpi"><b>{{ security.unique_ips }}</b><span>آی‌پی یکتا</span></div>
+        <div class="ud-kpi"><b>{{ security.unique_devices }}</b><span>دستگاه یکتا</span></div>
+        <div class="ud-kpi {% if security.cheats or security.failed %}alert{% endif %}">
+            <b>{{ security.cheats|add:security.failed }}</b><span>رویداد مشکوک</span>
+        </div>
+    </div>
+
+    <!-- ================= تب‌ها ================= -->
+    <div class="ud-tabs" role="tablist" aria-label="بخش‌های جزئیات کاربر">
+        <button class="ud-tab on" type="button" role="tab" data-pane="profile">👤 مشخصات</button>
+        <button class="ud-tab" type="button" role="tab" data-pane="sessions">🖥️ نشست‌ها <span class="cnt">{{ session_count }}</span></button>
+        <button class="ud-tab" type="button" role="tab" data-pane="activity">📚 فعالیت <span class="cnt">{{ exam_rows|length }}</span></button>
+        <button class="ud-tab" type="button" role="tab" data-pane="security">🔒 امنیت <span class="cnt">{{ events|length }}</span></button>
+    </div>
+
+    <!-- ================= ۱) مشخصات ================= -->
+    <div class="ud-pane on" id="pane-profile" role="tabpanel">
+        <div class="ud-grid2">
+            <div class="ud-card">
+                <h3><span class="ic">🪪</span> اطلاعات هویتی</h3>
+                <dl class="ud-dl">
+                    <dt>نام و نام خانوادگی</dt><dd>{{ u.get_full_name|default:'—' }}</dd>
+                    <dt>نام کاربری</dt><dd class="ud-mono">{{ u.username }}</dd>
+                    <dt>نقش</dt><dd>{{ u.get_role_display }}</dd>
+                    <dt>ایمیل</dt><dd class="ud-mono">{{ u.email|default:'ثبت نشده' }}</dd>
+                    <dt>شماره تماس</dt><dd class="ud-mono">{{ u.phone|default:'ثبت نشده' }}</dd>
+                    {% if u.role == 'student' %}
+                    <dt>کد دانش‌آموزی</dt><dd class="ud-mono">{{ u.student_code|default:'—' }}</dd>
+                    <dt>پایه تحصیلی</dt><dd>{{ u.grade.get_name_display|default:'تعیین نشده' }}</dd>
+                    {% endif %}
+                    <dt>شناسه کاربر</dt><dd class="ud-mono">#{{ u.id }}</dd>
+                </dl>
+            </div>
+
+            <div class="ud-card">
+                <h3><span class="ic">🛡️</span> وضعیت حساب و دسترسی</h3>
+                <dl class="ud-dl">
+                    <dt>وضعیت حساب</dt>
+                    <dd>{% if u.is_active %}<span class="ud-tag ok">فعال</span>{% else %}<span class="ud-tag err">غیرفعال</span>{% endif %}</dd>
+                    <dt>دسترسی کارمندی</dt>
+                    <dd>{% if u.is_staff %}<span class="ud-tag warn">دارد (staff)</span>{% else %}<span class="ud-tag mute">ندارد</span>{% endif %}</dd>
+                    <dt>مدیر ارشد</dt>
+                    <dd>{% if u.is_superuser %}<span class="ud-tag err">بله (superuser)</span>{% else %}<span class="ud-tag mute">خیر</span>{% endif %}</dd>
+                    <dt>تاریخ عضویت</dt><dd>{{ u.date_joined|to_jalali }}</dd>
+                    <dt>مدت عضویت</dt><dd>{{ days_since_joined }} روز</dd>
+                    <dt>آخرین ورود</dt>
+                    <dd>{% if u.last_login %}{{ u.last_login|to_jalali }} <span class="ud-tag mute">{{ u.last_login|timesince }} پیش</span>{% else %}<span class="ud-tag mute">هرگز وارد نشده</span>{% endif %}</dd>
+                    <dt>آخرین فعالیت</dt><dd>{{ last_activity_rel }}</dd>
+                    {% if password_age_days is not None %}
+                    <dt>آخرین تغییر رمز</dt><dd>{{ password_age_days }} روز پیش</dd>
+                    {% endif %}
+                </dl>
+
+                <form method="post" action="{% url 'user_reset_password' u.id %}" class="ud-form-inline" style="margin-top:16px; padding-top:14px; border-top:1px dashed var(--line);">
+                    {% csrf_token %}
+                    <input type="text" name="password" placeholder="رمز موقت جدید (خالی = تصادفی)" minlength="6" autocomplete="off">
+                    <button type="submit" class="ud-btn" style="background:var(--card2); color:var(--ink2); border-color:var(--line);"
+                            data-confirm="رمز عبور این کاربر بازنشانی شود؟">🔑 بازنشانی رمز</button>
+                </form>
+            </div>
+        </div>
+
+        {% if ips %}
+        <div class="ud-card">
+            <h3><span class="ic">🌐</span> آی‌پی‌های مشاهده‌شده <small>{{ ips|length }} آی‌پی یکتا</small></h3>
+            <div class="ud-scroll">
+                <table class="ud-table">
+                    <thead><tr><th>آدرس آی‌پی</th><th>آخرین مشاهده</th><th></th></tr></thead>
+                    <tbody>
+                    {% for row in ips %}
+                    <tr>
+                        <td class="ud-mono"><b>{{ row.ip }}</b></td>
+                        <td>{{ row.last_seen|to_jalali|default:'—' }}</td>
+                        <td><span class="ud-tag mute">{{ row.last_seen_rel }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================= ۲) نشست‌ها و دستگاه‌ها ================= -->
+    <div class="ud-pane" id="pane-sessions" role="tabpanel">
+        <div class="ud-card">
+            <h3>
+                <span class="ic">🟢</span> نشست‌های ورود فعال
+                <small>{{ login_sessions|length }} نشست</small>
+            </h3>
+            {% if login_sessions %}
+            <div class="ud-sessions">
+                {% for s in login_sessions %}
+                <div class="ud-session {% if s.is_current %}current{% endif %}">
+                    <span class="ud-s-ic">🖥️</span>
+                    <div class="ud-s-main">
+                        <div class="ud-s-title">
+                            نشست وب
+                            {% if s.is_current %}<span class="ud-tag ok">همین دستگاه شما</span>{% endif %}
+                        </div>
+                        <div class="ud-s-sub ud-mono">کلید نشست: {{ s.session_key|slice:":16" }}…</div>
+                    </div>
+                    <div class="ud-s-main" style="flex:0 1 auto">
+                        <div class="ud-s-title" style="font-size:.78rem">اعتبار تا</div>
+                        <div class="ud-s-sub">{{ s.expire_date|to_jalali }}</div>
+                    </div>
+                    <span class="ud-tag {% if s.is_current %}ok{% else %}warn{% endif %}">{{ s.remaining }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% if not is_self %}
+            <form method="post" action="{% url 'user_terminate_sessions' u.id %}" style="margin-top:14px">
+                {% csrf_token %}
+                <button type="submit" class="ud-btn danger" style="background:var(--errsoft); color:var(--err); border-color:var(--errline);"
+                        data-confirm="همهٔ نشست‌های فعال این کاربر پایان یابد؟">
+                    ⏻ پایان همهٔ نشست‌ها (خروج از همهٔ دستگاه‌ها)
+                </button>
+            </form>
+            {% endif %}
+            {% else %}
+            <div class="ud-empty">نشست فعالی وجود ندارد — کاربر در حال حاضر وارد سامانه نیست.</div>
+            {% endif %}
+        </div>
+
+        <div class="ud-card">
+            <h3><span class="ic">📱</span> دستگاه‌های شناسایی‌شده <small>از روی User-Agent</small></h3>
+            {% if devices %}
+            <div class="ud-sessions">
+                {% for d in devices %}
+                <div class="ud-session">
+                    <span class="ud-s-ic">{% if d.device == 'موبایل' %}📱{% elif d.device == 'تبلت' %}📲{% else %}💻{% endif %}</span>
+                    <div class="ud-s-main">
+                        <div class="ud-s-title">{{ d.browser }} <span class="ud-tag mute">{{ d.device }}</span></div>
+                        <div class="ud-s-sub">{{ d.os }}</div>
+                    </div>
+                    <span class="ud-tag">{{ d.last_seen_rel }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="ud-empty">دستگاهی ثبت نشده است.</div>
+            {% endif %}
+        </div>
+
+        <div class="ud-card">
+            <h3><span class="ic">🔗</span> نشست‌های آزمون <small>IP و دستگاه در زمان شرکت در آزمون</small></h3>
+            {% if exam_sessions %}
+            <div class="ud-scroll">
+                <table class="ud-table">
+                    <thead>
+                    <tr><th>آزمون</th><th>آی‌پی</th><th>دستگاه / مرورگر</th><th>شروع</th><th>آخرین فعالیت</th><th>تقلب</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for es in exam_sessions %}
+                    <tr>
+                        <td><b>{{ es.exam_title }}</b></td>
+                        <td class="ud-mono">{{ es.ip }}</td>
+                        <td>
+                            {{ es.browser }} · {{ es.os }}
+                            <div style="font-size:.7rem; color:var(--ink3)">{{ es.device }}</div>
+                        </td>
+                        <td style="font-size:.76rem">{{ es.started|to_jalali }}</td>
+                        <td style="font-size:.76rem">{{ es.last_activity|to_jalali }}<br><span class="ud-tag mute">{{ es.last_activity_rel }}</span></td>
+                        <td>
+                            {% if es.cheat_count %}<span class="ud-tag err">{{ es.cheat_count }} مورد</span>
+                            {% else %}<span class="ud-tag ok">سالم</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="ud-empty">نشست آزمونی ثبت نشده است.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ================= ۳) فعالیت ================= -->
+    <div class="ud-pane" id="pane-activity" role="tabpanel">
+        <div class="ud-card">
+            <h3>
+                <span class="ic">{% if u.role == 'student' %}📝{% else %}🗂️{% endif %}</span>
+                {% if u.role == 'student' %}آزمون‌های دانش‌آموز{% elif u.role == 'teacher' %}آزمون‌های ایجادشده توسط معلم{% else %}آزمون‌ها{% endif %}
+                <small>{{ exam_rows|length }} مورد</small>
+            </h3>
+            {% if exam_rows %}
+            <div class="ud-scroll">
+                <table class="ud-table">
+                    <thead>
+                    <tr>
+                        <th>آزمون</th>
+                        {% if u.role == 'teacher' %}<th>پایه</th><th>شرکت‌کننده</th><th>ثبت‌شده</th>
+                        {% else %}<th>معلم</th><th>وضعیت</th>{% endif %}
+                        <th>سوالات</th>
+                        {% if u.role == 'student' %}<th>نمره</th><th>درصد</th><th>زمان ثبت</th>{% endif %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in exam_rows %}
+                    <tr>
+                        <td><b>{{ r.exam.title }}</b></td>
+                        {% if u.role == 'teacher' %}
+                            <td>{{ r.exam.grade.get_name_display|default:'—' }}</td>
+                            <td>{{ r.participants }}</td>
+                            <td>{{ r.submits }}</td>
+                        {% else %}
+                            <td>{{ r.teacher }}</td>
+                            <td>
+                                {% if r.status == 'submitted' %}<span class="ud-tag ok">{{ r.status_text }}</span>
+                                {% elif r.status == 'in_progress' %}<span class="ud-tag warn">{{ r.status_text }}</span>
+                                {% elif r.status == 'timeout' %}<span class="ud-tag err">{{ r.status_text }}</span>
+                                {% else %}<span class="ud-tag mute">{{ r.status_text }}</span>{% endif %}
+                            </td>
+                        {% endif %}
+                        <td>{{ r.questions }}</td>
+                        {% if u.role == 'student' %}
+                        <td>
+                            {% if r.percentage is not None %}{{ r.score|floatformat:1 }} / {{ r.possible|floatformat:1 }}
+                            {% else %}<span class="ud-tag mute">—</span>{% endif %}
+                        </td>
+                        <td style="min-width:120px">
+                            {% if r.percentage is not None %}
+                            <div style="display:flex; align-items:center; gap:8px">
+                                <div class="ud-bar" style="flex:1">
+                                    <i class="{% if r.percentage >= 70 %}{% elif r.percentage >= 50 %}mid{% else %}low{% endif %}"
+                                       style="width:{{ r.percentage }}%"></i>
+                                </div>
+                                <b style="font-size:.76rem">{{ r.percentage }}٪</b>
+                            </div>
+                            {% else %}<span class="ud-tag mute">تصحیح نشده</span>{% endif %}
+                        </td>
+                        <td style="font-size:.74rem">{{ r.submitted_rel }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="ud-empty">فعالیتی ثبت نشده است.</div>
+            {% endif %}
+        </div>
+
+        {% if u.role == 'student' %}
+        <div class="ud-grid2">
+            <div class="ud-card">
+                <h3><span class="ic">⚠️</span> رفتارهای مشکوک در آزمون <small>{{ cheats|length }} مورد</small></h3>
+                {% if cheats %}
+                <div class="ud-timeline">
+                    {% for c in cheats %}
+                    <div class="ud-ev warning">
+                        <div class="ud-ev-top">
+                            <span class="ud-ev-title">{{ c.type_text }}</span>
+                            <span class="ud-tag err">{{ c.exam }}</span>
+                            <span class="ud-ev-time">{{ c.when_rel }}</span>
+                        </div>
+                        <div class="ud-ev-meta">
+                            <span>🕒 {{ c.when|to_jalali }}</span>
+                            <span class="ud-mono">🌐 {{ c.ip }}</span>
+                        </div>
+                        {% if c.detail and c.detail != '—' %}<div class="ud-ev-detail">{{ c.detail }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="ud-empty">هیچ رفتار مشکوکی ثبت نشده است. ✅</div>
+                {% endif %}
+            </div>
+
+            <div class="ud-card">
+                <h3><span class="ic">🧾</span> لاگ فعالیت در آزمون <small>{{ logs|length }} رویداد آخر</small></h3>
+                {% if logs %}
+                <div class="ud-scroll">
+                    <table class="ud-table">
+                        <thead><tr><th>رویداد</th><th>آزمون</th><th>زمان</th></tr></thead>
+                        <tbody>
+                        {% for l in logs %}
+                        <tr>
+                            <td><b>{{ l.action }}</b><div style="font-size:.7rem; color:var(--ink3)" class="ud-mono">{{ l.page_url }}</div></td>
+                            <td>{{ l.exam }}</td>
+                            <td style="font-size:.74rem">{{ l.when_rel }}<br>{{ l.when|to_jalali }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="ud-empty">لاگی ثبت نشده است.</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ================= ۴) امنیت ================= -->
+    <div class="ud-pane" id="pane-security" role="tabpanel">
+        <div class="ud-card">
+            <h3><span class="ic">🚦</span> ارزیابی ریسک امنیتی</h3>
+            <div class="ud-risk">
+                <span class="ud-risk-badge {{ security.risk }}">
+                    {% if security.risk == 'low' %}✅ ریسک پایین
+                    {% elif security.risk == 'medium' %}⚠️ ریسک متوسط
+                    {% else %}⛔ ریسک بالا{% endif %}
+                </span>
+                <p class="ud-risk-note">
+                    این ارزیابی بر پایهٔ تلاش‌های ناموفق ورود، قفل شدن حساب، تعداد نشست‌های فعال،
+                    آی‌پی‌ها/دستگاه‌های یکتا و رفتارهای مشکوک ثبت‌شده در آزمون‌ها محاسبه می‌شود.
+                    {% if security.risk == 'high' %}
+                        <b>پیشنهاد:</b> پایان همهٔ نشست‌ها و بازنشانی رمز عبور.
+                    {% elif security.risk == 'medium' %}
+                        <b>پیشنهاد:</b> بررسی رویدادهای اخیر و اطلاع به کاربر.
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="ud-kpis" style="margin-top:16px">
+                <div class="ud-kpi"><b>{{ security.logins }}</b><span>ورود موفق</span></div>
+                <div class="ud-kpi {% if security.failed %}alert{% endif %}"><b>{{ security.failed }}</b><span>ورود ناموفق</span></div>
+                <div class="ud-kpi {% if security.locked %}alert{% endif %}"><b>{{ security.locked }}</b><span>قفل شدن حساب</span></div>
+                <div class="ud-kpi {% if security.cheats %}alert{% endif %}"><b>{{ security.cheats }}</b><span>تقلب ثبت‌شده</span></div>
+            </div>
+        </div>
+
+        <div class="ud-card">
+            <h3><span class="ic">🕵️</span> رویدادهای امنیتی <small>۱۰۰ رویداد آخر</small></h3>
+            {% if events %}
+            <div class="ud-timeline">
+                {% for e in events %}
+                <div class="ud-ev {{ e.severity }}">
+                    <div class="ud-ev-top">
+                        <span class="ud-ev-title">{{ e.type_text }}</span>
+                        <span class="ud-tag {% if e.severity == 'critical' %}err{% elif e.severity == 'warning' %}warn{% elif e.severity == 'notice' %}{% else %}ok{% endif %}">{{ e.severity_text }}</span>
+                        <span class="ud-ev-time">{{ e.when_rel }}</span>
+                    </div>
+                    <div class="ud-ev-meta">
+                        <span>🕒 {{ e.when|to_jalali }}</span>
+                        <span class="ud-mono">🌐 {{ e.ip }}</span>
+                        <span>🖥️ {{ e.device_label }}</span>
+                    </div>
+                    {% if e.detail and e.detail != '—' %}<div class="ud-ev-detail">{{ e.detail }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="ud-empty">
+                رویداد امنیتی ثبت‌شده‌ای وجود ندارد.
+                <div style="font-size:.76rem; margin-top:6px">از این پس ورود، خروج، تلاش ناموفق و تغییر رمز در همین بخش ثبت می‌شود.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- مودال ویرایش کاربر (همان فرم صفحهٔ مدیریت کاربران) -->
+<div class="modal-backdrop" id="editModal">
+    <div class="modal-card">
+        <h3>ویرایش کاربر</h3>
+        <form id="editForm">
+            <input type="hidden" name="id" id="eId">
+            <div class="form-row">
+                <div class="form-group"><label>نام کاربری</label><input type="text" name="username" id="eUsername" required></div>
+                <div class="form-group"><label>رمز جدید (اختیاری)</label><input type="text" name="password" placeholder="خالی = بدون تغییر"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>نام</label><input type="text" name="first_name" id="eFirst"></div>
+                <div class="form-group"><label>نام خانوادگی</label><input type="text" name="last_name" id="eLast"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>نقش</label>
+                    <select name="role" id="eRole">
+                        <option value="student">دانش‌آموز</option>
+                        <option value="teacher">معلم</option>
+                        <option value="admin">ادمین</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>پایه</label>
+                    <select name="grade" id="eGrade">
+                        <option value="">—</option>
+                        {% for g in grades %}<option value="{{ g.id }}">پایه {{ g.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>کد دانش‌آموزی</label><input type="text" name="student_code" id="eCode"></div>
+            <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-save">ذخیره</button>
+                <button type="button" class="btn btn-secondary" id="editCancel">انصراف</button>
+            </div>
+            <span id="editMsg" style="font-size:.76rem; margin-right:6px;"></span>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    // ---------- تب‌ها (با پشتیبانی از hash در آدرس) ----------
+    const tabs = Array.from(document.querySelectorAll('.ud-tab'));
+    const panes = Array.from(document.querySelectorAll('.ud-pane'));
+    function activate(name, push) {
+        const tab = tabs.find(t => t.dataset.pane === name);
+        if (!tab) return;
+        tabs.forEach(t => t.classList.toggle('on', t === tab));
+        panes.forEach(p => p.classList.toggle('on', p.id === 'pane-' + name));
+        tab.setAttribute('aria-selected', 'true');
+        tabs.filter(t => t !== tab).forEach(t => t.setAttribute('aria-selected', 'false'));
+        if (push && history.replaceState) history.replaceState(null, '', '#' + name);
+    }
+    tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.pane, true)));
+    const initial = (location.hash || '').replace('#', '');
+    if (initial) activate(initial, false);
+
+    // ---------- مودال ویرایش ----------
+    const modal = document.getElementById('editModal');
+    const cancel = document.getElementById('editCancel');
+    if (cancel) cancel.onclick = () => modal.classList.remove('show');
+    if (modal) modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+
+    const csrftoken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+    document.querySelectorAll('.js-edit-user').forEach(btn => btn.addEventListener('click', async () => {
+        const r = await fetch('{% url "get_user" u.id %}');
+        if (!r.ok) return;
+        const u = await r.json();
+        document.getElementById('eId').value = u.id;
+        document.getElementById('eUsername').value = u.username;
+        document.getElementById('eFirst').value = u.first_name;
+        document.getElementById('eLast').value = u.last_name;
+        document.getElementById('eRole').value = u.role;
+        document.getElementById('eGrade').value = u.grade_id || '';
+        document.getElementById('eCode').value = u.student_code || '';
+        document.getElementById('editMsg').textContent = '';
+        modal.classList.add('show');
+    }));
+
+    const form = document.getElementById('editForm');
+    if (form) form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('eId').value;
+        const msg = document.getElementById('editMsg');
+        const r = await fetch('/admin-panel/users/' + id + '/edit/', {
+            method: 'POST', body: new FormData(e.target), headers: { 'X-CSRFToken': csrftoken }
+        });
+        const d = await r.json();
+        msg.style.color = d.success ? 'var(--ok)' : 'var(--err)';
+        msg.textContent = d.success ? d.message : (d.error || 'خطا');
+        if (d.success) setTimeout(() => location.reload(), 700);
+    });
+})();
+</script>
+{% endblock %}
