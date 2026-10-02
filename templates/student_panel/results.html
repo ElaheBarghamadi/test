@@ -458,8 +458,8 @@
 (function () {
     const FA = '۰۱۲۳۴۵۶۷۸۹';
     const fa = n => String(n).replace(/\d/g, d => FA[d]);
-    document.querySelectorAll('.rs-seg button b, .rs-count, .rs-hero-stat b').forEach(el => {
-        if (/^\d+$/.test(el.textContent.trim())) el.textContent = fa(el.textContent.trim());
+    document.querySelectorAll('.rs-seg button b, .rs-count, .rs-hero-stat b, .rs-ring-val b, .rs-avg-item b').forEach(el => {
+        el.textContent = el.textContent.replace(/\d/g, d => FA[d]).replace(/\./g, '٫');
     });
     const cnt = document.getElementById('rsCount');
 

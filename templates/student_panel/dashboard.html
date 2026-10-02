@@ -461,6 +461,8 @@
 
 <script>
 (function () {
+    const FA = '۰۱۲۳۴۵۶۷۸۹', fa = n => String(n).replace(/\d/g, d => FA[d]);
+
     /* ---------- اطلاعیه‌ها: باز/بسته کردن متن ---------- */
     const items = Array.from(document.querySelectorAll('.an-item'));
     items.forEach(item => {
@@ -509,6 +511,9 @@
     }
 
     /* ---------- حلقهٔ درصد نتایج ---------- */
+    document.querySelectorAll('.rs-mini-ring b[data-pct], .rs-avg-item b').forEach(b0 => {
+        b0.textContent = b0.textContent.replace(/\d/g, d => FA[d]).replace(/\./g, '٫');
+    });
     document.querySelectorAll('.rs-mini-ring b[data-pct]').forEach(b => {
         const svg = b.parentElement.querySelector('.fg');
         if (!svg) return;
@@ -533,7 +538,6 @@
     });
 
     /* ---------- شمارش معکوس شروع آزمون ---------- */
-    const FA = '۰۱۲۳۴۵۶۷۸۹', fa = n => String(n).replace(/\d/g, d => FA[d]);
     const els = document.querySelectorAll('.countdown[data-start]');
     if (els.length) {
         const tick = () => {

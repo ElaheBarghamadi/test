@@ -255,6 +255,7 @@
     opacity: 0; transition: opacity .2s ease;
 }
 .ft-modal.show { opacity: 1; }
+.ft-modal[hidden] { display: none; }
 .ft-modal-card {
     position: relative; width: min(620px, 100%); max-height: 82vh; overflow: auto;
     background: #fff; color: var(--ink); border-radius: 20px; padding: 26px 26px 22px;
