@@ -141,7 +141,7 @@ class SecurityEvent(models.Model):
     # ---- میان‌برهای نمایشی ----
     @property
     def device_label(self):
-        parts = [p for p in (self.device, self.os, self.browser) if p]
+        parts = [p for p in (self.device, self.os, self.browser) if p and p != 'نامشخص']
         return ' · '.join(dict.fromkeys(parts)) or 'دستگاه ناشناس'
 
 
@@ -217,7 +217,8 @@ def parse_user_agent(ua):
             browser = f'{name} {version.split(".")[0]}' if version else name
             break
     if not browser:
-        browser = 'نامشخص'
+        m = re.search(r'([A-Za-z][A-Za-z0-9\-+]*)/(\d+)', ua)
+        browser = f'{m.group(1).lower()} {m.group(2)}' if m else 'نامشخص'
 
     os_name = ''
     for pattern, name in _OS_RULES:

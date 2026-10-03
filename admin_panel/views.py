@@ -468,6 +468,9 @@ def add_user(request):
         record_security_event(request, user=request.user, event_type='account_created',
                               severity='notice',
                               detail=f'ساخت حساب «{user.username}» با نقش {user.get_role_display()}')
+        record_security_event(request, user=user, event_type='account_created',
+                              severity='notice',
+                              detail=f'حساب توسط مدیر «{request.user.username}» ساخته شد')
 
         return JsonResponse({'success': True, 'user_id': user.id, 'message': 'کاربر با موفقیت اضافه شد'})
 
@@ -551,11 +554,15 @@ def edit_user(request, user_id):
 
         user.save()
 
-        record_security_event(request, user=request.user,
-                              event_type='password_changed' if password_changed else 'profile_updated',
+        _etype = 'password_changed' if password_changed else 'profile_updated'
+        record_security_event(request, user=request.user, event_type=_etype,
                               severity='notice',
                               detail=(f'{"بازنشانی رمز عبور" if password_changed else "ویرایش مشخصات"} '
                                       f'کاربر «{user.username}» توسط مدیر'))
+        record_security_event(request, user=user, event_type=_etype,
+                              severity='notice',
+                              detail=(f'{"بازنشانی رمز عبور" if password_changed else "ویرایش مشخصات"} '
+                                      f'توسط مدیر «{request.user.username}»'))
 
         return JsonResponse({'success': True, 'message': 'کاربر با موفقیت ویرایش شد'})
 
@@ -576,6 +583,9 @@ def delete_user(request, user_id):
 
     record_security_event(request, user=request.user, event_type='account_deleted',
                           severity='warning', detail=f'حذف حساب کاربری «{user.username}» (شناسه {user_id})')
+    record_security_event(request, user=user, event_type='account_deleted',
+                          severity='warning',
+                          detail=f'حساب توسط مدیر «{request.user.username}» حذف شد')
     user.delete()
     return JsonResponse({'success': True, 'message': 'کاربر با موفقیت حذف شد'})
 
@@ -694,12 +704,24 @@ def user_detail(request, user_id):
     target = get_object_or_404(User.objects.select_related('grade'), id=user_id)
     now = timezone.now()
 
-    # ---------------- نشست‌های ورود فعال ----------------
+    # ---------------- نشست‌های ورود فعال (+ دستگاه/آی‌پی هر نشست) ----------------
     login_sessions = _user_login_sessions(target)
     current_key = request.session.session_key
+    session_keys = [s['session_key'] for s in login_sessions]
+    login_ev_by_key = {}
+    for ev in SecurityEvent.objects.filter(session_key__in=session_keys,
+                                           event_type='login').order_by('created_at'):
+        login_ev_by_key[ev.session_key] = ev      # آخرین رویداد ورودِ هر کلید نشست
     for s in login_sessions:
         s['is_current'] = (target.id == request.user.id and s['session_key'] == current_key)
         s['remaining'] = _remaining_fa(s['expire_date'], now)
+        ev = login_ev_by_key.get(s['session_key'])
+        s['login_at'] = ev.created_at if ev else None
+        s['login_rel'] = _relative_fa(ev.created_at, now) if ev else 'نامشخص'
+        s['ip'] = ev.ip_address if ev else None
+        s['browser'] = ev.browser if ev else 'نامشخص'
+        s['os'] = ev.os if ev else 'نامشخص'
+        s['device'] = ev.device if ev else 'نامشخص'
 
     # ---------------- نشست‌های آزمون (IP / User-Agent) ----------------
     exam_sessions = (ExamSession.objects.filter(student=target)
@@ -722,25 +744,50 @@ def user_detail(request, user_id):
             'cheat_count': es.cheats.count(),
         })
 
-    # ---------------- دستگاه‌ها و آی‌پی‌های یکتا ----------------
-    devices, ips = [], []
-    seen_dev, seen_ip = set(), set()
-    for row in exam_sessions_data + [{
-        'browser': e.browser, 'os': e.os, 'device': e.device, 'ip_address': e.ip_address,
-        'created_at': e.created_at
-    } for e in SecurityEvent.objects.filter(user=target).order_by('-created_at')[:200]]:
-        dev_key = (row.get('device'), row.get('os'), row.get('browser'))
-        if any(dev_key) and dev_key not in seen_dev:
-            seen_dev.add(dev_key)
-            when = row.get('created_at') or row.get('last_activity')
-            devices.append({'device': row.get('device') or 'نامشخص', 'os': row.get('os') or 'نامشخص',
-                            'browser': row.get('browser') or 'نامشخص', 'last_seen': when,
-                            'last_seen_rel': _relative_fa(when, now)})
-        ip_val = row.get('ip_address') or row.get('ip')
-        if ip_val and ip_val not in seen_ip:
-            seen_ip.add(ip_val)
-            when = row.get('created_at') or row.get('last_activity')
-            ips.append({'ip': ip_val, 'last_seen': when, 'last_seen_rel': _relative_fa(when, now)})
+    # ---------------- دستگاه‌ها و آی‌پی‌های یکتا (تجمیعی: تعداد + اولین/آخرین مشاهده) ----
+    dev_map, ip_map = {}, {}
+
+    def _seen_dev(device, os_name, browser, when):
+        if not any((device, os_name, browser)):
+            return
+        key = (device, os_name, browser)
+        rec = dev_map.setdefault(key, {'device': device or 'نامشخص', 'os': os_name or 'نامشخص',
+                                       'browser': browser or 'نامشخص',
+                                       'count': 0, 'first': when, 'last': when})
+        rec['count'] += 1
+        if when and (rec['first'] is None or when < rec['first']):
+            rec['first'] = when
+        if when and (rec['last'] is None or when > rec['last']):
+            rec['last'] = when
+
+    def _seen_ip(ip, when, source):
+        if not ip:
+            return
+        rec = ip_map.setdefault(ip, {'ip': ip, 'count': 0, 'first': when, 'last': when,
+                                     'sources': set()})
+        rec['count'] += 1
+        rec['sources'].add(source)
+        if when and (rec['first'] is None or when < rec['first']):
+            rec['first'] = when
+        if when and (rec['last'] is None or when > rec['last']):
+            rec['last'] = when
+
+    for e in SecurityEvent.objects.filter(user=target).order_by('created_at'):
+        _seen_dev(e.device, e.os, e.browser, e.created_at)
+        _seen_ip(e.ip_address, e.created_at, 'ورود/حساب')
+    for es in exam_sessions_data:
+        _seen_dev(es['device'], es['os'], es['browser'], es['last_activity'])
+        _seen_ip(es['ip'] if es['ip'] != 'ثبت نشده' else None, es['last_activity'], 'آزمون')
+
+    devices = sorted(dev_map.values(), key=lambda r: r['last'] or now, reverse=True)
+    for d in devices:
+        d['first_rel'] = _relative_fa(d['first'], now)
+        d['last_rel'] = _relative_fa(d['last'], now)
+    ips = sorted(ip_map.values(), key=lambda r: r['last'] or now, reverse=True)
+    for r in ips:
+        r['first_rel'] = _relative_fa(r['first'], now)
+        r['last_rel'] = _relative_fa(r['last'], now)
+        r['sources_label'] = ' + '.join(sorted(r['sources']))
 
     # ---------------- آزمون‌ها و تلاش‌ها ----------------
     if target.role == 'student':
@@ -814,6 +861,34 @@ def user_detail(request, user_id):
         'when_rel': _relative_fa(c.created_at, now),
     } for c in cheats]
 
+    # ---------------- تاریخچهٔ ورود/خروج ----------------
+    auth_types = ['login', 'login_failed', 'login_locked', 'logout']
+    login_history = [{
+        'type_text': e.get_event_type_display(),
+        'event_type': e.event_type,
+        'severity': e.severity,
+        'ip': e.ip_address or '—',
+        'device_label': e.device_label,
+        'when': e.created_at,
+        'when_rel': _relative_fa(e.created_at, now),
+        'ok': e.event_type == 'login',
+    } for e in SecurityEvent.objects.filter(user=target, event_type__in=auth_types)
+        .order_by('-created_at')[:30]]
+    last_login_event = next((h for h in login_history if h['ok']), None)
+
+    # ---------------- کنش‌های مدیریتی روی این حساب ----------------
+    admin_action_types = ['session_revoked', 'password_changed', 'profile_updated',
+                          'account_created', 'account_deleted']
+    admin_actions = [{
+        'type_text': e.get_event_type_display(),
+        'detail': e.detail,
+        'when': e.created_at,
+        'when_rel': _relative_fa(e.created_at, now),
+        'actor': e.username_snapshot or '—',
+    } for e in SecurityEvent.objects.filter(user=target, event_type__in=admin_action_types,
+                                            detail__contains='توسط مدیر')
+        .order_by('-created_at')[:30]]
+
     # ---------------- رویدادهای امنیتی ----------------
     events = SecurityEvent.objects.filter(
         Q(user=target) | Q(username_snapshot=target.username)
@@ -872,8 +947,11 @@ def user_detail(request, user_id):
         'is_self': target.id == request.user.id,
         'login_sessions': login_sessions,
         'exam_sessions': exam_sessions_data,
-        'devices': devices[:8],
-        'ips': ips[:10],
+        'devices': devices,
+        'ips': ips,
+        'login_history': login_history,
+        'last_login_event': last_login_event,
+        'admin_actions': admin_actions,
         'exam_rows': exam_rows,
         'activity': activity,
         'cheats': cheats_data,
@@ -919,6 +997,9 @@ def user_terminate_sessions(request, user_id):
     record_security_event(request, user=request.user, event_type='session_revoked',
                           severity='notice',
                           detail=f'پایان {killed} نشست فعال کاربر «{target.username}» توسط مدیر')
+    record_security_event(request, user=target, event_type='session_revoked',
+                          severity='notice',
+                          detail=f'پایان {killed} نشست فعال توسط مدیر «{request.user.username}»')
     messages.success(request, f'{killed} نشست فعال پایان یافت.' if killed else 'نشست فعالی پیدا نشد.')
     return redirect('user_detail', user_id=target.id)
 
@@ -948,9 +1029,13 @@ def user_toggle_active(request, user_id):
                 continue
         cache.delete(f'user_session_{target.id}')
 
+    _state = 'فعال' if target.is_active else 'غیرفعال'
     record_security_event(request, user=request.user, event_type='profile_updated',
                           severity='notice',
-                          detail=f'حساب «{target.username}» {"فعال" if target.is_active else "غیرفعال"} شد')
+                          detail=f'حساب «{target.username}» {_state} شد')
+    record_security_event(request, user=target, event_type='profile_updated',
+                          severity='notice',
+                          detail=f'وضعیت حساب {_state} شد — توسط مدیر «{request.user.username}»')
     messages.success(request, 'حساب کاربر غیرفعال شد.' if not target.is_active else 'حساب کاربر فعال شد.')
     return redirect('user_detail', user_id=target.id)
 
@@ -974,6 +1059,9 @@ def user_reset_password(request, user_id):
     record_security_event(request, user=request.user, event_type='password_changed',
                           severity='notice',
                           detail=f'بازنشانی رمز عبور «{target.username}» توسط مدیر')
+    record_security_event(request, user=target, event_type='password_changed',
+                          severity='notice',
+                          detail=f'رمز عبور بازنشانی شد — توسط مدیر «{request.user.username}»')
     messages.success(request, f'رمز عبور کاربر «{target.username}» به «{temp}» تغییر یافت.')
     return redirect('user_detail', user_id=target.id)
 

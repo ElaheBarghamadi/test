@@ -68,7 +68,7 @@
     {% if students %}
     <div class="chips">
         {% for s in students %}
-        <span class="group-chip">{{ s.get_full_name|default:s.username }}</span>
+        <a class="group-chip" href="{% url 'user_detail' s.id %}" style="text-decoration:none" title="جزئیات کاربر">{{ s.get_full_name|default:s.username }}</a>
         {% endfor %}
     </div>
     {% else %}

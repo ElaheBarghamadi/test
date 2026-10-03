@@ -130,7 +130,9 @@
         {% for u in recent_users %}
         <div class="list-row">
             <div>
-                <b>{{ u.get_full_name|default:u.username }}</b>
+                <a href="{% url 'user_detail' u.id %}" style="text-decoration:none" title="مشاهدهٔ جزئیات کاربر">
+                    <b style="color:inherit">{{ u.get_full_name|default:u.username }}</b>
+                </a>
                 <div class="muted">@{{ u.username }} · {{ u.date_joined|to_jalali }}</div>
             </div>
             <span class="status-badge {% if u.role == 'admin' %}badge-danger{% elif u.role == 'teacher' %}status-ongoing{% else %}status-completed{% endif %}">
