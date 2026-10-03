@@ -19,6 +19,8 @@ from accounts.models import User, Grade
 from exams.models import (Exam, Question, StudentAnswer, ExamAttempt, CheatAttempt,
                           ExamLog, ExamSession)
 from .models import SystemSetting, SecurityEvent, record_security_event, parse_user_agent
+from core.security import (clean_text, clean_username, clean_student_code, clean_choice,
+                           password_policy, validate_sheet_upload, terminate_user_sessions)
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import json
@@ -240,6 +242,10 @@ def import_users_from_file(request):
         if not file:
             return JsonResponse({'error': 'لطفا فایل را انتخاب کنید'}, status=400)
 
+        file_err = validate_sheet_upload(file)
+        if file_err:
+            return JsonResponse({'error': file_err}, status=400)
+
         # بررسی پسوند فایل
         file_extension = file.name.split('.')[-1].lower()
 
@@ -422,29 +428,42 @@ def add_user(request):
         return JsonResponse({'error': 'method not allowed'}, status=405)
 
     try:
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
-        role = request.POST.get('role')
+        username, err = clean_username(request.POST.get('username'))
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        password = request.POST.get('password') or ''
+        err = password_policy(password)
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        first_name, err = clean_text(request.POST.get('first_name'), max_len=60, label='نام')
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        last_name, err = clean_text(request.POST.get('last_name'), max_len=60, label='نام خانوادگی')
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        role, err = clean_choice(request.POST.get('role'), ('student', 'teacher', 'admin'),
+                                 default='student', label='نقش')
+        if err:
+            return JsonResponse({'error': err}, status=400)
         grade_id = request.POST.get('grade')
-        student_code = request.POST.get('student_code', '')
-
-        if not username:
-            return JsonResponse({'error': 'نام کاربری الزامی است'}, status=400)
-
-        if not password:
-            return JsonResponse({'error': 'رمز عبور الزامی است'}, status=400)
-
-        if len(password) < 6:
-            return JsonResponse({'error': 'رمز عبور باید حداقل 6 کاراکتر باشد'}, status=400)
+        student_code, err = clean_student_code(request.POST.get('student_code'))
+        if err:
+            return JsonResponse({'error': err}, status=400)
 
         if User.objects.filter(username=username).exists():
             return JsonResponse({'error': 'این نام کاربری قبلاً ثبت شده است'}, status=400)
 
+        if grade_id and grade_id not in ('None', '', 'null'):
+            if not str(grade_id).isdigit() or not Grade.objects.filter(id=int(grade_id)).exists():
+                return JsonResponse({'error': 'پایهٔ تحصیلی معتبر نیست'}, status=400)
+        else:
+            grade_id = None
+
         if role == 'student' and student_code:
             if User.objects.filter(student_code=student_code).exists():
                 return JsonResponse({'error': 'این کد دانش‌آموزی قبلاً ثبت شده است'}, status=400)
+        elif role != 'student':
+            student_code = ''
 
         user = User.objects.create(
             username=username,
@@ -454,11 +473,8 @@ def add_user(request):
         )
         user.set_password(password)
 
-        if grade_id and grade_id != 'None' and grade_id != '' and grade_id != 'null':
-            try:
-                user.grade_id = int(grade_id)
-            except (ValueError, TypeError):
-                pass
+        if grade_id:
+            user.grade_id = int(grade_id)
 
         if role == 'student':
             user.student_code = student_code if student_code else None
@@ -508,19 +524,33 @@ def edit_user(request, user_id):
     try:
         user = get_object_or_404(User, id=user_id)
 
-        username = request.POST.get('username')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
-        role = request.POST.get('role')
+        username, err = clean_username(request.POST.get('username'))
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        first_name, err = clean_text(request.POST.get('first_name'), max_len=60, label='نام')
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        last_name, err = clean_text(request.POST.get('last_name'), max_len=60, label='نام خانوادگی')
+        if err:
+            return JsonResponse({'error': err}, status=400)
+        role, err = clean_choice(request.POST.get('role'), ('student', 'teacher', 'admin'),
+                                 default=user.role, label='نقش')
+        if err:
+            return JsonResponse({'error': err}, status=400)
         grade_id = request.POST.get('grade')
         password = request.POST.get('password')
-        student_code = request.POST.get('student_code', '')
-
-        if not username:
-            return JsonResponse({'error': 'نام کاربری الزامی است'}, status=400)
+        student_code, err = clean_student_code(request.POST.get('student_code'))
+        if err:
+            return JsonResponse({'error': err}, status=400)
 
         if User.objects.filter(username=username).exclude(id=user_id).exists():
             return JsonResponse({'error': 'این نام کاربری قبلاً ثبت شده است'}, status=400)
+
+        if grade_id and grade_id not in ('None', '', 'null'):
+            if not str(grade_id).isdigit() or not Grade.objects.filter(id=int(grade_id)).exists():
+                return JsonResponse({'error': 'پایهٔ تحصیلی معتبر نیست'}, status=400)
+        else:
+            grade_id = None
 
         if role == 'student' and student_code:
             if User.objects.filter(student_code=student_code).exclude(id=user_id).exists():
@@ -531,11 +561,8 @@ def edit_user(request, user_id):
         user.last_name = last_name
         user.role = role
 
-        if grade_id and grade_id != 'None' and grade_id != '' and grade_id != 'null':
-            try:
-                user.grade_id = int(grade_id)
-            except (ValueError, TypeError):
-                user.grade = None
+        if grade_id:
+            user.grade_id = int(grade_id)
         else:
             user.grade = None
 
@@ -546,13 +573,17 @@ def edit_user(request, user_id):
 
         password_changed = False
         if password and password.strip():
-            if len(password) >= 6:
-                user.set_password(password)
-                password_changed = True
-            else:
-                return JsonResponse({'error': 'رمز عبور باید حداقل 6 کاراکتر باشد'}, status=400)
+            err = password_policy(password)
+            if err:
+                return JsonResponse({'error': err}, status=400)
+            user.set_password(password)
+            password_changed = True
 
         user.save()
+
+        # 🔒 با تغییر رمز، همهٔ نشست‌های فعال کاربر باطل می‌شود
+        if password_changed:
+            terminate_user_sessions(user)
 
         _etype = 'password_changed' if password_changed else 'profile_updated'
         record_security_event(request, user=request.user, event_type=_etype,
@@ -1049,13 +1080,15 @@ def user_reset_password(request, user_id):
 
     import secrets
     target = get_object_or_404(User, id=user_id)
-    temp = request.POST.get('password', '').strip() or secrets.token_urlsafe(6)
-    if len(temp) < 6:
-        messages.error(request, 'رمز عبور باید حداقل ۶ کاراکتر باشد.')
+    temp = request.POST.get('password', '').strip() or secrets.token_urlsafe(8)
+    err = password_policy(temp)
+    if err:
+        messages.error(request, err)
         return redirect('user_detail', user_id=target.id)
 
     target.set_password(temp)
     target.save(update_fields=['password'])
+    terminate_user_sessions(target)
     record_security_event(request, user=request.user, event_type='password_changed',
                           severity='notice',
                           detail=f'بازنشانی رمز عبور «{target.username}» توسط مدیر')

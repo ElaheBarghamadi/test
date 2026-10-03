@@ -944,7 +944,18 @@ class UxImprovementTests(TestCase):
         self.assertContains(r, '14')   # سال شمسی ۱۴xx
 
     def test_settings_have_no_env_dependency(self):
+        """تنظیمات باید بدون هیچ متغیر محیطی «اجباری» کار کند.
+
+        سیاست جدید: فقط SECRET_KEY یک override «اختیاری» (os.environ.get با مقدار
+        پیش‌فرض) دارد؛ هر خواند اجباری (os.environ[...] یا getenv بدون پیش‌فرض) ممنوع است.
+        """
         import pathlib
+        import re
         src = pathlib.Path('exam_system/settings.py').read_text(encoding='utf-8')
-        self.assertNotIn('getenv', src)
-        self.assertNotIn('os.environ', src)
+        self.assertNotIn('os.environ[', src)          # خواند اجباری ممنوع
+        self.assertNotIn('getenv', src)               # بدون پیش‌فرض‌های گم‌نام
+        # همهٔ استفاده‌های os.environ باید از نوع .get( با مقدار پیش‌فرض باشند
+        for m in re.finditer(r'os\.environ\.get\(\s*[^,)]+\s*,', src):
+            pass
+        self.assertEqual(src.count('os.environ'), src.count('os.environ.get('))
+        self.assertIn('DJANGO_SECRET_KEY', src)

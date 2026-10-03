@@ -60,8 +60,25 @@ class Exam(models.Model):
     show_answers_after_exam = models.BooleanField(default=False,
                                                   verbose_name="نمایش پاسخ صحیح به دانش‌آموز بعد از اتمام")
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(duration_minutes__gte=1, duration_minutes__lte=600),
+                name='exam_duration_in_range'),
+            models.CheckConstraint(
+                check=models.Q(end_time__gt=models.F('start_time')),
+                name='exam_end_after_start'),
+        ]
+
     def __str__(self):
         return f"{self.title}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.duration_minutes is not None and not (1 <= self.duration_minutes <= 600):
+            raise ValidationError({'duration_minutes': 'مدت آزمون باید بین ۱ تا ۶۰۰ دقیقه باشد.'})
+        if self.start_time and self.end_time and self.end_time <= self.start_time:
+            raise ValidationError({'end_time': 'زمان پایان باید بعد از زمان شروع باشد.'})
 
 
 class Question(models.Model):
@@ -93,9 +110,17 @@ class Question(models.Model):
 
     class Meta:
         ordering = ['order']
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(max_score__gte=0, max_score__lte=1000),
+                name='question_max_score_in_range'),
+            models.CheckConstraint(
+                check=models.Q(order__gte=0),
+                name='question_order_non_negative'),
+        ]
 
     def __str__(self):
-        return f"سوال {self.order}: {self.exam.title}"
+        return f"سوال {self.order}: {self.exam.title}" 
 
 
 class StudentAnswer(models.Model):

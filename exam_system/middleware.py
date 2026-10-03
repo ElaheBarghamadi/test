@@ -46,6 +46,20 @@ class SecurityHeadersMiddleware:
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
         'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Resource-Policy': 'same-origin',
+        # CSP: منابع فقط از خود سامانه؛ inline فقط برای style/script داخلی قالب‌ها
+        'Content-Security-Policy': (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "font-src 'self'; "
+            "connect-src 'self'; "
+            "form-action 'self'; "
+            "base-uri 'self'; "
+            "object-src 'none'; "
+            "frame-ancestors 'none'"
+        ),
     }
 
     def __init__(self, get_response):

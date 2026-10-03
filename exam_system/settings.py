@@ -12,8 +12,11 @@ _RUNNING_DEV_SERVER = any(a.startswith('runserver') for a in sys.argv[1:])
 DEBUG = _RUNNING_DEV_SERVER
 TESTING = 'test' in sys.argv
 
-# 🔐 کلید امنیتی
-SECRET_KEY = 'k7Qm2vX9pR4tLw8zN3bH6yJc1fD5sG0aE-uVxZqWiOoPlKjMnB_rTyUe4hS8dC2g'
+# 🔐 کلید امنیتی — در تولید حتماً از متغیر محیطی DJANGO_SECRET_KEY خوانده شود
+import os as _os
+SECRET_KEY = _os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'k7Qm2vX9pR4tLw8zN3bH6yJc1fD5sG0aE-uVxZqWiOoPlKjMnB_rTyUe4hS8dC2g')
 
 # 🔒 کوکی‌ها و نشست‌ها
 SESSION_COOKIE_HTTPONLY = True          # جاوااسکریپت به کوکی نشست دسترسی ندارد

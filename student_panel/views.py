@@ -26,6 +26,7 @@ from django.core.files.images import get_image_dimensions
 from exams.models import (Exam, Question, StudentAnswer, ExamAttempt, ExamSession,
                           CheatAttempt, TeacherAnswer)
 from accounts.models import Grade
+from core.security import limit
 
 # ========== تنظیمات هش امنیتی ==========
 SECRET_KEY_FOR_HASH = getattr(settings, 'EXAM_ID_HASH_SECRET', settings.SECRET_KEY)
@@ -865,6 +866,7 @@ def _apply_answer_payload(user, question, data):
 
 @require_http_methods(["POST"])
 @login_required
+@limit('save_answer', 120, 60)
 def save_answer(request):
     """ذخیره پاسخ دانش‌آموز (AJAX)"""
     try:
@@ -895,6 +897,7 @@ def save_answer(request):
 
 @require_http_methods(["POST"])
 @login_required
+@limit('save_all_answers', 40, 60)
 def save_all_answers(request):
     """ذخیره دسته‌ای همه پاسخ‌ها در یک درخواست (برای ثبت نهایی مطمئن)"""
     try:
@@ -956,6 +959,7 @@ def save_all_answers(request):
 
 @require_http_methods(["POST"])
 @login_required
+@limit('save_answer_image', 40, 60)
 def save_answer_image(request):
     """ذخیره عکس به عنوان پاسخ دانش‌آموز"""
     try:
@@ -1008,6 +1012,7 @@ def save_answer_image(request):
 
 @require_http_methods(["POST"])
 @login_required
+@limit('remove_answer_image', 40, 60)
 def remove_answer_image(request):
     """حذف عکس پاسخ دانش‌آموز"""
     try:
@@ -1177,6 +1182,7 @@ def check_exam_time(request, exam):
 
 
 @login_required
+@limit('log_cheat', 30, 60)
 def log_cheat(request):
     """ثبت تخلف دانش‌آموز (AJAX)"""
     if request.method != 'POST':

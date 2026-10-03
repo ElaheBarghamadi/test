@@ -22,6 +22,8 @@ from exams.models import (
     QuestionBank, StudentGroup, Announcement
 )
 from accounts.models import User, Grade
+from core.security import (clean_text, validate_image_upload,
+                           redirect_back, limit)
 
 # ========== ایمپورت‌های جانبی ==========
 import json
@@ -569,11 +571,16 @@ def _render_question_form(request, *, mode, action, title, initial, exam=None, o
 
 
 def _apply_question_image(request, obj):
+    """اعمال تصویر سوال؛ در صورت نامعتبر بودن فایل، پیام خطا برمی‌گرداند (None یعنی ok)"""
     if request.POST.get('remove_image') and obj.image:
         # فایل حذف نمی‌شود؛ ممکن است بین سوال بانک و سوال آزمون مشترک باشد
         obj.image = None
     if request.FILES.get('image'):
+        err = validate_image_upload(request.FILES['image'])
+        if err:
+            return err
         obj.image = request.FILES['image']
+    return None
 
 
 @login_required
@@ -592,7 +599,11 @@ def add_question(request, exam_id):
                                          initial=_question_initial(post=request.POST), error=err)
         question = Question(exam=exam, order=(exam.questions.aggregate(m=Max('order'))['m'] or 0) + 1)
         apply_to_question(question, data)
-        _apply_question_image(request, question)
+        img_err = _apply_question_image(request, question)
+        if img_err:
+            messages.error(request, img_err)
+            return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
+                                         initial=_question_initial(post=request.POST), error=img_err)
         question.save()
         finalize_question(question)
         _save_to_bank_if_requested(request, question)
@@ -623,7 +634,11 @@ def edit_question(request, exam_id, question_id):
             return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
                                          obj=question, initial=_question_initial(post=request.POST), error=err)
         apply_to_question(question, data)
-        _apply_question_image(request, question)
+        img_err = _apply_question_image(request, question)
+        if img_err:
+            messages.error(request, img_err)
+            return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
+                                         obj=question, initial=_question_initial(post=request.POST), error=img_err)
         question.save()
         finalize_question(question)
         _save_to_bank_if_requested(request, question)
@@ -1027,6 +1042,10 @@ def add_teacher_answer(request, exam_id, question_id):
         teacher_answer.answer_text = request.POST.get('answer_text', '')
 
         if 'answer_image' in request.FILES:
+            img_err = validate_image_upload(request.FILES['answer_image'])
+            if img_err:
+                messages.error(request, img_err)
+                return redirect('add_teacher_answer', exam_id=exam.id, question_id=question.id)
             if teacher_answer.answer_image:
                 teacher_answer.answer_image.delete()
             teacher_answer.answer_image = request.FILES['answer_image']
@@ -1369,7 +1388,10 @@ def question_bank(request):
         bank = QuestionBank(teacher=request.user)
         for k, v in data.items():
             setattr(bank, k, v)
-        _apply_question_image(request, bank)
+        img_err = _apply_question_image(request, bank)
+        if img_err:
+            messages.error(request, img_err)
+            return redirect('question_bank')
         bank.save()
         messages.success(request, 'سوال به بانک اضافه شد.')
         back = bank.folder_id or ''
@@ -1643,7 +1665,10 @@ def bank_question_edit(request, bank_id):
                                      initial=_question_initial(post=request.POST), error=err)
     for key, value in data.items():
         setattr(bank, key, value)
-    _apply_question_image(request, bank)
+    img_err = _apply_question_image(request, bank)
+    if img_err:
+        messages.error(request, img_err)
+        return redirect('question_bank')
     bank.save()
     messages.success(request, 'سوال ویرایش شد.')
     return _bank_redirect(request, bank.folder_id or '')
@@ -1758,18 +1783,27 @@ def apply_group_to_exam(request, exam_id):
 
 @login_required
 @require_http_methods(["POST"])
+@limit('announcement_create', 10, 60)
 def announcement_create(request):
-    title = (request.POST.get('title') or '').strip()
-    if not title:
-        messages.error(request, 'عنوان اطلاعیه الزامی است.')
-        return redirect(request.POST.get('back') or 'teacher_dashboard')
+    title, err = clean_text(request.POST.get('title'), max_len=200, required=True, label='عنوان اطلاعیه')
+    if err:
+        messages.error(request, err)
+        return redirect_back(request, 'teacher_dashboard')
+    body, err2 = clean_text(request.POST.get('body'), max_len=5000, label='متن اطلاعیه')
+    if err2:
+        messages.error(request, err2)
+        return redirect_back(request, 'teacher_dashboard')
     grade_id = request.POST.get('grade') or None
+    if grade_id and not str(grade_id).isdigit():
+        grade_id = None
+    if grade_id and not Grade.objects.filter(id=int(grade_id)).exists():
+        messages.error(request, 'پایهٔ انتخاب‌شده معتبر نیست.')
+        return redirect_back(request, 'teacher_dashboard')
     Announcement.objects.create(
-        created_by=request.user, title=title,
-        body=(request.POST.get('body') or '').strip(),
-        grade_id=grade_id if str(grade_id).isdigit() else None)
+        created_by=request.user, title=title, body=body,
+        grade_id=int(grade_id) if grade_id else None)
     messages.success(request, 'اطلاعیه منتشر شد.')
-    return redirect(request.POST.get('back') or 'teacher_dashboard')
+    return redirect_back(request, 'teacher_dashboard')
 
 
 @login_required
@@ -1780,4 +1814,4 @@ def announcement_delete(request, ann_id):
         raise PermissionDenied('فقط نویسنده یا مدیر می‌تواند اطلاعیه را حذف کند')
     ann.delete()
     messages.success(request, 'اطلاعیه حذف شد.')
-    return redirect(request.POST.get('back') or 'teacher_dashboard')
+    return redirect_back(request, 'teacher_dashboard')
