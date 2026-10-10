@@ -470,6 +470,7 @@ def edit_exam(request, exam_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def delete_exam(request, exam_id):
     """حذف آزمون"""
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
@@ -485,6 +486,7 @@ def delete_exam(request, exam_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def toggle_exam_status(request, exam_id):
     """فعال/غیرفعال کردن آزمون"""
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
@@ -1275,6 +1277,8 @@ def download_question_template(request):
     return response
 
 
+@login_required
+@require_http_methods(["POST"])
 def duplicate_exam(request, exam_id):
     """کپی کامل آزمون همراه سوال‌ها و دانش‌آموزها (غیرفعال تا ویرایش معلم)"""
     if request.method != 'POST':
@@ -1296,6 +1300,7 @@ def duplicate_exam(request, exam_id):
     return redirect('teacher_dashboard')
 
 
+@login_required
 def export_results_csv(request, exam_id):
     """خروجی اکسل‌پسند (CSV با BOM فارسی) از نتایج آزمون"""
     import csv
@@ -1375,6 +1380,7 @@ def _parse_bank_payload(request):
     return data, None
 
 
+@login_required
 def question_bank(request):
     """مدیریت بانک سوال معلم + افزودن سوال جدید به بانک"""
     check_teacher_access(request.user)

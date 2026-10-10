@@ -29,6 +29,7 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout_view'),
     path('admin/', admin.site.urls),
+    path('control-center/', include('admin_panel.control_urls')),
     path('teacher/', include('teacher_panel.urls')),
     path('student/', include('student_panel.urls')),
     path('admin-panel/', include('admin_panel.urls')),

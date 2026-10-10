@@ -1037,6 +1037,7 @@ def remove_answer_image(request):
 
 
 # ========== ثبت نهایی ==========
+@require_http_methods(["POST"])
 @login_required
 @exam_access_required
 def submit_exam(request, exam):

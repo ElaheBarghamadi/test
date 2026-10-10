@@ -602,6 +602,7 @@ def edit_user(request, user_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def delete_user(request, user_id):
     """حذف کاربر (AJAX)"""
     if request.user.role != 'admin':
@@ -1169,6 +1170,7 @@ def view_exam_detail(request, exam_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def toggle_exam_status(request, exam_id):
     """فعال/غیرفعال کردن آزمون (AJAX)"""
     if request.user.role != 'admin':
@@ -1182,6 +1184,7 @@ def toggle_exam_status(request, exam_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def delete_exam(request, exam_id):
     """حذف آزمون (AJAX)"""
     if request.user.role != 'admin':
@@ -1463,6 +1466,7 @@ def system_logs(request):
     return render(request, 'admin_panel/system_logs.html', context)
 
 @login_required
+@require_http_methods(["POST"])
 def backup_data(request):
     """بکاپ گرفتن از دیتابیس"""
     if request.user.role != 'admin':

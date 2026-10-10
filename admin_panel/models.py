@@ -80,6 +80,35 @@ import re
 from django.conf import settings as dj_settings
 
 
+class SiteVisit(models.Model):
+    """بازدید و مصرف سامانه برای گزارش مدیریتی؛ داده‌ها ۳۶۵ روز نگهداری می‌شوند."""
+    user = models.ForeignKey(dj_settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name='site_visits')
+    path = models.CharField(max_length=500, db_index=True)
+    method = models.CharField(max_length=8, default='GET')
+    status_code = models.PositiveSmallIntegerField(default=200, db_index=True)
+    response_ms = models.PositiveIntegerField(default=0)
+    ip_address = models.GenericIPAddressField(null=True, blank=True, db_index=True)
+    user_agent = models.TextField(blank=True, default='')
+    browser = models.CharField(max_length=60, blank=True, default='')
+    os = models.CharField(max_length=60, blank=True, default='')
+    device = models.CharField(max_length=30, blank=True, default='')
+    referrer = models.CharField(max_length=500, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at', 'status_code']),
+            models.Index(fields=['user', '-created_at']),
+        ]
+        verbose_name = 'بازدید سایت'
+        verbose_name_plural = 'بازدیدهای سایت'
+
+    def __str__(self):
+        return f'{self.method} {self.path} — {self.status_code}'
+
+
 class SecurityEvent(models.Model):
     """رویداد امنیتی کاربر: ورود، خروج، تلاش ناموفق، پایان نشست، تغییر رمز…
 

@@ -130,10 +130,10 @@ class UserManagementTests(AdminPanelTestCase):
     def test_delete_user_and_self_protection(self):
         self.add_user()
         user = User.objects.get(username='new_u')
-        self.assertEqual(self.client.get(reverse('delete_user', kwargs={'user_id': user.id})).status_code, 200)
+        self.assertEqual(self.client.post(reverse('delete_user', kwargs={'user_id': user.id})).status_code, 200)
         self.assertFalse(User.objects.filter(id=user.id).exists())
 
-        response = self.client.get(reverse('delete_user', kwargs={'user_id': self.admin.id}))
+        response = self.client.post(reverse('delete_user', kwargs={'user_id': self.admin.id}))
         self.assertEqual(response.status_code, 400)
         self.assertTrue(User.objects.filter(id=self.admin.id).exists())
 
