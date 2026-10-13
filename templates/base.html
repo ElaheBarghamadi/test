@@ -441,7 +441,7 @@
 {% with p=request.path %}
 <header class="navbar site-header" id="siteHeader">
     <div class="nav-container">
-        <a class="logo" href="{% if user.is_authenticated %}{% if user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'teacher' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}{% else %}{% url 'login' %}{% endif %}" aria-label="صفحه اصلی">
+        <a class="logo" href="{% if user.is_authenticated %}{% if user.is_superuser %}{% url 'control_dashboard' %}{% elif user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif user.role == 'teacher' %}{% url 'teacher_dashboard' %}{% else %}{% url 'student_dashboard' %}{% endif %}{% else %}{% url 'login' %}{% endif %}" aria-label="صفحه اصلی">
             <span class="logo-icon">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg>
             </span>
@@ -453,7 +453,13 @@
 
         <nav class="nav-links" aria-label="منوی اصلی">
             {% if user.is_authenticated %}
-                {% if user.role == 'admin' %}
+                {% if user.is_superuser %}
+                    {% url 'control_dashboard' as u1 %}{% url 'control_users' as u2 %}{% url 'control_staff' as u3 %}
+                    <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">مرکز کنترل</a>
+                    <a href="{{ u2 }}" class="nav-link {% if u2 in p %}active{% endif %}">کاربران</a>
+                    <a href="{{ u3 }}" class="nav-link {% if u3 in p %}active{% endif %}">مدیران سایت</a>
+                    <a href="/admin/" class="nav-link">مدیریت Django</a>
+                {% elif user.role == 'admin' %}
                     {% url 'admin_dashboard' as u1 %}{% url 'manage_users' as u2 %}{% url 'manage_exams' as u3 %}{% url 'system_logs' as u4 %}
                     <a href="{{ u1 }}" class="nav-link {% if p == u1 %}active{% endif %}">داشبورد</a>
                     <a href="{{ u2 }}" class="nav-link {% if u2 in p %}active{% endif %}">کاربران</a>
@@ -476,7 +482,7 @@
 
         <div class="nav-actions">
             {% if user.is_authenticated %}
-                {% if user.role == 'student' %}
+                {% if user.role == 'student' and not user.is_superuser %}
                 <details class="bell-menu" id="bellMenu">
                     <summary title="اطلاعیه‌ها" aria-label="اطلاعیه‌ها{% if bell_count %} — {{ bell_count }} مورد{% endif %}">
                         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -511,12 +517,16 @@
                         <span class="avatar">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>
                         <span class="user-meta">
                             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
-                            <span class="user-role">{% if user.role == 'admin' %}مدیر سیستم{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %}</span>
+                            <span class="user-role">{% if user.is_superuser %}سوپریوزر{% elif user.role == 'admin' %}مدیر سیستم{% elif user.role == 'teacher' %}معلم{% else %}دانش‌آموز{% endif %}</span>
                         </span>
                         <svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
                     <div class="dropdown-content" id="dropdownContent">
-                        {% if user.role == 'admin' %}
+                        {% if user.is_superuser %}
+                            <a href="{% url 'control_dashboard' %}">مرکز کنترل</a>
+                            <a href="{% url 'control_staff' %}">مدیران سایت</a>
+                            <a href="/admin/">مدیریت Django</a>
+                        {% elif user.role == 'admin' %}
                             <a href="{% url 'admin_dashboard' %}">داشبورد ادمین</a>
                             <a href="{% url 'system_settings' %}">تنظیمات سیستم</a>
                         {% elif user.role == 'teacher' %}
@@ -552,7 +562,8 @@
 
     <div class="sidebar-header">
         <div class="sidebar-avatar">
-            {% if user.role == 'admin' %}🛡️
+            {% if user.is_superuser %}⚡
+            {% elif user.role == 'admin' %}🛡️
             {% elif user.role == 'teacher' %}👨‍🏫
             {% else %}👤{% endif %}
         </div>
@@ -561,6 +572,7 @@
         </div>
         <div class="sidebar-user-role">
             {% if not user.is_authenticated %}برای دسترسی به سامانه وارد شوید
+            {% elif user.is_superuser %}سوپریوزر
             {% elif user.role == 'admin' %}مدیر سیستم
             {% elif user.role == 'teacher' %}معلم
             {% else %}دانش‌آموز{% endif %}

@@ -117,6 +117,22 @@ DATABASES = {
     }
 }
 
+# کش مشترک برای rate-limit در چند worker. در توسعه، LocMem کافی است؛
+# روی سرور REDIS_URL را تنظیم کنید تا شمارنده‌ها بین workerها مشترک باشند.
+_REDIS_URL = _os.environ.get('REDIS_URL', '').strip()
+CACHES = {
+    'default': ({
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': _REDIS_URL,
+        'OPTIONS': {'CLIENT_CLASS': 'django_redis.client.DefaultClient'},
+    } if _REDIS_URL else {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'exam-system-dev-cache',
+    })
+}
+# فقط اگر برنامه پشت reverse proxy مطمئن است این مقدار را برابر تعداد proxyها بگذارید.
+TRUSTED_PROXY_COUNT = int(_os.environ.get('TRUSTED_PROXY_COUNT', '0'))
+
 # 🔒 Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

@@ -1087,30 +1087,50 @@ def add_teacher_answer(request, exam_id, question_id):
 
 @login_required
 def exam_settings(request, exam_id):
-    """تنظیمات آزمون (امنیت، نمایش سوالات و ...)"""
+    """تنظیمات کامل آزمون با اعتبارسنجی مقادیر انتخابی و سیاست سؤال‌ها."""
     exam = get_object_or_404(Exam, id=exam_id, teacher=request.user)
+    check_teacher_access(request.user, exam)
 
     if request.method == 'POST':
-        # تنظیمات امنیتی
+        show_mode = request.POST.get('show_questions_mode', 'one_by_one')
+        timer_type = request.POST.get('timer_type', 'floating')
+        policy = request.POST.get('question_policy', 'mixed')
+        if show_mode not in dict(Exam._meta.get_field('show_questions_mode').choices):
+            messages.error(request, 'نحوه نمایش سؤال‌ها معتبر نیست.')
+            return redirect('exam_settings', exam_id=exam.id)
+        if timer_type not in dict(Exam.TIMER_TYPE_CHOICES):
+            messages.error(request, 'نوع زمان‌بندی معتبر نیست.')
+            return redirect('exam_settings', exam_id=exam.id)
+        if policy not in dict(Exam.QUESTION_POLICY_CHOICES):
+            messages.error(request, 'قالب سؤال‌ها معتبر نیست.')
+            return redirect('exam_settings', exam_id=exam.id)
+        if policy == 'four_choice':
+            incompatible = exam.questions.exclude(question_type='multiple_choice').count()
+            incompatible += sum(1 for q in exam.questions.filter(question_type='multiple_choice') if len(q.options or []) != 4)
+            if incompatible:
+                messages.error(request, 'برای فعال‌کردن قالب چهارگزینه‌ای، ابتدا %d سؤال ناسازگار را اصلاح یا حذف کنید.' % incompatible)
+                return redirect('exam_settings', exam_id=exam.id)
+
         exam.enable_anti_cheat = 'enable_anti_cheat' in request.POST
-        exam.prevent_tab_switch = 'prevent_tab_switch' in request.POST
-        exam.prevent_copy_paste = 'prevent_copy_paste' in request.POST
-        exam.track_ip = 'track_ip' in request.POST
-
-        # تنظیمات نمایش سوالات
-        exam.show_questions_mode = request.POST.get('show_questions_mode', 'one_by_one')
-        exam.show_back_button = 'show_back_button' in request.POST
-
-        # تنظیمات پاسخ تشریحی
+        exam.prevent_tab_switch = exam.enable_anti_cheat and 'prevent_tab_switch' in request.POST
+        exam.prevent_copy_paste = exam.enable_anti_cheat and 'prevent_copy_paste' in request.POST
+        exam.track_ip = exam.enable_anti_cheat and 'track_ip' in request.POST
+        exam.show_questions_mode = show_mode
+        exam.show_back_button = show_mode == 'one_by_one' and 'show_back_button' in request.POST
+        exam.random_questions = 'random_questions' in request.POST
+        exam.timer_type = timer_type
+        exam.question_policy = policy
         exam.allow_teacher_answer = 'allow_teacher_answer' in request.POST
         exam.show_answers_after_exam = 'show_answers_after_exam' in request.POST
         exam.show_score_to_student = 'show_score_to_student' in request.POST
-
+        exam.is_active = 'is_active' in request.POST
         exam.save()
         messages.success(request, 'تنظیمات آزمون با موفقیت ذخیره شد.')
         return redirect('exam_settings', exam_id=exam.id)
 
-    return render(request, 'teacher_panel/exam_settings.html', {'exam': exam})
+    incompatible_count = exam.questions.exclude(question_type='multiple_choice').count()
+    incompatible_count += sum(1 for q in exam.questions.filter(question_type='multiple_choice') if len(q.options or []) != 4)
+    return render(request, 'teacher_panel/exam_settings.html', {'exam': exam, 'incompatible_count': incompatible_count})
 
 
 # ========== گزارش تخلفات ==========

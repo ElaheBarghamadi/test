@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.views.decorators.http import require_http_methods
+from core.network import client_ip
 
 from exams.models import Question, StudentAnswer, TeacherAnswer
 
@@ -16,12 +17,7 @@ LOGIN_WINDOW_SECONDS = 15 * 60
 
 
 def _client_ip(request):
-    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
-    if forwarded:
-        first = forwarded.split(',')[0].strip()
-        if first:
-            return first
-    return request.META.get('REMOTE_ADDR', '') or 'unknown'
+    return client_ip(request) or 'unknown'
 
 
 def _login_locked(request, username):
@@ -60,6 +56,8 @@ def login_view(request):
     """صفحه ورود یکسان برای همه نقش‌ها"""
     # اگر کاربر وارد شده بود، بره به پنل خودش
     if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('control_dashboard')
         if request.user.role == 'admin':
             return redirect('admin_dashboard')
         elif request.user.role == 'teacher':
@@ -89,7 +87,9 @@ def login_view(request):
             _sec(request, user=user, event_type='login', severity='info',
                  detail='ورود موفق به سامانه')
 
-            # هدایت بر اساس نقش
+            # سوپریوزر همیشه به مرکز کنترل اختصاصی می‌رود.
+            if user.is_superuser:
+                return redirect('control_dashboard')
             if user.role == 'admin':
                 return redirect('admin_dashboard')
             elif user.role == 'teacher':
@@ -236,6 +236,8 @@ def _home_url(request):
     try:
         user = getattr(request, 'user', None)
         if user is not None and user.is_authenticated:
+            if user.is_superuser:
+                return '/control-center/'
             return {'admin': '/admin-panel/', 'teacher': '/teacher/dashboard/'}.get(
                 getattr(user, 'role', ''), '/student/dashboard/')
     except Exception:

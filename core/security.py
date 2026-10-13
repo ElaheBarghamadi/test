@@ -10,8 +10,11 @@ core.security — لایهٔ مرکزی «اعتبارسنجی ورودی‌ها
 import re
 import unicodedata
 from functools import wraps
+from threading import Lock
+import time
 
 from django.core.cache import cache
+from core.network import client_ip
 from django.http import JsonResponse
 from django.contrib import messages
 
@@ -201,26 +204,45 @@ def csv_formula_guard(value):
 
 # ---------------------------- محدودسازی نرخ درخواست ----------------------------
 
+_fallback_lock = Lock()
+_fallback_hits = {}
+
+
+def _fallback_rate_hit(cache_key, max_hits, window):
+    """Process-local safety net used only if the shared cache is unavailable."""
+    now = time.monotonic()
+    with _fallback_lock:
+        count, expires = _fallback_hits.get(cache_key, (0, now + window))
+        if expires <= now:
+            count, expires = 0, now + window
+        count += 1
+        _fallback_hits[cache_key] = (count, expires)
+        if len(_fallback_hits) > 5000:
+            for key, (_, until) in list(_fallback_hits.items()):
+                if until <= now:
+                    _fallback_hits.pop(key, None)
+        return count > max_hits
+
+
 def rate_limit_hit(request, key, max_hits, window=60):
-    """True یعنی «از سقف گذشته». شمارش بر مبنای کاربر (یا آی‌پی اگر ناشناس)."""
+    """Atomic fixed-window limiter; shared between workers when Redis is configured."""
     user = getattr(request, 'user', None)
-    who = f'u{user.id}' if (user and user.is_authenticated) else f'ip{_client_ip(request)}'
+    who = f'u{user.id}' if (user and user.is_authenticated) else f'ip{client_ip(request) or "unknown"}'
     cache_key = f'rl:{key}:{who}'
     try:
-        hits = cache.get(cache_key, 0) + 1
-        cache.set(cache_key, hits, window)
+        # add is atomic: first request creates the key with TTL; later requests use atomic incr.
+        if cache.add(cache_key, 1, timeout=window):
+            hits = 1
+        else:
+            hits = cache.incr(cache_key)
+        return hits > max_hits
     except Exception:
-        return False
-    return hits > max_hits
+        # Security must not disappear during a cache outage.
+        return _fallback_rate_hit(cache_key, max_hits, window)
 
 
 def _client_ip(request):
-    fwd = request.META.get('HTTP_X_FORWARDED_FOR', '')
-    if fwd:
-        first = fwd.split(',')[0].strip()
-        if first:
-            return first
-    return request.META.get('REMOTE_ADDR', '') or 'unknown'
+    return client_ip(request) or 'unknown'
 
 
 def limit(key, max_hits, window=60, message='تعداد درخواست‌ها زیاد است؛ کمی صبر کنید.'):

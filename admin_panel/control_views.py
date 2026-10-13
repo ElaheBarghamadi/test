@@ -2,6 +2,8 @@ from datetime import timedelta
 
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib import messages
 from django.contrib.sessions.models import Session
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
@@ -15,7 +17,13 @@ from exams.models import Exam, ExamAttempt, StudentAnswer, CheatAttempt
 from .models import SiteVisit, SecurityEvent, record_security_event
 
 User = get_user_model()
-staff_required = user_passes_test(lambda u: u.is_authenticated and (u.is_staff or u.is_superuser), login_url='login')
+staff_required = user_passes_test(
+    lambda u: u.is_authenticated and (u.is_superuser or (u.is_staff and u.has_perm('admin_panel.access_control_center'))),
+    login_url='login')
+manage_users_required = user_passes_test(
+    lambda u: u.is_authenticated and (u.is_superuser or (u.is_staff and u.has_perm('admin_panel.manage_control_users'))),
+    login_url='login')
+superuser_required = user_passes_test(lambda u: u.is_authenticated and u.is_superuser, login_url='login')
 
 
 def _range(request):
@@ -62,7 +70,7 @@ def control_dashboard(request):
     return render(request, 'admin_panel/control_center.html', context)
 
 
-@staff_required
+@manage_users_required
 def control_users(request):
     q = request.GET.get('q', '').strip()[:100]
     users = User.objects.select_related('grade').order_by('-date_joined')
@@ -70,7 +78,7 @@ def control_users(request):
     return render(request, 'admin_panel/control_users.html', {'page': Paginator(users, 30).get_page(request.GET.get('page')), 'q': q})
 
 
-@staff_required
+@manage_users_required
 @require_POST
 def control_toggle_user(request, user_id):
     target = get_object_or_404(User, id=user_id)
@@ -82,10 +90,12 @@ def control_toggle_user(request, user_id):
     return redirect('control_users')
 
 
-@staff_required
+@manage_users_required
 @require_POST
 def control_terminate_sessions(request, user_id):
     target = get_object_or_404(User, id=user_id)
+    if target == request.user or (target.is_superuser and not request.user.is_superuser):
+        return JsonResponse({'error': 'اجازه بستن نشست‌های این حساب را ندارید.'}, status=403)
     killed = 0
     for session in Session.objects.filter(expire_date__gt=timezone.now()):
         try: uid = session.get_decoded().get('_auth_user_id')
@@ -93,3 +103,47 @@ def control_terminate_sessions(request, user_id):
         if str(uid) == str(target.id): session.delete(); killed += 1
     record_security_event(request, user=target, event_type='session_revoked', severity='warning', detail=f'{killed} نشست از مرکز کنترل بسته شد')
     return redirect('control_users')
+
+
+@superuser_required
+def control_staff(request):
+    staff = list(User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).order_by('-is_superuser', 'username'))
+    for member in staff:
+        member.can_reports = member.has_perm('admin_panel.access_control_center')
+        member.can_users = member.has_perm('admin_panel.manage_control_users')
+    candidates = User.objects.filter(is_superuser=False, is_staff=False).order_by('username')
+    return render(request, 'admin_panel/control_staff.html', {'staff_users': staff, 'candidates': candidates})
+
+
+@superuser_required
+@require_POST
+def control_staff_update(request, user_id):
+    target = get_object_or_404(User, id=user_id, is_superuser=False)
+    enabled = request.POST.get('is_staff') == '1'
+    target.is_staff = enabled
+    if enabled:
+        target.role = 'admin'
+    target.save(update_fields=['is_staff', 'role'])
+    perms = Permission.objects.filter(content_type__app_label='admin_panel',
+                                      codename__in=['access_control_center', 'manage_control_users'])
+    target.user_permissions.remove(*perms)
+    selected = request.POST.getlist('permissions') if enabled else []
+    target.user_permissions.add(*perms.filter(codename__in=selected))
+    record_security_event(request, user=target, event_type='profile_updated', severity='warning',
+                          detail='دسترسی مدیریتی کاربر توسط سوپریوزر تغییر کرد.')
+    messages.success(request, 'دسترسی مدیریتی «%s» به‌روزرسانی شد.' % target.username)
+    return redirect('control_staff')
+
+
+@superuser_required
+@require_POST
+def control_cleanup_visits(request):
+    try:
+        days = int(request.POST.get('older_than_days', 90))
+    except (TypeError, ValueError):
+        days = 90
+    if days not in (7, 30, 90, 180, 365):
+        return JsonResponse({'error': 'بازه پاک‌سازی معتبر نیست.'}, status=400)
+    deleted, _ = SiteVisit.objects.filter(created_at__lt=timezone.now()-timedelta(days=days)).delete()
+    messages.success(request, '%d رکورد بازدید قدیمی پاک شد.' % deleted)
+    return redirect('control_dashboard')

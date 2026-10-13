@@ -97,7 +97,7 @@ class LoginFlowTests(TestCase):
 
     def test_login_redirects_by_role(self):
         cases = [
-            ('admin_u', reverse('admin_dashboard')),
+            ('admin_u', reverse('control_dashboard')),
             ('teacher_u', reverse('teacher_dashboard')),
             ('student_u', reverse('student_dashboard')),
         ]

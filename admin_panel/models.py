@@ -78,6 +78,7 @@ class SystemSetting(models.Model):
 # ============================================================================
 import re
 from django.conf import settings as dj_settings
+from core.network import client_ip as trusted_client_ip
 
 
 class SiteVisit(models.Model):
@@ -104,6 +105,10 @@ class SiteVisit(models.Model):
         ]
         verbose_name = 'بازدید سایت'
         verbose_name_plural = 'بازدیدهای سایت'
+        permissions = [
+            ('access_control_center', 'دسترسی به مرکز کنترل و گزارش‌ها'),
+            ('manage_control_users', 'مدیریت کاربران از مرکز کنترل'),
+        ]
 
     def __str__(self):
         return f'{self.method} {self.path} — {self.status_code}'
@@ -175,16 +180,7 @@ class SecurityEvent(models.Model):
 
 
 def client_ip(request):
-    """آی‌پی واقعی کلاینت (با احترام به پروکسی/reverse-proxy)"""
-    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
-    if forwarded:
-        first = forwarded.split(',')[0].strip()
-        if first:
-            return first
-    real_ip = request.META.get('HTTP_X_REAL_IP', '').strip()
-    if real_ip:
-        return real_ip
-    return request.META.get('REMOTE_ADDR', '') or None
+    return trusted_client_ip(request)
 
 
 # ------------------------- تجزیه User-Agent -------------------------

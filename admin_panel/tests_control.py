@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import Permission
 from accounts.models import User
 from .models import SiteVisit
 
@@ -8,6 +9,8 @@ class ControlCenterTests(TestCase):
     def setUp(self):
         self.staff = User.objects.create_user('staff_control', password='test12345', is_staff=True)
         self.normal = User.objects.create_user('normal_control', password='test12345')
+        self.staff.user_permissions.add(*Permission.objects.filter(
+            codename__in=['access_control_center', 'manage_control_users']))
 
     def test_only_staff_can_open_panel(self):
         self.client.force_login(self.normal)
