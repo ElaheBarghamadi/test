@@ -24,6 +24,12 @@ class Exam(models.Model):
     show_score_to_student = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     random_questions = models.BooleanField(default=False)
+    QUESTION_POLICY_CHOICES = [
+        ('mixed', 'آزاد — همهٔ انواع سوال'),
+        ('four_choice', 'آزمون تستی استاندارد — فقط چهارگزینه‌ای'),
+    ]
+    question_policy = models.CharField(max_length=20, choices=QUESTION_POLICY_CHOICES,
+                                       default='mixed', verbose_name='قالب سوال‌های آزمون')
 
     # ========== فیلدهای جدید ==========
 

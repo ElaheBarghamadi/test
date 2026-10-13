@@ -64,6 +64,15 @@
     .st .cd { color: var(--ink3); font-size: .7rem; }
     .st-empty { padding: 18px; text-align: center; color: var(--ink3); font-size: .82rem; grid-column: 1 / -1; }
 
+    .template-picks { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .template-pick { position:relative; cursor:pointer; }
+    .template-pick input { position:absolute; opacity:0; }
+    .template-pick span { display:block; height:100%; padding:16px; border:1.5px solid var(--line); border-radius:15px; background:#fff; transition:.2s; }
+    .template-pick b { display:block; margin-bottom:5px; color:var(--ink); }
+    .template-pick small { display:block; color:var(--ink3); line-height:1.8; }
+    .template-pick input:checked + span { border-color:var(--gold2); background:var(--goldsoft); box-shadow:0 0 0 3px rgba(46,196,182,.13); }
+    .template-pick input:focus-visible + span { outline:3px solid rgba(46,196,182,.35); }
+
     .ce-submit { position: sticky; bottom: 10px; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
         background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 18px; padding: 12px 16px; box-shadow: 0 10px 30px rgba(8,45,52,.10); }
     .ce-submit .sum { font-size: .8rem; color: var(--ink2); }
@@ -71,7 +80,7 @@
     .ce-submit .btn { min-width: 170px; min-height: 44px; }
 
     @media (max-width: 640px) {
-        .ce-grid, .seg { grid-template-columns: 1fr; }
+        .ce-grid, .seg, .template-picks { grid-template-columns: 1fr; }
         .ce-card { padding: 16px; }
         .ce-submit .btn { width: 100%; }
     }
@@ -166,6 +175,20 @@
             </div>
             <div class="st-list" id="studentsList"><div class="st-empty">در حال بارگذاری…</div></div>
             <div class="ce-hint" data-hint="students"></div>
+        </section>
+
+        <section class="ce-card">
+            <h2><span class="n">۳</span> قالب سوال‌های آزمون</h2>
+            <div class="template-picks">
+                <label class="template-pick">
+                    <input type="radio" name="question_policy" value="four_choice" {% if form.question_policy == 'four_choice' %}checked{% endif %}>
+                    <span><b>🔘 آزمون کاملاً چهارگزینه‌ای</b><small>فقط سوال تستی با دقیقاً چهار گزینه. فرم افزودن سوال نیز خودکار روی همین قالب تنظیم می‌شود.</small></span>
+                </label>
+                <label class="template-pick">
+                    <input type="radio" name="question_policy" value="mixed" {% if form.question_policy != 'four_choice' %}checked{% endif %}>
+                    <span><b>🧩 آزمون ترکیبی</b><small>تستی، صحیح/غلط، جاخالی، تشریحی، تصویری و وصل‌کردنی در یک آزمون.</small></span>
+                </label>
+            </div>
         </section>
 
         <details class="more ce-card" style="padding:0;" {% if is_post %}open{% endif %}>

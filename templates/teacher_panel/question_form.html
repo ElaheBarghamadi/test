@@ -4,6 +4,10 @@
 {% block extra_css %}
 <style>
     .qf-wrap { max-width: 1180px; margin: 0 auto; }
+    .policy-banner { display:flex; gap:10px; align-items:flex-start; padding:12px 15px; margin-bottom:14px; border:1px solid #bfe8e2; border-radius:14px; background:var(--goldsoft); color:var(--gold3); font-size:.8rem; }
+    .strict-four .type-card:not(:has(input[value="multiple_choice"])) { display:none; }
+    .strict-four #addOpt, .strict-four .row.opt .js-del { display:none!important; }
+    .strict-four .types { grid-template-columns:minmax(190px,280px); }
     .qf-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
     .qf-top h1 { font-size: 1.15rem; font-weight: 800; color: var(--ink); margin: 0; }
     .qf-top .back { font-size: .82rem; font-weight: 700; text-decoration: none; color: var(--gold3); }
@@ -161,7 +165,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="qf-wrap">
+<div class="qf-wrap{% if exam.question_policy == 'four_choice' %} strict-four{% endif %}">
     <div class="qf-top">
         <h1>{{ form_title }}</h1>
         {% if mode == 'exam' %}
@@ -178,6 +182,9 @@
     </div>
     {% endif %}
 
+    {% if exam.question_policy == 'four_choice' %}
+    <div class="policy-banner"><b>قالب چهارگزینه‌ای فعال است.</b><span>هر سوال باید دقیقاً چهار گزینه و یک پاسخ صحیح داشته باشد؛ نوع‌های دیگر برای این آزمون غیرفعال‌اند.</span></div>
+    {% endif %}
     {% if form_error %}<div class="qf-error">⚠️ {{ form_error }}</div>{% endif %}
 
     <!-- ============ فرم سوال ============ -->

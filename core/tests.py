@@ -159,6 +159,19 @@ class SessionTerminationTests(TestCase):
         self.assertEqual(Session.objects.filter(expire_date__gt=timezone.now()).count(), 0)
 
 
+class FourChoicePolicyTests(TestCase):
+    def test_policy_only_accepts_exactly_four_choices(self):
+        from types import SimpleNamespace
+        from teacher_panel.views import _policy_error
+        exam = SimpleNamespace(question_policy='four_choice')
+        self.assertIsNone(_policy_error(exam, {
+            'question_type': 'multiple_choice', 'options': ['الف', 'ب', 'ج', 'د']}))
+        self.assertIsNotNone(_policy_error(exam, {
+            'question_type': 'multiple_choice', 'options': ['الف', 'ب', 'ج']}))
+        self.assertIsNotNone(_policy_error(exam, {
+            'question_type': 'long_answer', 'options': []}))
+
+
 class ModelConstraintTests(TestCase):
     def setUp(self):
         self.teacher = User.objects.create_user(username='t_c', password='test12345', role='teacher')

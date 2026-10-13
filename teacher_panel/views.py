@@ -294,6 +294,9 @@ def create_exam(request):
             show_back_button=data['show_back_button'],
             allow_teacher_answer=data['allow_teacher_answer'],
             timer_type=data['timer_type'],
+            question_policy=(request.POST.get('question_policy')
+                             if request.POST.get('question_policy') in dict(Exam.QUESTION_POLICY_CHOICES)
+                             else 'mixed'),
         )
         student_ids = [sid for sid in request.POST.getlist('students') if str(sid).isdigit()]
         exam.students.set(student_ids)
@@ -507,6 +510,16 @@ def toggle_exam_status(request, exam_id):
 from exams.question_forms import parse_question_post, apply_to_question, finalize_question  # noqa: E402
 
 
+def _policy_error(exam, data):
+    """اعمال قالب سؤال انتخاب‌شده برای آزمون؛ قابل دورزدن با POST دستی نیست."""
+    if exam.question_policy == 'four_choice':
+        if data.get('question_type') != 'multiple_choice':
+            return 'این آزمون در حالت «فقط چهارگزینه‌ای» ساخته شده است؛ نوع سوال باید تستی باشد.'
+        if len(data.get('options') or []) != 4:
+            return 'در آزمون تستی استاندارد، هر سوال باید دقیقاً چهار گزینه داشته باشد.'
+    return None
+
+
 def _question_initial(obj=None, post=None):
     """دادهٔ اولیهٔ فرم پویای سوال (برای جاوااسکریپت) از شیء موجود یا POST ناموفق"""
     if post is not None:
@@ -595,6 +608,7 @@ def add_question(request, exam_id):
 
     if request.method == 'POST':
         data, err = parse_question_post(request)
+        err = err or (data and _policy_error(exam, data))
         if err:
             messages.error(request, err)
             return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
@@ -615,7 +629,10 @@ def add_question(request, exam_id):
         return redirect('edit_exam', exam_id=exam.id)
 
     initial = _question_initial()
-    if request.GET.get('t') in dict(Question.QUESTION_TYPES):
+    if exam.question_policy == 'four_choice':
+        initial['question_type'] = 'multiple_choice'
+        initial['options'] = ['', '', '', '']
+    elif request.GET.get('t') in dict(Question.QUESTION_TYPES):
         initial['question_type'] = request.GET['t']
     return _render_question_form(request, mode='exam', action=action, title=title, exam=exam, initial=initial)
 
@@ -631,6 +648,7 @@ def edit_question(request, exam_id, question_id):
 
     if request.method == 'POST':
         data, err = parse_question_post(request)
+        err = err or (data and _policy_error(exam, data))
         if err:
             messages.error(request, err)
             return _render_question_form(request, mode='exam', action=action, title=title, exam=exam,
@@ -1579,7 +1597,14 @@ def bank_folder_delete(request, folder_id):
     return _bank_redirect(request, parent.id if parent else '')
 
 
+def _bank_matches_policy(bank, exam):
+    return (exam.question_policy != 'four_choice' or
+            (bank.question_type == 'multiple_choice' and len(bank.options or []) == 4))
+
+
 def _copy_bank_to_exam(bank, exam, order):
+    if not _bank_matches_policy(bank, exam):
+        return None
     q = Question.objects.create(
         exam=exam, text=bank.text, question_type=bank.question_type,
         options=list(bank.options or []), options_type=bank.options_type or 'text',
@@ -1601,13 +1626,17 @@ def bank_folder_import(request, folder_id):
     banks = list(QuestionBank.objects.filter(teacher=request.user,
                                              folder_id__in=descendants.get(folder.id, {folder.id}))
                  .order_by('folder_id', 'created_at'))
+    skipped = sum(1 for b in banks if not _bank_matches_policy(b, exam))
+    banks = [b for b in banks if _bank_matches_policy(b, exam)]
     with transaction.atomic():
         order = exam.questions.aggregate(m=Max('order'))['m'] or 0
         for b in banks:
             order += 1
             _copy_bank_to_exam(b, exam, order)
         QuestionBank.objects.filter(id__in=[b.id for b in banks]).update(use_count=F('use_count') + 1)
-    messages.success(request, '%d سوال از پوشه «%s» به آزمون «%s» اضافه شد.' % (len(banks), folder.name, exam.title))
+    messages.success(request, '%d سوال از پوشه «%s» به آزمون «%s» اضافه شد.%s' %
+                     (len(banks), folder.name, exam.title,
+                      (' %d سوال ناسازگار با قالب چهارگزینه‌ای رد شد.' % skipped) if skipped else ''))
     return _bank_redirect(request, folder.id)
 
 
@@ -1642,13 +1671,18 @@ def bank_bulk_action(request):
         messages.success(request, '%d سوال به %s منتقل شد.' % (n, '«%s»' % target.name if target else 'ریشه'))
     elif action == 'import':
         exam = get_object_or_404(Exam, id=request.POST.get('exam_id') or 0, teacher=request.user)
+        selected_banks = list(banks.order_by('created_at'))
+        compatible = [b for b in selected_banks if _bank_matches_policy(b, exam)]
+        skipped = len(selected_banks) - len(compatible)
         with transaction.atomic():
             order = exam.questions.aggregate(m=Max('order'))['m'] or 0
-            for b in banks.order_by('created_at'):
+            for b in compatible:
                 order += 1
                 _copy_bank_to_exam(b, exam, order)
-            banks.update(use_count=F('use_count') + 1)
-        messages.success(request, '%d سوال به آزمون «%s» اضافه شد.' % (n, exam.title))
+            QuestionBank.objects.filter(id__in=[b.id for b in compatible]).update(use_count=F('use_count') + 1)
+        messages.success(request, '%d سوال به آزمون «%s» اضافه شد.%s' %
+                         (len(compatible), exam.title,
+                          (' %d سوال ناسازگار رد شد.' % skipped) if skipped else ''))
     elif action == 'delete':
         banks.delete()
         messages.success(request, '%d سوال از بانک حذف شد.' % n)
