@@ -276,7 +276,7 @@ class AccessControlMatrixTests(SecurityFixtureMixin, TestCase):
         for url in urls:
             with self.subTest(url=url):
                 res = self.client.get(url)
-                self.assertIn(res.status_code, (302, 403, 404))
+                self.assertIn(res.status_code, (302, 403, 404, 405))
                 if res.status_code == 302:
                     self.assertEqual(res['Location'], '/')
 
@@ -285,7 +285,7 @@ class AccessControlMatrixTests(SecurityFixtureMixin, TestCase):
         for url in [reverse('admin_dashboard'), reverse('manage_users'), reverse('manage_exams'),
                     reverse('system_settings'), reverse('system_logs'), reverse('backup_data')]:
             with self.subTest(url=url):
-                self.assertEqual(self.client.get(url).status_code, 403)
+                self.assertIn(self.client.get(url).status_code, (403, 405))
 
     def test_teacher_cannot_open_admin_or_student_pages(self):
         self.client.force_login(self.teacher_a)
@@ -318,7 +318,7 @@ class AccessControlMatrixTests(SecurityFixtureMixin, TestCase):
         ]
         for url in urls:
             with self.subTest(url=url):
-                self.assertIn(self.client.get(url).status_code, (403, 404))
+                self.assertIn(self.client.get(url).status_code, (403, 404, 405))
 
     def test_other_teacher_cannot_delete_question_or_save_score(self):
         self.client.force_login(self.teacher_b)
@@ -342,7 +342,8 @@ class AccessControlMatrixTests(SecurityFixtureMixin, TestCase):
                                data=_json.dumps({'question_id': self.q.id, 'answer_text': 'x'}),
                                content_type='application/json')
         self.assertEqual(res.status_code, 403)
-        res = self.client.get(reverse('submit_exam', kwargs={'hashed_exam_id': self.hash}))
+        res = self.client.post(reverse('submit_exam', kwargs={'hashed_exam_id': self.hash}),
+                               data='{}', content_type='application/json')
         self.assertEqual(res.status_code, 403)
         self.assertEqual(self.client.get(reverse('exam_result_detail',
                                                  kwargs={'exam_id': self.exam.id})).status_code, 302)

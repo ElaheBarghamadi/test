@@ -230,3 +230,104 @@ body .site-footer .ft-top:hover { background: var(--gold); border-color: transpa
     body .site-footer .ft-inner { padding: 22px 16px 14px; }
     body .site-footer .ft-bottom-inner { padding: 12px 16px; }
 }
+
+/* =====================================================================
+   Modern responsive polish — 2026
+   لایه نهایی برای ریتم فاصله‌ها، شیشه نرم و نمایش بهتر در موبایل
+   ===================================================================== */
+@media screen {
+  :root {
+    --page-max: 1320px;
+    --space-1: 6px; --space-2: 10px; --space-3: 16px;
+    --space-4: 24px; --space-5: 32px; --space-6: 48px;
+    --surface-glass: rgba(255,255,255,.82);
+    --shadow-soft: 0 12px 38px rgba(20,61,64,.07);
+    --shadow-hover: 0 18px 50px rgba(20,61,64,.11);
+  }
+  html { scroll-behavior:smooth; }
+  body { overflow-x:hidden; }
+  body .main-content {
+    width:min(var(--page-max), calc(100% - 40px)); max-width:none;
+    margin-inline:auto; padding:clamp(22px,3vw,42px) 0 clamp(48px,7vw,90px);
+  }
+  body .site-header.navbar {
+    background:rgba(255,255,255,.82)!important;
+    backdrop-filter:blur(20px) saturate(1.45); -webkit-backdrop-filter:blur(20px) saturate(1.45);
+  }
+  body .site-header .nav-container { width:min(var(--page-max),100%); max-width:none; }
+  body .site-header .logo { padding:0; background:transparent; border:0; }
+  body .site-header .logo-icon { box-shadow:0 8px 22px rgba(15,112,120,.2); }
+  body .site-header .nav-link, body .site-header .user-chip,
+  body .site-header .bell-menu summary { min-height:40px; display:inline-flex; align-items:center; }
+
+  body .card, body .panel, body .box, body .filter-card, body .report-card,
+  body .welcome-card, body .settings-section, body .filter-section, body .qf-card,
+  body .exam-card, body .exam-item, body .stat-card, body .stat-tile,
+  body .info-stat, body .bank-item, body .subfolder {
+    border-color:rgba(200,221,218,.82); border-radius:18px;
+    box-shadow:var(--shadow-soft); transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease;
+  }
+  body .card, body .panel, body .box, body .filter-card, body .report-card,
+  body .welcome-card, body .settings-section, body .filter-section, body .qf-card {
+    padding:clamp(18px,2.2vw,28px);
+  }
+  body .exam-card:hover, body .exam-item:hover, body .bank-item:hover, body .subfolder:hover {
+    border-color:rgba(46,196,182,.48); box-shadow:var(--shadow-hover); transform:translateY(-2px);
+  }
+  body .stats, body .stats-grid, body .exams-grid, body .cards-grid {
+    gap:clamp(12px,1.7vw,20px); margin-block:var(--space-3) var(--space-4);
+  }
+  body .stat-card, body .stat-tile, body .info-stat { padding:clamp(18px,2vw,25px); text-align:start; }
+  body .stat-number, body .info-stat .value, body .stat-card b { font-size:clamp(1.4rem,2.5vw,2rem); }
+  body .page-title { font-size:clamp(1.3rem,2.4vw,1.8rem); margin-bottom:var(--space-4); }
+  body .section-title { margin-bottom:var(--space-3); }
+  body h1,body h2,body h3 { line-height:1.45; }
+  body p { line-height:1.9; }
+
+  body input[type=text],body input[type=number],body input[type=search],body input[type=password],
+  body input[type=email],body input[type=date],body input[type=datetime-local],body select,body textarea {
+    min-height:46px; padding:10px 14px; border-color:#dbe7e5; background:rgba(255,255,255,.88);
+  }
+  body textarea { min-height:110px; resize:vertical; }
+  body .btn, body button[class*="btn"] { min-height:42px; padding:9px 17px; }
+  body .filters,body .filter-bar,body .filter-row,body .filters-row {
+    gap:12px; align-items:end; border-radius:16px;
+  }
+  body table { border-collapse:separate; border-spacing:0; width:100%; }
+  body table th { white-space:nowrap; background:#f5f9f8; }
+  body table th:first-child { border-radius:0 10px 10px 0; }
+  body table th:last-child { border-radius:10px 0 0 10px; }
+  body table tr { transition:background .15s; }
+  body table tbody tr:hover { background:#f7fbfa; }
+  body table td,body table th { padding:13px 12px; vertical-align:middle; }
+  body .site-message { width:min(680px,calc(100% - 32px)); margin:12px auto; }
+}
+
+@media (max-width: 900px) {
+  body .main-content { width:min(100% - 28px,var(--page-max)); padding-top:22px; }
+  body .stats,body .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  body .filters,body .filter-bar,body .filter-row,body .filters-row { align-items:stretch; }
+  body .filters > *,body .filter-row > * { min-width:min(100%,220px); flex:1; }
+  body .card,body .panel,body .box { overflow-x:auto; }
+}
+@media (max-width: 640px) {
+  body .main-content { width:calc(100% - 20px); padding-top:16px; }
+  body .site-header .nav-container { padding:10px 12px; }
+  body .site-header .logo-sub { display:none; }
+  body .stats,body .stats-grid { gap:10px; }
+  body .stat-card,body .stat-tile,body .info-stat { padding:15px 13px; border-radius:15px; }
+  body .card,body .panel,body .box,body .filter-card,body .report-card,
+  body .welcome-card,body .settings-section,body .filter-section,body .qf-card { padding:16px; border-radius:16px; }
+  body .btn,body button[class*="btn"] { width:100%; justify-content:center; }
+  body .actions,body .action-buttons,body .form-actions { width:100%; display:grid; grid-template-columns:1fr; gap:8px; }
+  body .filters > *,body .filter-row > * { width:100%; min-width:100%; }
+  body table { min-width:640px; }
+  body .table-responsive,body .table-wrap { overflow-x:auto; overscroll-behavior-inline:contain; }
+}
+@media (max-width: 380px) {
+  body .stats,body .stats-grid { grid-template-columns:1fr; }
+  body .main-content { width:calc(100% - 16px); }
+}
+@media (prefers-reduced-motion:reduce) {
+  html{scroll-behavior:auto} *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
