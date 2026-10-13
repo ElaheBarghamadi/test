@@ -331,3 +331,20 @@ body .site-footer .ft-top:hover { background: var(--gold); border-color: transpa
 @media (prefers-reduced-motion:reduce) {
   html{scroll-behavior:auto} *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* لینک دسترس‌پذیری: در حالت عادی پنهان و فقط با فوکوس کیبورد نمایان است. */
+.skip-to-content {
+  position: fixed;
+  inset-inline-start: 16px;
+  top: -80px;
+  z-index: 10000;
+  padding: 10px 16px;
+  border-radius: 0 0 12px 12px;
+  background: #0f7078;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(10,52,64,.22);
+  transition: top .18s ease;
+}
+.skip-to-content:focus { top: 0; }
