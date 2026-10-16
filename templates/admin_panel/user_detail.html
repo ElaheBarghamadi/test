@@ -11,9 +11,9 @@
     /* ---------- سربرگ کاربر ---------- */
     .ud-hero {
         position: relative; overflow: hidden;
-        background: linear-gradient(135deg, #0b3c49 0%, #0f7078 55%, #1fa89c 100%);
+        background: linear-gradient(135deg, #16204a 0%, #4f46e5 55%, #6366f1 100%);
         border-radius: 22px; padding: 22px 24px; color: #fff;
-        box-shadow: 0 16px 38px rgba(11, 60, 73, .26);
+        box-shadow: 0 16px 38px rgba(22, 32, 74, .26);
     }
     .ud-hero::after {
         content: ''; position: absolute; inset-block-start: -60px; inset-inline-end: -40px;
@@ -27,8 +27,8 @@
     .ud-hero-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; position: relative; z-index: 1; }
     .ud-avatar {
         width: 76px; height: 76px; border-radius: 24px; flex: 0 0 auto;
-        display: grid; place-items: center; font-size: 2rem; font-weight: 800; color: #0e5e66;
-        background: linear-gradient(140deg, #fff, #c8f6ef);
+        display: grid; place-items: center; font-size: 2rem; font-weight: 800; color: #4338ca;
+        background: linear-gradient(140deg, #fff, #dfe3fd);
         box-shadow: 0 8px 20px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.7);
     }
     .ud-identity { flex: 1 1 240px; min-width: 0; }
@@ -52,8 +52,8 @@
         font-size: .8rem; font-weight: 700; text-decoration: none; transition: .18s;
     }
     .ud-btn:hover { background: rgba(255,255,255,.3); transform: translateY(-1px); }
-    .ud-btn.solid { background: #fff; color: #0e5e66; border-color: #fff; }
-    .ud-btn.solid:hover { background: #e6fffb; }
+    .ud-btn.solid { background: #fff; color: #4338ca; border-color: #fff; }
+    .ud-btn.solid:hover { background: #eef0ff; }
     .ud-btn.danger { background: rgba(255, 90, 95, .25); border-color: rgba(255, 140, 145, .5); }
     .ud-btn.danger:hover { background: rgba(255, 90, 95, .45); }
 
@@ -62,9 +62,9 @@
     .ud-kpi {
         background: var(--card); border: 1px solid var(--line); border-radius: 16px;
         padding: 14px 16px; display: flex; flex-direction: column; gap: 2px;
-        box-shadow: 0 1px 2px rgba(8,45,52,.04);
+        box-shadow: 0 1px 2px rgba(28, 38, 82, .04);
     }
-    .ud-kpi b { font-size: 1.34rem; font-weight: 800; color: var(--gold3); line-height: 1.5; }
+    .ud-kpi b { font-size: 1.34rem; font-weight: 800; color: var(--brand-3); line-height: 1.5; }
     .ud-kpi span { font-size: .74rem; color: var(--ink2); font-weight: 600; }
     .ud-kpi.alert b { color: var(--err); }
     .ud-kpi.good b { color: var(--ok); }
@@ -81,13 +81,13 @@
         padding: 9px 18px; border-radius: 999px; transition: .18s; white-space: nowrap;
         display: inline-flex; align-items: center; gap: 7px;
     }
-    .ud-tab:hover { background: var(--goldsoft); color: var(--gold3); }
-    .ud-tab.on { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #fff; box-shadow: 0 4px 12px rgba(15,112,120,.25); }
+    .ud-tab:hover { background: var(--brand-soft); color: var(--brand-3); }
+    .ud-tab.on { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; box-shadow: 0 4px 12px rgba(79, 70, 229, .25); }
     .ud-tab .cnt {
         background: rgba(255,255,255,.25); border-radius: 999px; padding: 0 7px;
         font-size: .7rem; font-weight: 800; min-width: 20px; text-align: center;
     }
-    .ud-tab:not(.on) .cnt { background: var(--goldsoft); color: var(--gold3); }
+    .ud-tab:not(.on) .cnt { background: var(--brand-soft); color: var(--brand-3); }
     .ud-pane { display: none; }
     .ud-pane.on { display: block; animation: udFade .22s ease; }
     @keyframes udFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -95,7 +95,7 @@
     /* ---------- کارت‌ها ---------- */
     .ud-card {
         background: var(--card); border: 1px solid var(--line); border-radius: 18px;
-        padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(8,45,52,.04);
+        padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(28, 38, 82, .04);
     }
     .ud-card:last-child { margin-bottom: 0; }
     .ud-card > h3 {
@@ -104,7 +104,7 @@
     }
     .ud-card > h3 .ic {
         width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
-        background: var(--goldsoft); color: var(--gold3); flex: 0 0 auto;
+        background: var(--brand-soft); color: var(--brand-3); flex: 0 0 auto;
     }
     .ud-card > h3 small { font-size: .72rem; color: var(--ink3); font-weight: 600; margin-inline-start: auto; }
     .ud-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
@@ -130,10 +130,10 @@
         display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
         background: var(--card2); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 14px;
     }
-    .ud-session.current { border-color: #bfe8e2; background: var(--goldsoft); }
+    .ud-session.current { border-color: #c7cbfa; background: var(--brand-soft); }
     .ud-s-ic {
         width: 38px; height: 38px; border-radius: 12px; flex: 0 0 auto; display: grid; place-items: center;
-        background: #fff; border: 1px solid var(--line); color: var(--gold3); font-size: 1rem;
+        background: #fff; border: 1px solid var(--line); color: var(--brand-3); font-size: 1rem;
     }
     .ud-s-main { flex: 1 1 200px; min-width: 0; }
     .ud-s-title { font-size: .84rem; font-weight: 800; color: var(--ink); display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
@@ -142,12 +142,12 @@
     .ud-s-facts .ud-mono { font-size: .72rem; }
     .ud-tag {
         display: inline-block; font-size: .68rem; font-weight: 800; padding: 1px 8px; border-radius: 999px;
-        background: var(--goldsoft); color: var(--gold3); border: 1px solid #bfe8e2;
+        background: var(--brand-soft); color: var(--brand-3); border: 1px solid #c7cbfa;
     }
     .ud-tag.ok { background: var(--oksoft); color: var(--ok); border-color: var(--okline); }
     .ud-tag.warn { background: var(--warnsoft); color: var(--warn); border-color: var(--warnline); }
     .ud-tag.err { background: var(--errsoft); color: var(--err); border-color: var(--errline); }
-    .ud-tag.mute { background: #eef3f3; color: var(--ink3); border-color: var(--line); }
+    .ud-tag.mute { background: #eef1f9; color: var(--ink3); border-color: var(--line); }
 
     /* ---------- تایم‌لاین ---------- */
     .ud-timeline { position: relative; padding-inline-start: 22px; display: grid; gap: 4px; }
@@ -158,8 +158,8 @@
     .ud-ev { position: relative; padding: 9px 0; }
     .ud-ev::before {
         content: ''; position: absolute; inset-inline-start: -22px; top: 16px;
-        width: 10px; height: 10px; border-radius: 50%; background: var(--gold);
-        box-shadow: 0 0 0 3px var(--goldsoft);
+        width: 10px; height: 10px; border-radius: 50%; background: var(--brand);
+        box-shadow: 0 0 0 3px var(--brand-soft);
     }
     .ud-ev.warning::before { background: #f0b429; box-shadow: 0 0 0 3px var(--warnsoft); }
     .ud-ev.critical::before { background: var(--err); box-shadow: 0 0 0 3px var(--errsoft); }
@@ -179,9 +179,9 @@
     .ud-risk-note { font-size: .78rem; color: var(--ink2); flex: 1 1 220px; line-height: 1.9; }
 
     .ud-bar { height: 7px; border-radius: 999px; background: var(--line2); overflow: hidden; min-width: 70px; }
-    .ud-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold), var(--gold2)); }
-    .ud-bar i.mid { background: linear-gradient(90deg, #f0b429, #b96c07); }
-    .ud-bar i.low { background: linear-gradient(90deg, #ef6a6a, #bd2222); }
+    .ud-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), var(--brand-2)); }
+    .ud-bar i.mid { background: linear-gradient(90deg, #f0b429, #b45309); }
+    .ud-bar i.low { background: linear-gradient(90deg, #ef6a6a, #be123c); }
 
     .ud-empty { text-align: center; color: var(--ink3); font-size: .84rem; padding: 26px 12px; }
     .ud-form-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }

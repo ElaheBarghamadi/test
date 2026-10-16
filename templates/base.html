@@ -2,7 +2,14 @@
 <html dir="rtl" lang="fa">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    {# ⚠️ maximum-scale=1.0 حذف شد: روی iOS Safari زومِ انگشتی را کاملاً می‌بست
+       و کاربر کم‌بینا نمی‌توانست جدول‌ها و متن‌ها را بزرگ کند. #}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {# رنگ نوار مرورگر موبایل — پیش‌تر base.html این را نداشت و نوار گوشی
+       همرنگِ پیش‌فرض خاکستری بود در حالی که صفحهٔ ورود/آزمون رنگ خودشان را داشتند. #}
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="theme-color" content="#0c1020" media="(prefers-color-scheme: dark)">
+    <meta name="color-scheme" content="light dark">
     <title>{% block title %}سامانه آزمون غیرحضوری{% endblock %}</title>
     <script>
         /* تم پیش از رسم صفحه اعمال می‌شود تا پرشِ نور نباشد */
@@ -24,7 +31,7 @@
 
         body {
             font-family: 'Vazirmatn', 'Segoe UI', Tahoma, system-ui, sans-serif;
-            background: linear-gradient(145deg, #f8f6f2 0%, #f0ece4 100%);
+            background: linear-gradient(145deg, #f3f5fb 0%, #e9eefb 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -38,7 +45,7 @@
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(120, 190, 185, 0.4);
+            border-bottom: 1px solid rgba(129, 140, 248, 0.4);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
@@ -57,15 +64,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(120, 190, 185, 0.2);
+            background: rgba(129, 140, 248, 0.2);
             padding: 5px 18px;
             border-radius: 50px;
-            border: 1px solid rgba(120, 190, 185, 0.3);
+            border: 1px solid rgba(129, 140, 248, 0.3);
             transition: all 0.3s;
         }
 
         .logo:hover {
-            background: rgba(120, 190, 185, 0.3);
+            background: rgba(129, 140, 248, 0.3);
         }
 
         .logo-icon {
@@ -75,12 +82,12 @@
         .logo-text {
             font-size: 17px;
             font-weight: 700;
-            color: #16404a;
+            color: #1b2347;
         }
 
         .logo-sub {
             font-size: 11px;
-            color: #4a6b72;
+            color: #48527a;
         }
 
         /* Desktop Menu */
@@ -92,21 +99,21 @@
         }
 
         .nav-link {
-            color: #16404a;
+            color: #1b2347;
             text-decoration: none;
             padding: 8px 18px;
             border-radius: 40px;
             transition: all 0.25s;
             font-size: 0.8rem;
             font-weight: 600;
-            background: rgba(120, 190, 185, 0.12);
-            border: 1px solid rgba(120, 190, 185, 0.2);
+            background: rgba(129, 140, 248, 0.12);
+            border: 1px solid rgba(129, 140, 248, 0.2);
         }
 
         .nav-link:hover {
-            background: rgba(120, 190, 185, 0.25);
+            background: rgba(129, 140, 248, 0.25);
             transform: translateY(-2px);
-            border-color: rgba(90, 160, 160, 0.4);
+            border-color: rgba(90, 91, 160, 0.4);
         }
 
         /* Dropdown */
@@ -115,9 +122,9 @@
         }
 
         .dropdown-btn {
-            background: rgba(120, 190, 185, 0.15);
-            border: 1px solid rgba(120, 190, 185, 0.25);
-            color: #16404a;
+            background: rgba(129, 140, 248, 0.15);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+            color: #1b2347;
             padding: 8px 18px;
             border-radius: 40px;
             cursor: pointer;
@@ -130,7 +137,7 @@
         }
 
         .dropdown-btn:hover {
-            background: rgba(120, 190, 185, 0.3);
+            background: rgba(129, 140, 248, 0.3);
             transform: translateY(-2px);
         }
 
@@ -145,12 +152,12 @@
             border-radius: 20px;
             z-index: 1001;
             overflow: hidden;
-            border: 1px solid rgba(120, 190, 185, 0.35);
+            border: 1px solid rgba(129, 140, 248, 0.35);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
 
         .dropdown-content a {
-            color: #16404a;
+            color: #1b2347;
             padding: 12px 20px;
             text-decoration: none;
             display: flex;
@@ -159,11 +166,11 @@
             font-size: 0.75rem;
             font-weight: 500;
             transition: all 0.2s;
-            border-bottom: 1px solid rgba(120, 190, 185, 0.15);
+            border-bottom: 1px solid rgba(129, 140, 248, 0.15);
         }
 
         .dropdown-content a:hover {
-            background: rgba(120, 190, 185, 0.1);
+            background: rgba(129, 140, 248, 0.1);
             padding-right: 28px;
         }
 
@@ -206,7 +213,7 @@
             transition: right 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             display: flex;
             flex-direction: column;
-            border-left: 1px solid rgba(120, 190, 185, 0.4);
+            border-left: 1px solid rgba(129, 140, 248, 0.4);
             box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
         }
 
@@ -217,14 +224,14 @@
         .sidebar-header {
             padding: 30px 20px;
             text-align: center;
-            border-bottom: 1px solid rgba(120, 190, 185, 0.25);
-            background: linear-gradient(135deg, rgba(120, 190, 185, 0.15), rgba(90, 160, 160, 0.05));
+            border-bottom: 1px solid rgba(129, 140, 248, 0.25);
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(90, 91, 160, 0.05));
         }
 
         .sidebar-avatar {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #8fc4c0, #5e9ca0);
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -237,12 +244,12 @@
         .sidebar-user-name {
             font-size: 1rem;
             font-weight: 700;
-            color: #0e2f36;
+            color: #0f1530;
         }
 
         .sidebar-user-role {
             font-size: 0.72rem;
-            color: #4a6b72;
+            color: #48527a;
             margin-top: 4px;
         }
 
@@ -259,7 +266,7 @@
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            color: #16404a;
+            color: #1b2347;
             text-decoration: none;
             border-radius: 16px;
             transition: all 0.2s;
@@ -268,14 +275,14 @@
         }
 
         .sidebar-link:hover {
-            background: rgba(120, 190, 185, 0.15);
+            background: rgba(129, 140, 248, 0.15);
             padding-right: 24px;
         }
 
         .sidebar-link.logout {
             color: #c97a5a;
             margin-top: 20px;
-            border-top: 1px solid rgba(120, 190, 185, 0.25);
+            border-top: 1px solid rgba(129, 140, 248, 0.25);
             border-radius: 0;
             padding-top: 20px;
         }
@@ -284,9 +291,9 @@
             position: absolute;
             top: 15px;
             left: 15px;
-            background: rgba(120, 190, 185, 0.2);
+            background: rgba(129, 140, 248, 0.2);
             border: none;
-            color: #16404a;
+            color: #1b2347;
             width: 34px;
             height: 34px;
             border-radius: 50%;
@@ -307,12 +314,12 @@
             font-family: inherit; transition: all 0.2s;
         }
         .dropdown-content .logout-dropdown-btn:hover {
-            background: rgba(120, 190, 185, 0.1); padding-right: 28px;
+            background: rgba(129, 140, 248, 0.1); padding-right: 28px;
         }
         button.sidebar-link { width: 100%; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 0.85rem; text-align: right; }
 
         .sidebar-close:hover {
-            background: rgba(120, 190, 185, 0.4);
+            background: rgba(129, 140, 248, 0.4);
             transform: rotate(90deg);
         }
 
@@ -321,21 +328,21 @@
             display: none;
             flex-direction: column;
             cursor: pointer;
-            background: rgba(120, 190, 185, 0.2);
+            background: rgba(129, 140, 248, 0.2);
             padding: 10px 12px;
             border-radius: 14px;
-            border: 1px solid rgba(120, 190, 185, 0.3);
+            border: 1px solid rgba(129, 140, 248, 0.3);
             transition: all 0.2s;
         }
 
         .hamburger:hover {
-            background: rgba(120, 190, 185, 0.35);
+            background: rgba(129, 140, 248, 0.35);
         }
 
         .hamburger span {
             width: 22px;
             height: 2px;
-            background: #16404a;
+            background: #1b2347;
             margin: 3px 0;
             border-radius: 4px;
             transition: 0.2s;
@@ -361,14 +368,14 @@
         .site-message {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(120, 190, 185, 0.4);
-            border-right: 4px solid #2ec4b6;
+            border: 1px solid rgba(129, 140, 248, 0.4);
+            border-right: 4px solid #6366f1;
             border-radius: 18px;
             padding: 13px 18px;
             font-size: 0.82rem;
             font-weight: 600;
-            color: #16404a;
-            box-shadow: 0 4px 15px rgba(11, 60, 70, 0.06);
+            color: #1b2347;
+            box-shadow: 0 4px 15px rgba(18, 11, 70, 0.06);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -376,9 +383,9 @@
         }
 
         .site-message.success { border-right-color: #7a9c3e; }
-        .site-message.error, .site-message.danger { border-right-color: #dc8686; background: rgba(255, 245, 245, 0.94); color: #a94442; }
+        .site-message.error, .site-message.danger { border-right-color: #e8a0b4; background: rgba(255, 245, 245, 0.94); color: #9f1239; }
         .site-message.warning { border-right-color: #f5a623; background: rgba(255, 250, 235, 0.94); color: #92400e; }
-        .site-message.info { border-right-color: #4a6b72; }
+        .site-message.info { border-right-color: #48527a; }
 
         /* ========== Responsive ========== */
         @media (max-width: 768px) {
@@ -434,9 +441,9 @@
     </style>
     {% block extra_css %}{% endblock %}
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=5">
-    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=9">
-    <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=9">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=7">
+    <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=11">
+    <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=11">
     {% block late_css %}{% endblock %}
 </head>
 <body>
@@ -742,6 +749,6 @@
         window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     }
 </script>
-<script src="{% static 'js/modern.js' %}?v=3" defer></script>
+<script src="{% static 'js/modern.js' %}?v=4" defer></script>
 </body>
 </html>

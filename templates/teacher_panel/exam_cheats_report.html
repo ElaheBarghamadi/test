@@ -6,20 +6,20 @@
 {% block extra_css %}
 <style>
     :root {
-        --danger: #dc8686;
+        --danger: #e8a0b4;
         --danger-dark: #b85a3a;
         --warning: #f5a623;
-        --info: #4a6b72;
+        --info: #48527a;
         --success: #7a9c3e;
-        --gray-50: #f7fcfb;
-        --gray-100: #eef7f5;
-        --gray-200: #dcefeb;
-        --gray-300: #bcd9d5;
-        --gray-400: #7fa8ad;
-        --gray-500: #6f9499;
-        --gray-600: #4a6b72;
-        --gray-700: #35565d;
-        --gray-800: #16404a;
+        --gray-50: #fafbff;
+        --gray-100: #f1f3fe;
+        --gray-200: #e2e6fa;
+        --gray-300: #c3c9ea;
+        --gray-400: #8d95b5;
+        --gray-500: #7b84a6;
+        --gray-600: #48527a;
+        --gray-700: #414a72;
+        --gray-800: #1b2347;
     }
 
     .container {
@@ -41,7 +41,7 @@
         align-items: center;
         flex-wrap: wrap;
         gap: 15px;
-        border: 1px solid rgba(120, 190, 185, 0.3);
+        border: 1px solid rgba(129, 140, 248, 0.3);
     }
 
     .page-header h1 {
@@ -93,27 +93,27 @@
         border-radius: 28px;
         padding: 22px;
         text-align: center;
-        border: 1px solid rgba(120, 190, 185, 0.35);
+        border: 1px solid rgba(129, 140, 248, 0.35);
         transition: all 0.3s;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
 
     .stat-card:hover {
         transform: translateY(-4px);
-        border-color: rgba(120, 190, 185, 0.6);
+        border-color: rgba(129, 140, 248, 0.6);
         box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
     }
 
     .stat-number {
         font-size: 2.2rem;
         font-weight: 800;
-        color: #dc8686;
+        color: #e8a0b4;
         line-height: 1.2;
     }
 
     .stat-label {
         font-size: 0.7rem;
-        color: #4a6b72;
+        color: #48527a;
         margin-top: 8px;
         font-weight: 500;
     }
@@ -125,17 +125,17 @@
         border-radius: 28px;
         padding: 24px;
         margin-bottom: 24px;
-        border: 1px solid rgba(120, 190, 185, 0.35);
+        border: 1px solid rgba(129, 140, 248, 0.35);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
 
     .card-title {
         font-size: 1rem;
         font-weight: 700;
-        color: #16404a;
+        color: #1b2347;
         margin-bottom: 20px;
         padding-bottom: 12px;
-        border-bottom: 2px solid rgba(120, 190, 185, 0.35);
+        border-bottom: 2px solid rgba(129, 140, 248, 0.35);
         display: flex;
         align-items: center;
         gap: 10px;
@@ -150,19 +150,19 @@
     .students-table th {
         text-align: right;
         padding: 14px 12px;
-        background: rgba(120, 190, 185, 0.1);
+        background: rgba(129, 140, 248, 0.1);
         font-weight: 700;
-        color: #16404a;
-        border-bottom: 2px solid rgba(120, 190, 185, 0.3);
+        color: #1b2347;
+        border-bottom: 2px solid rgba(129, 140, 248, 0.3);
         font-size: 0.75rem;
     }
 
     .students-table td {
         padding: 14px 12px;
-        border-bottom: 1px solid rgba(120, 190, 185, 0.2);
+        border-bottom: 1px solid rgba(129, 140, 248, 0.2);
         vertical-align: top;
         font-size: 0.8rem;
-        color: #35565d;
+        color: #414a72;
     }
 
     .student-row {
@@ -170,12 +170,12 @@
     }
 
     .student-row:hover {
-        background: rgba(120, 190, 185, 0.08);
+        background: rgba(129, 140, 248, 0.08);
     }
 
     .student-name {
         font-weight: 700;
-        color: #16404a;
+        color: #1b2347;
     }
 
     .badge-cheat {
@@ -198,19 +198,19 @@
     }
 
     .badge-multiple_tabs {
-        background: rgba(74, 107, 114, 0.12);
-        color: #4a6b72;
+        background: rgba(72, 82, 122, 0.12);
+        color: #48527a;
     }
 
     .badge-other {
-        background: rgba(120, 190, 185, 0.2);
-        color: #35565d;
+        background: rgba(129, 140, 248, 0.2);
+        color: #414a72;
     }
 
     .cheat-count {
         font-weight: 700;
         font-size: 1rem;
-        color: #dc8686;
+        color: #e8a0b4;
     }
 
     /* Recent Cheats List */
@@ -221,15 +221,15 @@
     }
 
     .cheat-item {
-        background: rgba(120, 190, 185, 0.08);
+        background: rgba(129, 140, 248, 0.08);
         border-radius: 20px;
         padding: 14px 18px;
-        border-right: 3px solid #dc8686;
+        border-right: 3px solid #e8a0b4;
         transition: all 0.2s;
     }
 
     .cheat-item:hover {
-        background: rgba(120, 190, 185, 0.15);
+        background: rgba(129, 140, 248, 0.15);
     }
 
     .cheat-header {
@@ -243,7 +243,7 @@
 
     .cheat-student {
         font-weight: 700;
-        color: #16404a;
+        color: #1b2347;
         font-size: 0.85rem;
     }
 
@@ -256,27 +256,27 @@
 
     .cheat-date {
         font-size: 0.6rem;
-        color: #7fa8ad;
+        color: #8d95b5;
     }
 
     .cheat-detail {
         font-size: 0.7rem;
-        color: #4a6b72;
+        color: #48527a;
         margin-top: 8px;
         padding-right: 12px;
-        border-right: 2px solid rgba(120, 190, 185, 0.4);
+        border-right: 2px solid rgba(129, 140, 248, 0.4);
     }
 
     .empty-state {
         text-align: center;
         padding: 50px 20px;
-        color: #7fa8ad;
+        color: #8d95b5;
         font-size: 0.8rem;
     }
 
     /* Info Card */
     .info-card {
-        background: rgba(120, 190, 185, 0.1);
+        background: rgba(129, 140, 248, 0.1);
         border-radius: 24px;
         padding: 20px;
         margin-top: 8px;
@@ -285,7 +285,7 @@
     .info-card ul {
         margin-right: 20px;
         font-size: 0.7rem;
-        color: #4a6b72;
+        color: #48527a;
         line-height: 1.8;
     }
 
@@ -395,7 +395,7 @@
                 <td>{{ forloop.counter }}</td>
                 <td>
                     <div class="student-name">{{ data.student_name }}</div>
-                    <div style="font-size: 0.6rem; color: #7fa8ad;">کد: {{ data.student_code }}</div>
+                    <div style="font-size: 0.6rem; color: #8d95b5;">کد: {{ data.student_code }}</div>
                 </td>
                 <td class="cheat-count">{{ data.cheat_count }}</td>
                 <td>
@@ -404,15 +404,15 @@
                         {{ cheat.get_cheat_type_display }}
                     </span>
                     {% empty %}
-                    <span style="color: #7fa8ad;">-</span>
+                    <span style="color: #8d95b5;">-</span>
                     {% endfor %}
                 </td>
-                <td><code style="font-size: 0.72rem; background: rgba(120, 190, 185,0.15); padding: 3px 6px; border-radius: 8px;">{{ data.ip_address }}</code></td>
+                <td><code style="font-size: 0.72rem; background: rgba(129, 140, 248, 0.15); padding: 3px 6px; border-radius: 8px;">{{ data.ip_address }}</code></td>
                 <td>
                     {% if data.is_active %}
                     <span style="color: #7a9c3e;">فعال</span>
                     {% else %}
-                    <span style="color: #7fa8ad;">غیرفعال</span>
+                    <span style="color: #8d95b5;">غیرفعال</span>
                     {% endif %}
                 </td>
             </tr>
@@ -464,20 +464,20 @@
 
     <!-- Info Card -->
     <div class="card info-card">
-        <div class="card-title" style="border-bottom-color: rgba(120, 190, 185, 0.3);">
+        <div class="card-title" style="border-bottom-color: rgba(129, 140, 248, 0.3);">
             <span>💡</span> نکات مهم
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 24px;">
             <div style="flex: 1;">
-                <div style="font-weight: 700; margin-bottom: 10px; color: #16404a;">انواع تخلفات:</div>
+                <div style="font-weight: 700; margin-bottom: 10px; color: #1b2347;">انواع تخلفات:</div>
                 <ul>
-                    <li><span style="color: #dc8686;">●</span> تغییر تب (Tab Switch) - خروج از صفحه آزمون</li>
+                    <li><span style="color: #e8a0b4;">●</span> تغییر تب (Tab Switch) - خروج از صفحه آزمون</li>
                     <li><span style="color: #f5a623;">●</span> کپی/پیست (Copy/Paste) - تلاش برای کپی متن</li>
-                    <li><span style="color: #4a6b72;">●</span> چند تب همزمان - باز کردن آزمون در چند تب</li>
+                    <li><span style="color: #48527a;">●</span> چند تب همزمان - باز کردن آزمون در چند تب</li>
                 </ul>
             </div>
             <div style="flex: 1;">
-                <div style="font-weight: 700; margin-bottom: 10px; color: #16404a;">چگونه تخلفات را کاهش دهیم؟</div>
+                <div style="font-weight: 700; margin-bottom: 10px; color: #1b2347;">چگونه تخلفات را کاهش دهیم؟</div>
                 <ul>
                     <li>فعال کردن گزینه "جلوگیری از تغییر تب" در تنظیمات آزمون</li>
                     <li>فعال کردن گزینه "جلوگیری از کپی/پیست"</li>

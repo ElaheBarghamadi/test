@@ -12,7 +12,7 @@
         padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--card);
         color: var(--ink2); font-size: .78rem; font-weight: 700; text-decoration: none;
     }
-    .pager .cur { background: linear-gradient(135deg, var(--gold), var(--gold3)); color: #fff; border-color: transparent; }
+    .pager .cur { background: linear-gradient(135deg, var(--brand), var(--brand-3)); color: #fff; border-color: transparent; }
     .row-actions { display: flex; gap: 6px; }
     .import-result { margin-top: 10px; font-size: .78rem; }
     .import-result .err-line { color: var(--err); }
@@ -22,7 +22,7 @@
         padding: 10px; background: var(--card2); font-size: .74rem; color: var(--ink2);
     }
     input[type=file]::file-selector-button {
-        background: linear-gradient(135deg, var(--gold), var(--gold3)); color: #fff; border: 0;
+        background: linear-gradient(135deg, var(--brand), var(--brand-3)); color: #fff; border: 0;
         border-radius: 10px; padding: 8px 14px; margin-left: 10px; font-family: inherit;
         font-weight: 700; cursor: pointer;
     }
@@ -32,20 +32,20 @@
         display: flex; align-items: center; gap: 10px; text-decoration: none;
         padding: 4px 6px; margin: -4px -6px; border-radius: 12px; transition: background .18s;
     }
-    .user-cell:hover { background: var(--goldsoft); }
+    .user-cell:hover { background: var(--brand-soft); }
     .user-cell:hover .uc-chev { opacity: 1; transform: translateX(-3px); }
-    .user-cell:hover b { color: var(--gold3); }
+    .user-cell:hover b { color: var(--brand-3); }
     .uc-avatar {
         width: 34px; height: 34px; border-radius: 11px; flex: 0 0 auto;
         display: grid; place-items: center; font-weight: 800; font-size: .88rem; color: #fff;
-        background: linear-gradient(140deg, var(--gold), var(--gold2));
-        box-shadow: 0 3px 8px rgba(15,112,120,.22);
+        background: linear-gradient(140deg, var(--brand), var(--brand-2));
+        box-shadow: 0 3px 8px rgba(79, 70, 229, .22);
     }
     .uc-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.6; }
     .uc-text b { font-size: .86rem; color: var(--ink); transition: color .18s; }
     .uc-sub { font-size: .72rem; color: var(--ink3); direction: ltr; text-align: right; }
     .uc-chev { color: var(--ink3); opacity: .35; transition: .18s; flex: 0 0 auto; }
-    .btn-view { background: var(--goldsoft); color: var(--gold3); border-color: #bfe8e2; }
+    .btn-view { background: var(--brand-soft); color: var(--brand-3); border-color: #c7cbfa; }
     @media (max-width: 640px) {
         .uc-avatar { width: 30px; height: 30px; font-size: .8rem; }
         .uc-chev { display: none; }

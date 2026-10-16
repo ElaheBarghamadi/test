@@ -3,42 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0a3440">
+    <meta name="theme-color" content="#4f46e5">
     <meta name="robots" content="noindex">
     <title>{{ title }} — سامانه آزمون</title>
     <style>
         @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
         @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
         @font-face{font-family:'Vazirmatn';src:url('/static/fonts/Vazirmatn-ExtraBold.woff2') format('woff2');font-weight:800;font-display:swap}
-        :root { --ink:#0f2f36; --ink2:#4a6b72; --ink3:#8aa3a8; --teal:#2ec4b6; --teal2:#0f7078; --deep:#0a3440; --accent:{{ accent }}; }
+        :root { --ink:#140f36; --ink2:#48527a; --ink3:#98a0bd; --brand:#6366f1; --brand-2:#4f46e5; --deep:#1e1b4b; --accent:{{ accent }}; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; }
         body {
             font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif; color: var(--ink);
             background:
-                radial-gradient(900px 500px at 100% -10%, rgba(46,196,182,.22), transparent 60%),
-                radial-gradient(700px 420px at -10% 110%, rgba(15,112,120,.16), transparent 60%),
-                #f3faf8;
+                radial-gradient(900px 500px at 100% -10%, rgba(99, 102, 241, .22), transparent 60%),
+                radial-gradient(700px 420px at -10% 110%, rgba(79, 70, 229, .16), transparent 60%),
+                #f3f5fb;
             min-height: 100vh; display: flex; flex-direction: column;
         }
         .top { display: flex; align-items: center; gap: 10px; padding: 20px 24px; }
         .top a { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-weight: 800; }
-        .mark { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, var(--teal), var(--teal2)); box-shadow: 0 8px 20px rgba(15,112,120,.25); }
+        .mark { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, var(--brand), var(--brand-2)); box-shadow: 0 8px 20px rgba(79, 70, 229, .25); }
 
         main { flex: 1; display: grid; place-items: center; padding: 12px 20px 40px; }
         .wrap { width: 100%; max-width: 980px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
         .art { position: relative; display: grid; place-items: center; }
         .code {
             font-size: clamp(110px, 17vw, 190px); font-weight: 800; line-height: 1; letter-spacing: -4px;
-            background: linear-gradient(160deg, var(--accent), var(--teal2) 70%);
+            background: linear-gradient(160deg, var(--accent), var(--brand-2) 70%);
             -webkit-background-clip: text; background-clip: text; color: transparent;
-            filter: drop-shadow(0 18px 30px rgba(15,112,120,.18));
+            filter: drop-shadow(0 18px 30px rgba(79, 70, 229, .18));
             user-select: none;
         }
         .orb { position: absolute; border-radius: 50%; filter: blur(1px); opacity: .6; animation: float 9s ease-in-out infinite; }
-        .orb.a { width: 90px; height: 90px; top: -6%; right: 8%; background: radial-gradient(circle at 30% 30%, #fff, var(--teal) 70%); }
+        .orb.a { width: 90px; height: 90px; top: -6%; right: 8%; background: radial-gradient(circle at 30% 30%, #fff, var(--brand) 70%); }
         .orb.b { width: 46px; height: 46px; bottom: 4%; left: 12%; animation-delay: -3s; background: radial-gradient(circle at 30% 30%, #fff, var(--accent) 70%); }
-        .icon { position: absolute; bottom: -8px; right: 50%; transform: translateX(50%); width: 74px; height: 74px; border-radius: 22px; display: grid; place-items: center; background: #fff; box-shadow: 0 14px 30px rgba(10,52,64,.14); color: var(--accent); }
+        .icon { position: absolute; bottom: -8px; right: 50%; transform: translateX(50%); width: 74px; height: 74px; border-radius: 22px; display: grid; place-items: center; background: #fff; box-shadow: 0 14px 30px rgba(18, 10, 64, .14); color: var(--accent); }
         @keyframes float { 50% { transform: translateY(-14px); } }
 
         .text .tag { display: inline-block; font-size: .75rem; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, #fff); border: 1px solid color-mix(in srgb, var(--accent) 30%, #fff); padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
@@ -46,16 +46,16 @@
         .text p { color: var(--ink2); line-height: 2; font-size: .95rem; margin-bottom: 8px; }
         .tips { list-style: none; margin: 14px 0 22px; display: grid; gap: 8px; }
         .tips li { display: flex; gap: 8px; align-items: flex-start; font-size: .86rem; color: var(--ink2); line-height: 1.8; }
-        .tips li::before { content: ''; flex: 0 0 7px; height: 7px; margin-top: 10px; border-radius: 50%; background: var(--teal); }
+        .tips li::before { content: ''; flex: 0 0 7px; height: 7px; margin-top: 10px; border-radius: 50%; background: var(--brand); }
         .actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 14px; font: inherit; font-weight: 800; font-size: .92rem; text-decoration: none; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; border: none; }
-        .btn-main { color: #fff; background: linear-gradient(135deg, var(--teal2), var(--teal)); box-shadow: 0 12px 26px rgba(15,112,120,.28); }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(15,112,120,.34); }
-        .btn-ghost { color: var(--ink); background: #fff; border: 1.5px solid #d6ebe7; }
-        .btn-ghost:hover { border-color: var(--teal); color: var(--teal2); }
-        .btn:focus-visible { outline: 3px solid rgba(46,196,182,.55); outline-offset: 2px; }
+        .btn-main { color: #fff; background: linear-gradient(135deg, var(--brand-2), var(--brand)); box-shadow: 0 12px 26px rgba(79, 70, 229, .28); }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(79, 70, 229, .34); }
+        .btn-ghost { color: var(--ink); background: #fff; border: 1.5px solid #e3e8f5; }
+        .btn-ghost:hover { border-color: var(--brand); color: var(--brand-2); }
+        .btn:focus-visible { outline: 3px solid rgba(99, 102, 241, .55); outline-offset: 2px; }
         .ref { margin-top: 18px; font-size: .74rem; color: var(--ink3); }
-        .ref code { font-family: ui-monospace, monospace; background: #fff; border: 1px solid #d6ebe7; border-radius: 6px; padding: 1px 6px; direction: ltr; display: inline-block; }
+        .ref code { font-family: ui-monospace, monospace; background: #fff; border: 1px solid #e3e8f5; border-radius: 6px; padding: 1px 6px; direction: ltr; display: inline-block; }
         footer { text-align: center; font-size: .74rem; color: var(--ink3); padding: 16px; }
 
         @media (max-width: 760px) {

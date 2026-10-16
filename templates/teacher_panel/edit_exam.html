@@ -9,17 +9,17 @@
     /* تم روشن طلایی — هم‌سان با سیستم یکپارچه سایت */
     .container { max-width: 1240px; margin: 0 auto; padding: 16px 14px 60px; }
     .info-card {
-        background: linear-gradient(135deg, #0b3c49, #0f7078 55%, #2ec4b6);
+        background: linear-gradient(135deg, #16204a, #4f46e5 55%, #6366f1);
         border-radius: 20px; padding: 18px 20px; margin-bottom: 14px; color: #fff;
-        box-shadow: 0 10px 26px rgba(15, 112, 120, .22);
+        box-shadow: 0 10px 26px rgba(79, 70, 229, .22);
     }
     .info-card h1 { font-size: 1.25rem; margin-bottom: 8px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #fff; }
     .info-details { display: flex; gap: 8px; flex-wrap: wrap; font-size: .74rem; }
     .info-details span { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 3px 12px; color: #fff; }
     .top-bar {
         display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-        background: #fdfffe; border: 1px solid #cfe8e3; border-radius: 16px; padding: 10px 12px;
-        margin-bottom: 14px; box-shadow: 0 1px 2px rgba(10, 60, 70,.05), 0 6px 18px rgba(10, 60, 70,.06);
+        background: #ffffff; border: 1px solid #e4e9f4; border-radius: 16px; padding: 10px 12px;
+        margin-bottom: 14px; box-shadow: 0 1px 2px rgba(31, 43, 91, .05), 0 6px 18px rgba(31, 43, 91, .06);
     }
     .btn-group, .btn-group-right { display: flex; flex-wrap: wrap; gap: 8px; }
 
@@ -32,74 +32,74 @@
         text-decoration: none; cursor: pointer; border: 1.5px solid transparent; transition: .15s;
     }
     .btn-primary, .btn-save, .btn-yes, .btn-home, .btn-dashboard {
-        background: linear-gradient(135deg, #2ec4b6, #0e5e66); color: #fff;
-        box-shadow: 0 5px 14px rgba(15, 112, 120, .25);
+        background: linear-gradient(135deg, #6366f1, #4338ca); color: #fff;
+        box-shadow: 0 5px 14px rgba(79, 70, 229, .25);
     }
     .btn-primary:hover, .btn-save:hover, .btn-yes:hover { filter: brightness(1.06); transform: translateY(-1px); }
-    .btn-secondary, .btn-no { background: #f0faf8; color: #3f5f66; border-color: #cfe8e3; }
-    .btn-secondary:hover, .btn-no:hover { border-color: #2ec4b6; color: #0e5e66; background: #e2f8f5; }
-    .btn-settings { background: #e7f6ec; color: #157a3b; border-color: #b9e2c6; }
-    .btn-cheats { background: #fff3e0; color: #b96c07; border-color: #f3d3a4; }
-    .btn-answers, .btn-edit, .btn-teacher-ans { background: #e2f8f5; color: #0e5e66; border-color: #bfe8e2; }
-    .btn-delete, .btn-danger { background: #fdecec; color: #bd2222; border-color: #f2c4c4; }
+    .btn-secondary, .btn-no { background: #f7f9ff; color: #48527a; border-color: #e4e9f4; }
+    .btn-secondary:hover, .btn-no:hover { border-color: #6366f1; color: #4338ca; background: #eef0ff; }
+    .btn-settings { background: #e7f7f0; color: #047857; border-color: #b9e2c6; }
+    .btn-cheats { background: #fff5e6; color: #b45309; border-color: #f3d9b0; }
+    .btn-answers, .btn-edit, .btn-teacher-ans { background: #eef0ff; color: #4338ca; border-color: #c7cbfa; }
+    .btn-delete, .btn-danger { background: #fdeaef; color: #be123c; border-color: #f6c6d3; }
     .btn-edit, .btn-delete, .btn-teacher-ans { padding: 5px 11px; font-size: .78rem; }
 
     .questions-card {
-        background: #fdfffe; border: 1px solid #cfe8e3; border-radius: 20px; padding: 14px;
-        box-shadow: 0 1px 2px rgba(10, 60, 70,.05), 0 6px 18px rgba(10, 60, 70,.06);
+        background: #ffffff; border: 1px solid #e4e9f4; border-radius: 20px; padding: 14px;
+        box-shadow: 0 1px 2px rgba(31, 43, 91, .05), 0 6px 18px rgba(31, 43, 91, .06);
     }
 
     .tabs {
-        display: flex; gap: 6px; background: #f0faf8; border: 1px solid #e0f1ee;
+        display: flex; gap: 6px; background: #f7f9ff; border: 1px solid #eef2fa;
         padding: 6px; border-radius: 14px; margin-bottom: 12px; overflow-x: auto;
     }
     .tab-btn {
-        flex: 1 1 auto; border: none; background: transparent; color: #3f5f66;
+        flex: 1 1 auto; border: none; background: transparent; color: #48527a;
         font-weight: 700; font-size: .82rem; padding: 9px 12px; border-radius: 10px;
         cursor: pointer; white-space: nowrap;
     }
-    .tab-btn:hover { background: #e2f8f5; color: #0e5e66; }
-    .tab-btn.active { background: linear-gradient(135deg, #2ec4b6, #0e5e66); color: #fff; box-shadow: 0 4px 12px rgba(15, 112, 120,.25); }
+    .tab-btn:hover { background: #eef0ff; color: #4338ca; }
+    .tab-btn.active { background: linear-gradient(135deg, #6366f1, #4338ca); color: #fff; box-shadow: 0 4px 12px rgba(79, 70, 229, .25); }
     .tab-btn.active::after { content: none; }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn .25s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
     .section-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    .section-title { font-weight: 800; font-size: .95rem; color: #12333a; }
-    .question-count { background: #e2f8f5; color: #0e5e66; border: 1px solid #bfe8e2; font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; }
+    .section-title { font-weight: 800; font-size: .95rem; color: #131a33; }
+    .question-count { background: #eef0ff; color: #4338ca; border: 1px solid #c7cbfa; font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; }
     .questions-list { display: grid; gap: 10px; }
-    .question-item { background: #f0faf8; border: 1px solid #e0f1ee; border-radius: 14px; padding: 12px; border-right: 4px solid #2ec4b6; }
-    .question-item:hover { border-color: #bfe8e2; box-shadow: 0 4px 14px rgba(15, 112, 120,.08); }
+    .question-item { background: #f7f9ff; border: 1px solid #eef2fa; border-radius: 14px; padding: 12px; border-right: 4px solid #6366f1; }
+    .question-item:hover { border-color: #c7cbfa; box-shadow: 0 4px 14px rgba(79, 70, 229, .08); }
     .question-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
     .question-badge { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .question-number { background: linear-gradient(135deg, #2ec4b6, #0e5e66); color: #fff; font-size: .72rem; font-weight: 800; border-radius: 999px; padding: 3px 12px; }
-    .question-type { background: #e0f1ee; color: #3f5f66; font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
-    .question-score { background: #e2f8f5; color: #0e5e66; border: 1px solid #bfe8e2; font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
+    .question-number { background: linear-gradient(135deg, #6366f1, #4338ca); color: #fff; font-size: .72rem; font-weight: 800; border-radius: 999px; padding: 3px 12px; }
+    .question-type { background: #eef2fa; color: #48527a; font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
+    .question-score { background: #eef0ff; color: #4338ca; border: 1px solid #c7cbfa; font-size: .7rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; }
     .question-actions { display: flex; gap: 6px; }
-    .question-text { color: #12333a; font-size: .88rem; line-height: 1.9; }
-    .question-image { max-width: 150px; border-radius: 10px; border: 1px solid #cfe8e3; margin-top: 8px; cursor: zoom-in; }
-    .question-image:hover { border-color: #2ec4b6; }
-    .teacher-answer { margin-top: 8px; background: #e2f8f5; border: 1px dashed #bfe8e2; border-radius: 10px; padding: 8px 10px; font-size: .8rem; color: #3f5f66; }
-    .teacher-answer-label { font-size: .72rem; font-weight: 800; color: #0e5e66; margin-bottom: 2px; }
+    .question-text { color: #131a33; font-size: .88rem; line-height: 1.9; }
+    .question-image { max-width: 150px; border-radius: 10px; border: 1px solid #e4e9f4; margin-top: 8px; cursor: zoom-in; }
+    .question-image:hover { border-color: #6366f1; }
+    .teacher-answer { margin-top: 8px; background: #eef0ff; border: 1px dashed #c7cbfa; border-radius: 10px; padding: 8px 10px; font-size: .8rem; color: #48527a; }
+    .teacher-answer-label { font-size: .72rem; font-weight: 800; color: #4338ca; margin-bottom: 2px; }
     .cheat-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 12px; }
-    .cheat-stat-card { background: #f0faf8; border: 1px solid #e0f1ee; border-radius: 14px; padding: 10px; text-align: center; }
-    .cheat-stat-number { font-size: 1.3rem; font-weight: 800; color: #0e5e66; }
-    .cheat-stat-label { font-size: .74rem; color: #3f5f66; font-weight: 600; }
+    .cheat-stat-card { background: #f7f9ff; border: 1px solid #eef2fa; border-radius: 14px; padding: 10px; text-align: center; }
+    .cheat-stat-number { font-size: 1.3rem; font-weight: 800; color: #4338ca; }
+    .cheat-stat-label { font-size: .74rem; color: #48527a; font-weight: 600; }
     .cheats-grid { display: grid; gap: 10px; }
-    .cheat-item-card { background: #fff3e0; border: 1px solid #f3d3a4; border-radius: 14px; padding: 12px; }
+    .cheat-item-card { background: #fff5e6; border: 1px solid #f3d9b0; border-radius: 14px; padding: 12px; }
     .cheat-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
-    .cheat-student { font-weight: 800; color: #12333a; font-size: .88rem; }
-    .cheat-time { font-size: .72rem; color: #3f5f66; margin-bottom: 6px; }
-    .cheat-type { background: #fdecec; color: #bd2222; border-radius: 999px; font-size: .72rem; font-weight: 700; padding: 2px 10px; }
-    .cheat-detail { font-size: .8rem; color: #3f5f66; background: rgba(255,255,255,.65); border-radius: 10px; padding: 8px 10px; }
-    .empty-state { background: #fdfffe; border: 1.5px dashed #cfe8e3; border-radius: 16px; padding: 26px 14px; text-align: center; color: #3f5f66; font-size: .85rem; }
+    .cheat-student { font-weight: 800; color: #131a33; font-size: .88rem; }
+    .cheat-time { font-size: .72rem; color: #48527a; margin-bottom: 6px; }
+    .cheat-type { background: #fdeaef; color: #be123c; border-radius: 999px; font-size: .72rem; font-weight: 700; padding: 2px 10px; }
+    .cheat-detail { font-size: .8rem; color: #48527a; background: rgba(255,255,255,.65); border-radius: 10px; padding: 8px 10px; }
+    .empty-state { background: #ffffff; border: 1.5px dashed #e4e9f4; border-radius: 16px; padding: 26px 14px; text-align: center; color: #48527a; font-size: .85rem; }
     .zoom-modal { position: fixed; inset: 0; background: rgba(40, 28, 14, .78); display: none; place-items: center; z-index: 1200; padding: 16px; }
     .zoom-modal.active { display: grid; }
     .zoom-container { position: relative; }
     .zoom-img { max-width: 92vw; max-height: 82vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
-    .zoom-close { position: absolute; top: -14px; inset-inline-end: -14px; background: #fdecec; color: #bd2222; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1rem; font-weight: 800; }
-    .zoom-reset { position: absolute; bottom: -16px; inset-inline-start: 50%; transform: translateX(50%); background: #e2f8f5; color: #0e5e66; border: 1px solid #bfe8e2; border-radius: 999px; padding: 4px 14px; cursor: pointer; font-size: .74rem; font-weight: 700; }
+    .zoom-close { position: absolute; top: -14px; inset-inline-end: -14px; background: #fdeaef; color: #be123c; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 1rem; font-weight: 800; }
+    .zoom-reset { position: absolute; bottom: -16px; inset-inline-start: 50%; transform: translateX(50%); background: #eef0ff; color: #4338ca; border: 1px solid #c7cbfa; border-radius: 999px; padding: 4px 14px; cursor: pointer; font-size: .74rem; font-weight: 700; }
     @media (max-width: 640px) {
         .container { padding: 10px 8px 44px; }
         .info-card { padding: 14px; border-radius: 16px; }
@@ -112,41 +112,43 @@
     }
     
     .crumbs { font-size: .8rem; color: var(--ink3); margin-bottom: 10px; }
-    .crumbs a { color: var(--gold3); text-decoration: none; font-weight: 700; }
+    .crumbs a { color: var(--brand-3); text-decoration: none; font-weight: 700; }
     .crumbs b { color: var(--ink2); }
     .ready { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
     .ready-item { display: flex; gap: 8px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; font-size: .8rem; color: var(--ink2); font-weight: 800; }
     .ready-item span { font-weight: 600; }
     .ready-item.ok { border-color: var(--okline); background: var(--oksoft); color: var(--ok); }
-    .ready-item a { color: var(--gold3); font-weight: 800; }
+    .ready-item a { color: var(--brand-3); font-weight: 800; }
     .top-bar .more-menu { position: relative; }
     .top-bar .more-menu > summary { list-style: none; cursor: pointer; }
     .top-bar .more-menu > summary::-webkit-details-marker { display: none; }
-    .top-bar .more-items { position: absolute; left: 0; top: calc(100% + 6px); z-index: 50; min-width: 220px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 14px 34px rgba(8,45,52,.14); padding: 6px; display: grid; }
+    .top-bar .more-items { position: absolute; left: 0; top: calc(100% + 6px); z-index: 50; min-width: 220px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 14px 34px rgba(28, 38, 82, .14); padding: 6px; display: grid; }
     .top-bar .more-items a { padding: 9px 12px; border-radius: 10px; text-decoration: none; color: var(--ink); font-size: .84rem; }
-    .top-bar .more-items a:hover { background: var(--goldsoft); }
+    .top-bar .more-items a:hover { background: var(--brand-soft); }
     .question-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
     .question-actions form.mv { display: inline-flex; gap: 2px; }
+    /* فرم حذف هم باید هم‌اندازهٔ بقیهٔ دکمه‌ها در یک ردیف بنشیند */
+    .question-actions form.del-form { display: inline-flex; margin: 0; }
     .btn-move { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--line); background: #fff; cursor: pointer; color: var(--ink2); font-size: .7rem; }
-    .btn-move:hover:not(:disabled) { border-color: var(--gold); color: var(--gold3); }
+    .btn-move:hover:not(:disabled) { border-color: var(--brand); color: var(--brand-3); }
     .btn-move:disabled { opacity: .35; cursor: default; }
-    .question-item:target { outline: 3px solid rgba(46,196,182,.4); }
+    .question-item:target { outline: 3px solid rgba(99, 102, 241, .4); }
     @media (max-width: 700px) { .ready { grid-template-columns: 1fr; } .question-actions .lbl { display: none; } }
 
     /* ===== بازطراحی مینیمال بالای صفحه ===== */
     .ex-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
     .ex-title h1 { font-size: 1.35rem; font-weight: 700; color: var(--ink); margin: 0 0 8px; }
     .ex-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; font-size: .8rem; color: var(--ink3); }
-    .ex-meta i { width: 3px; height: 3px; border-radius: 50%; background: #c5d2d3; }
+    .ex-meta i { width: 3px; height: 3px; border-radius: 50%; background: #c6c5d3; }
     .ex-status { font-style: normal; font-size: .72rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--card2); color: var(--ink3); border: 1px solid var(--line); margin-inline-start: 4px; }
     .ex-status.on { background: var(--oksoft); color: var(--ok); border-color: var(--okline); }
     .ex-tools { display: flex; gap: 8px; flex-shrink: 0; }
     .ex-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: #fff; border: 1px solid var(--line); color: var(--ink2); cursor: pointer; text-decoration: none; list-style: none; transition: background .15s, border-color .15s; }
-    .ex-icon:hover { background: var(--card2); border-color: #d5e0e0; color: var(--ink); }
+    .ex-icon:hover { background: var(--card2); border-color: #d8ddec; color: var(--ink); }
     .ex-tools .more-menu { position: relative; }
     .ex-tools .more-menu > summary::-webkit-details-marker { display: none; }
-    .ex-tools .more-menu[open] > summary { background: var(--card2); border-color: #d5e0e0; }
-    .ex-tools .more-items { position: absolute; left: 0; top: calc(100% + 8px); z-index: 50; min-width: 230px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(20,40,45,.10); padding: 6px; display: grid; }
+    .ex-tools .more-menu[open] > summary { background: var(--card2); border-color: #d8ddec; }
+    .ex-tools .more-items { position: absolute; left: 0; top: calc(100% + 8px); z-index: 50; min-width: 230px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(23, 20, 45, .10); padding: 6px; display: grid; }
     .ex-tools .more-items a { padding: 10px 14px; border-radius: 10px; text-decoration: none; color: var(--ink); font-size: .84rem; font-weight: 500; }
     .ex-tools .more-items a:hover { background: var(--card2); }
     .ex-tools .more-items hr { border: none; border-top: 1px solid var(--line2); margin: 4px 8px; }
@@ -156,26 +158,26 @@
     .ready-item em { font-style: normal; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--ink3); font-size: .72rem; font-weight: 700; }
     .ready-item.ok { background: #fff; border-color: var(--line); color: var(--ink2); }
     .ready-item.ok em { background: var(--oksoft); color: var(--ok); }
-    .ready-item a { color: var(--gold2); font-weight: 600; text-decoration: none; }
+    .ready-item a { color: var(--brand-2); font-weight: 600; text-decoration: none; }
 
     .add-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px 14px 14px; margin-bottom: 24px; }
     .add-label { font-size: .88rem; font-weight: 700; color: var(--ink); }
     .add-opts { display: flex; gap: 8px; }
     .add-opt { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink2); font-size: .84rem; font-weight: 600; text-decoration: none; transition: background .15s, border-color .15s; white-space: nowrap; }
     .add-opt svg { color: var(--ink3); }
-    .add-opt:hover { background: var(--card2); border-color: #d5e0e0; color: var(--ink); }
-    .add-opt.primary { background: var(--gold2); border-color: var(--gold2); color: #fff; }
+    .add-opt:hover { background: var(--card2); border-color: #d8ddec; color: var(--ink); }
+    .add-opt.primary { background: var(--brand-2); border-color: var(--brand-2); color: #fff; }
     .add-opt.primary svg { color: #fff; }
-    .add-opt.primary:hover { background: var(--gold3); }
+    .add-opt.primary:hover { background: var(--brand-3); }
 
     /* تب‌ها: خط زیرین ساده */
     .tabs { background: transparent; border: none; border-bottom: 1px solid var(--line); border-radius: 0; padding: 0; gap: 4px; margin-bottom: 20px; }
     .tab-btn { flex: 0 0 auto; border-radius: 0; padding: 12px 16px; font-weight: 500; color: var(--ink3); border-bottom: 2px solid transparent; margin-bottom: -1px; }
     .tab-btn:hover { background: transparent; color: var(--ink); }
-    .tab-btn.active { background: transparent; color: var(--gold2); box-shadow: none; border-bottom-color: var(--gold2); font-weight: 700; }
+    .tab-btn.active { background: transparent; color: var(--brand-2); box-shadow: none; border-bottom-color: var(--brand-2); font-weight: 700; }
     .questions-card { box-shadow: none; border-color: var(--line); padding: 20px 22px; }
     .question-item { background: #fff; border: 1px solid var(--line); border-right: 1px solid var(--line); padding: 16px 18px; }
-    .question-item:hover { box-shadow: 0 4px 16px rgba(20,40,45,.05); border-color: #d5e0e0; }
+    .question-item:hover { box-shadow: 0 4px 16px rgba(23, 20, 45, .05); border-color: #d8ddec; }
     .questions-list { gap: 12px; }
     .question-number { background: var(--card2); color: var(--ink); border: 1px solid var(--line); font-weight: 700; }
     .question-type, .question-score, .question-count { background: transparent; border: 1px solid var(--line); color: var(--ink3); font-weight: 500; }
@@ -306,7 +308,11 @@
                             </form>
                             <a href="{% url 'edit_question' exam.id q.id %}" class="btn-edit" title="ویرایش سوال">✏️ <span class="lbl">ویرایش</span></a>
                             <a href="{% url 'add_teacher_answer' exam.id q.id %}" class="btn-teacher-ans" title="پاسخ تشریحی معلم">📝 <span class="lbl">پاسخ معلم</span></a>
-                            <a href="{% url 'delete_question' exam.id q.id %}" class="btn-delete" title="حذف سوال" aria-label="حذف سوال {{ forloop.counter }}" data-confirm="سوال {{ forloop.counter }} حذف شود؟ این کار برگشت‌پذیر نیست.">🗑️</a>
+                            {# حذف فقط با POST: از لینک GET به فرم تبدیل شد تا CSRF/پیش‌واکشی مرورگر نتواند سوال را حذف کند #}
+                            <form method="post" action="{% url 'delete_question' exam.id q.id %}" class="del-form" data-no-lock>
+                                {% csrf_token %}
+                                <button type="submit" class="btn-delete" title="حذف سوال" aria-label="حذف سوال {{ forloop.counter }}" data-confirm="سوال {{ forloop.counter }} حذف شود؟ این کار برگشت‌پذیر نیست.">🗑️</button>
+                            </form>
                         </div>
                     </div>
                     <div class="question-text">{{ q.text|truncatewords:30|default:"متن سوال وارد نشده" }}</div>
@@ -368,7 +374,7 @@
             {% endif %}
 
             <div style="margin-top: 16px; text-align: center;">
-                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-primary" style="background: linear-gradient(135deg, #bd2222, #8f1616); padding: 6px 16px;">گزارش کامل</a>
+                <a href="{% url 'exam_cheats_report' exam.id %}" class="btn-primary" style="background: linear-gradient(135deg, #be123c, #8f1616); padding: 6px 16px;">گزارش کامل</a>
             </div>
         </div>
 
