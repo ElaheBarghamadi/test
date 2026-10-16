@@ -779,8 +779,14 @@ def edit_question(request, exam_id, question_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def delete_question(request, exam_id, question_id):
-    """حذف سوال"""
+    """حذف سوال — فقط با POST
+
+    ⚠️ پیش‌تر با GET هم حذف می‌کرد؛ یعنی یک لینک یا تصویر بیرونی می‌توانست
+    مرورگر معلمِ واردشده را وادار به حذف سوال کند (CSRF).
+    """
+    check_teacher_access(request.user)
     question = get_object_or_404(Question, id=question_id, exam__teacher=request.user)
     question.delete()
     messages.success(request, 'سوال حذف شد.')
@@ -1954,6 +1960,10 @@ def apply_group_to_exam(request, exam_id):
 @require_http_methods(["POST"])
 @limit('announcement_create', 10, 60)
 def announcement_create(request):
+    # ⚠️ پیش‌تر هیچ بررسی نقشی وجود نداشت و هر کاربر واردشده‌ای (از جمله
+    # دانش‌آموز) می‌توانست اطلاعیه بسازد و آن را در داشبورد دیگران بنشاند.
+    check_teacher_access(request.user)
+
     title, err = clean_text(request.POST.get('title'), max_len=200, required=True, label='عنوان اطلاعیه')
     if err:
         messages.error(request, err)

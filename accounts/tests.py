@@ -18,8 +18,13 @@ def make_user(username, role='student', password='test12345', grade=None, **kw):
 class LoginPageStyleTests(TestCase):
     """صفحه ورود باید هم‌شکل بقیه بخش‌های سامانه باشد"""
 
-    OFF_PALETTE = ['#2a5298', '#1e3c72', '#eef2f8', '#1e293b']   # تم آبی/طوسی قدیمی
-    SITE_PALETTE = ['#0f7078', '#2ec4b6', '#0a3440']  # تم فیروزه‌ای/نفتی سامانه
+    # تاریخچهٔ تم: آبی/طوسی ← فیروزه‌ای/نفتی ← سرمه‌ای یکدست (nx)
+    # هر دو تم قبلی باید از صفحهٔ ورود رفته باشند و فقط پالت جاری بماند.
+    OFF_PALETTE = [
+        '#2a5298', '#1e3c72', '#eef2f8', '#1e293b',   # تم آبی/طوسی قدیمی
+        '#0f7078', '#2ec4b6', '#0a3440', '#0e5e66',   # تم فیروزه‌ای/نفتی (جایگزین‌شده)
+    ]
+    SITE_PALETTE = ['#4f46e5', '#6366f1', '#1e1b4b']  # تم سرمه‌ای یکدست سامانه (nx)
 
     def setUp(self):
         self.response = self.client.get(reverse('login'))
@@ -35,6 +40,10 @@ class LoginPageStyleTests(TestCase):
     def test_old_blue_palette_removed(self):
         for color in self.OFF_PALETTE:
             self.assertNotIn(color, self.html, f'رنگ {color} مربوط به تم قدیمی هنوز در صفحه ورود است')
+
+    def test_theme_color_matches_brand(self):
+        """متاتگ theme-color باید با برند سرمه‌ای یکسان باشد (رنگ نوار مرورگر گوشی)"""
+        self.assertIn('<meta name="theme-color" content="#4f46e5">', self.html)
 
     def test_standalone_without_header_footer(self):
         # صفحه ورود به درخواست کاربر بدون هدر و فوتر است
@@ -322,8 +331,15 @@ class AccessControlMatrixTests(SecurityFixtureMixin, TestCase):
 
     def test_other_teacher_cannot_delete_question_or_save_score(self):
         self.client.force_login(self.teacher_b)
-        res = self.client.get(reverse('delete_question',
-                                      kwargs={'exam_id': self.exam.id, 'question_id': self.q.id}))
+        url = reverse('delete_question',
+                      kwargs={'exam_id': self.exam.id, 'question_id': self.q.id})
+
+        # حذف سوال فقط با POST مجاز است؛ GET باید ۴۰۵ بدهد و چیزی را حذف نکند
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertTrue(_Question.objects.filter(id=self.q.id).exists())
+
+        # معلم دیگر حتی با POST هم به سوالِ معلم دیگر دسترسی ندارد
+        res = self.client.post(url)
         self.assertIn(res.status_code, (403, 404))
         self.assertTrue(_Question.objects.filter(id=self.q.id).exists())
 

@@ -609,3 +609,71 @@ class ExamResultSettingsTests(StudentPanelTestCase):
         TeacherAnswer.objects.create(question=q, answer_text='توضیح کامل معلم')
         self.assertContains(self.get(exam), 'توضیح کامل معلم')
         self.assertContains(self.get(exam), 'پاسخ تشریحی معلم')
+
+
+class ExamThanksAccessTests(StudentPanelTestCase):
+    """رگرسیون: صفحهٔ «تشکر» پیش‌تر هیچ دکوریتوری نداشت و چون URL پارامتر
+    `hashed_exam_id` می‌فرستد ولی امضای ویو `exam` بود، برای «هر» کاربری —
+    از جمله دانش‌آموز مجازی که تازه آزمون را ثبت کرده بود — با TypeError و
+    خطای ۵۰۰ سقوط می‌کرد.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.exam = self.make_exam()
+        self.thanks_url = self.exam_url(self.exam, view='exam_thanks')
+
+    def test_thanks_renders_for_enrolled_student(self):
+        self.client.force_login(self.student)
+        res = self.client.get(self.thanks_url)
+        self.assertEqual(res.status_code, 200)
+        self.assertTemplateUsed(res, 'student_panel/thanks.html')
+        self.assertContains(res, self.exam.title)
+
+    def test_thanks_never_returns_500(self):
+        self.client.force_login(self.student)
+        res = self.client.get(self.thanks_url)
+        self.assertNotEqual(res.status_code, 500)
+        content = res.content.decode('utf-8')
+        self.assertNotIn('Traceback (most recent call last)', content)
+        self.assertNotIn('Exception Type', content)
+
+    def test_thanks_blocked_for_teacher(self):
+        self.client.force_login(self.teacher)
+        self.assertEqual(self.client.get(self.thanks_url).status_code, 403)
+
+    def test_thanks_blocked_for_non_enrolled_student(self):
+        outsider = make_student(username='outsider', grade=self.grade)
+        self.client.force_login(outsider)
+        self.assertEqual(self.client.get(self.thanks_url).status_code, 403)
+
+    def test_thanks_blocked_for_student_of_other_grade(self):
+        other = make_student(username='other_grade', grade=self.other_grade)
+        self.exam.students.add(other)
+        self.client.force_login(other)
+        self.assertEqual(self.client.get(self.thanks_url).status_code, 403)
+
+    def test_thanks_requires_login(self):
+        res = self.client.get(self.thanks_url)
+        self.assertEqual(res.status_code, 302)
+        self.assertIn('/login/', res['Location'])
+        self.assertNotIn('/accounts/login/', res['Location'])
+
+    def test_thanks_rejects_tampered_hash(self):
+        self.client.force_login(self.student)
+        res = self.client.get(f'/student/thanks/{self.exam.id}_deadbeefdeadbeef/')
+        self.assertEqual(res.status_code, 404)
+
+    def test_submit_redirect_target_is_reachable(self):
+        """مسیر بحرانی: ثبت آزمون → هدایت به صفحهٔ تشکر → باید ۲۰۰ شود"""
+        Question.objects.create(exam=self.exam, text='q', question_type='short_answer',
+                                max_score=Decimal('1'), order=1)
+        self.client.force_login(self.student)
+        self.client.get(self.exam_url(self.exam))          # ساخت attempt
+        res = self.client.post(self.exam_url(self.exam, view='submit_exam'),
+                               data=json.dumps({'answers': {}}),
+                               content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        target = res.json()['redirect']
+        self.assertIn('/student/thanks/', target)
+        self.assertEqual(self.client.get(target).status_code, 200)

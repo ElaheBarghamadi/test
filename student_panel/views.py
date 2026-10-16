@@ -1150,8 +1150,18 @@ def submit_exam(request, exam):
                          'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
 
 
+@login_required
+@exam_access_required
 def exam_thanks(request, exam):
-    """صفحه تشکر بعد از ثبت آزمون"""
+    """صفحه تشکر بعد از ثبت آزمون
+
+    ⚠️ این ویو قبلاً هیچ دکوریتوری نداشت، در حالی که URL پارامتر
+    `hashed_exam_id` می‌فرستد و امضای تابع `exam` بود → TypeError و خطای ۵۰۰
+    برای هر دانش‌آموزی که آزمون را ثبت می‌کرد.
+    اکنون مانند take_exam/submit_exam از `exam_access_required` استفاده می‌کند
+    که هم هش را به آبجکت Exam تبدیل می‌کند و هم نقش و عضویت دانش‌آموز را
+    می‌سنجد.
+    """
     return render(request, 'student_panel/thanks.html', {'exam': exam})
 
 @login_required

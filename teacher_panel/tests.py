@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import Grade, User
-from exams.models import Exam, Question, StudentAnswer
+from exams.models import Announcement, Exam, Question, StudentAnswer
 from teacher_panel.views import to_jalali, parse_form_datetime, validate_exam_times
 
 
@@ -959,3 +959,83 @@ class UxImprovementTests(TestCase):
             pass
         self.assertEqual(src.count('os.environ'), src.count('os.environ.get('))
         self.assertIn('DJANGO_SECRET_KEY', src)
+
+
+class DeleteQuestionMethodTests(TeacherPanelTestCase):
+    """رگرسیون: `delete_question` پیش‌تر با GET هم حذف می‌کرد؛ یعنی یک لینک یا
+    تصویر بیرونی می‌توانست مرورگر معلمِ واردشده را وادار به حذف سوال کند (CSRF).
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.exam = self.make_exam()
+        self.question = Question.objects.create(exam=self.exam, text='سوال', question_type='short_answer',
+                                                max_score=Decimal('1'), order=1)
+        self.url = reverse('delete_question', kwargs={'exam_id': self.exam.id,
+                                                      'question_id': self.question.id})
+
+    def test_get_does_not_delete(self):
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, 405)
+        self.assertTrue(Question.objects.filter(id=self.question.id).exists())
+
+    def test_post_deletes(self):
+        res = self.client.post(self.url)
+        self.assertEqual(res.status_code, 302)
+        self.assertFalse(Question.objects.filter(id=self.question.id).exists())
+
+    def test_other_teacher_cannot_delete_even_by_post(self):
+        self.client.force_login(self.other_teacher)
+        res = self.client.post(self.url)
+        self.assertEqual(res.status_code, 404)
+        self.assertTrue(Question.objects.filter(id=self.question.id).exists())
+
+    def test_student_cannot_delete(self):
+        self.client.force_login(self.student)
+        res = self.client.post(self.url)
+        self.assertIn(res.status_code, (403, 404))
+        self.assertTrue(Question.objects.filter(id=self.question.id).exists())
+
+    def test_edit_exam_page_uses_post_form_for_delete(self):
+        """قالب باید دکمهٔ حذف را با فرم POST بسازد، نه با لینک GET"""
+        html = self.client.get(reverse('edit_exam', kwargs={'exam_id': self.exam.id})).content.decode()
+        self.assertIn(f'action="{self.url}"', html)
+        self.assertNotIn(f'href="{self.url}"', html)
+        self.assertIn('data-confirm', html)
+
+
+class AnnouncementRoleTests(TeacherPanelTestCase):
+    """رگرسیون: `announcement_create` هیچ بررسی نقشی نداشت و هر کاربر واردشده‌ای
+    (از جمله دانش‌آموز) می‌توانست اطلاعیه بسازد و در داشبورد دیگران بنشاند.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('announcement_create')
+
+    def test_student_cannot_create_announcement(self):
+        self.client.force_login(self.student)
+        res = self.client.post(self.url, {'title': 'جعلی', 'body': 'x'})
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(Announcement.objects.count(), 0)
+
+    def test_admin_cannot_post_as_teacher_endpoint(self):
+        admin = User.objects.create_user(username='admin_a', password='test12345', role='admin')
+        self.client.force_login(admin)
+        self.assertEqual(self.client.post(self.url, {'title': 'x', 'body': 'y'}).status_code, 403)
+        self.assertEqual(Announcement.objects.count(), 0)
+
+    def test_teacher_can_still_create_announcement(self):
+        self.client.force_login(self.teacher)
+        res = self.client.post(self.url, {'title': 'اطلاعیهٔ معتبر', 'body': 'متن'})
+        self.assertIn(res.status_code, (200, 302))
+        self.assertEqual(Announcement.objects.count(), 1)
+        ann = Announcement.objects.first()
+        self.assertEqual(ann.title, 'اطلاعیهٔ معتبر')
+        self.assertEqual(ann.created_by, self.teacher)
+
+    def test_anonymous_cannot_create_announcement(self):
+        self.client.logout()
+        res = self.client.post(self.url, {'title': 'x', 'body': 'y'})
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(Announcement.objects.count(), 0)
