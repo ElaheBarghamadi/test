@@ -146,9 +146,47 @@
             }).catch(function () { delete btn.dataset.nxBusy; });
     });
 
+    /* ---------- ۷) منوی کشوییِ موبایل (نوار بالای صفحهٔ هوم) ---------- */
+    function initNavDrawer() {
+        var burger = document.getElementById('nxNavBurger');
+        var drawer = document.getElementById('nxNavDrawer');
+        if (!burger || !drawer) return;
+
+        function setOpen(open) {
+            drawer.classList.toggle('open', open);
+            burger.setAttribute('aria-expanded', String(open));
+            burger.setAttribute('aria-label', open ? 'بستن منو' : 'باز کردن منو');
+        }
+        function close() { setOpen(false); }
+
+        burger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setOpen(!drawer.classList.contains('open'));
+        });
+        // با انتخاب هر پیوند یا کلیک بیرون، کشو بسته می‌شود
+        drawer.addEventListener('click', function (e) {
+            if (e.target.closest && e.target.closest('a')) close();
+        });
+        document.addEventListener('click', function (e) {
+            if (drawer.classList.contains('open') &&
+                !drawer.contains(e.target) && !burger.contains(e.target)) close();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+        });
+        // در عرض دسکتاپ کشو بی‌معناست؛ بازِ فراموش‌شده بسته می‌شود
+        var mq = window.matchMedia ? window.matchMedia('(min-width:900px)') : null;
+        if (mq) {
+            var onMq = function (ev) { if (ev.matches) close(); };
+            if (mq.addEventListener) mq.addEventListener('change', onMq);
+            else if (mq.addListener) mq.addListener(onMq);
+        }
+    }
+
     /* ---------- راه‌اندازی ---------- */
     function init() {
         hideDismissed();
+        initNavDrawer();
         reveal(document);
         document.querySelectorAll('[data-nx-src]').forEach(function (box) {
             if (lazyIO) lazyIO.observe(box); else loadSection(box);

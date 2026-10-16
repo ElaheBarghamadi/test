@@ -12,7 +12,7 @@
     try { var _t = localStorage.getItem('nx-theme'); if (_t) document.documentElement.setAttribute('data-theme', _t); } catch (e) {}
 </script>
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/modern.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/modern.css' %}?v=2">
 </head>
 <body class="nx nx-home">
 {% include "_icons.html" %}
@@ -44,6 +44,33 @@
                 <a class="nx-btn nx-btn-ghost nx-btn-sm" href="{% url 'login' %}">ورود</a>
                 <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url 'login' %}">شروع آزمون<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
             {% endif %}
+
+            {# 📱 دکمهٔ منوی موبایل — زیر ۹۰۰px جای .nx-nav-links را می‌گیرد #}
+            <button class="nx-nav-burger" type="button" id="nxNavBurger"
+                    aria-expanded="false" aria-controls="nxNavDrawer" aria-label="باز کردن منو">
+                <svg class="i-bars" viewBox="0 0 24 24"><use href="#i-bars"/></svg>
+                <svg class="i-x" viewBox="0 0 24 24"><use href="#i-x"/></svg>
+            </button>
+        </div>
+    </div>
+
+    {# 📱 کشوی ناوبری موبایل (همان پیوندهای .nx-nav-links + کنش ورود) #}
+    <div class="nx-nav-drawer" id="nxNavDrawer">
+        <div class="nx-wrap nx-nav-drawer-in">
+            <a href="#features"><svg viewBox="0 0 24 24"><use href="#i-sparkles"/></svg>امکانات</a>
+            <a href="#question-types"><svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg>انواع سؤال</a>
+            <a href="#how"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg>چطور کار می‌کند</a>
+            <a href="#roles"><svg viewBox="0 0 24 24"><use href="#i-users"/></svg>نقش‌ها</a>
+            <a href="#security"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg>امنیت</a>
+            <div class="nx-nav-drawer-sep"></div>
+            <div class="nx-nav-drawer-cta">
+                {% if signed_in and panel_url_name %}
+                    <a class="nx-btn nx-btn-primary" href="{% url panel_url_name %}">ورود به پنل من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
+                {% else %}
+                    <a class="nx-btn nx-btn-primary" href="{% url 'login' %}">شروع آزمون<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
+                    <a class="nx-btn nx-btn-outline" href="{% url 'login' %}">ورود<svg viewBox="0 0 24 24"><use href="#i-login"/></svg></a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </header>
@@ -285,6 +312,6 @@
     </div>
 </footer>
 
-<script src="{% static 'js/modern.js' %}?v=3" defer></script>
+<script src="{% static 'js/modern.js' %}?v=4" defer></script>
 </body>
 </html>

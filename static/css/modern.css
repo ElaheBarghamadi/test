@@ -417,3 +417,51 @@ html[data-theme="dark"] .nx-theme .i-moon{display:block}
 .nx-inp:focus{outline:none;border-color:var(--nx-primary-2);box-shadow:var(--nx-ring);background:var(--nx-card)}
 textarea.nx-inp{resize:vertical;min-height:70px}
 select.nx-inp{cursor:pointer}
+
+/* =========================================================================
+   منوی موبایلِ نوار بالا
+   ---------------------------------------------------------------------
+   پیش‌تر .nx-nav-links زیر ۹۰۰px فقط display:none می‌شد و هیچ جایگزینی
+   نداشت؛ در نتیجه در موبایل هر پنج پیوندِ ناوبری ناپدید می‌شد. همچنین
+   برند + سه دکمه در یک ردیفِ نشکن (flex بدون wrap) از عرض ۳۶۰px بیرون
+   می‌زد و چون .nx-home overflow-x:clip دارد، دکمه‌ها بریده و دست‌نیافتنی
+   می‌شدند. این بخش هر دو را حل می‌کند.
+   ========================================================================= */
+.nx-nav-burger{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;cursor:pointer;
+    background:var(--nx-card-2);border:1px solid var(--nx-line);color:var(--nx-ink-2);flex:none;padding:0}
+.nx-nav-burger:hover{color:var(--nx-primary);border-color:var(--nx-primary-2)}
+.nx-nav-burger svg{width:19px;height:19px}
+.nx-nav-burger .i-x{display:none}
+.nx-nav-burger[aria-expanded="true"] .i-bars{display:none}
+.nx-nav-burger[aria-expanded="true"] .i-x{display:block}
+@media(min-width:900px){.nx-nav-burger{display:none}}
+
+/* برگهٔ کشوییِ منو */
+.nx-nav-drawer{display:none;border-bottom:1px solid var(--nx-line);
+    background:var(--nx-header-bg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.nx-nav-drawer.open{display:block}
+@media(min-width:900px){.nx-nav-drawer{display:none!important}}
+.nx-nav-drawer-in{padding:10px 0 calc(14px + env(safe-area-inset-bottom,0px));display:grid;gap:4px}
+.nx-nav-drawer-in a{display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:12px;
+    font-size:.86rem;font-weight:700;color:var(--nx-ink-2);text-decoration:none;min-height:44px}
+.nx-nav-drawer-in a:hover,.nx-nav-drawer-in a:active{background:var(--nx-card-2);color:var(--nx-ink)}
+.nx-nav-drawer-in a svg{width:17px;height:17px;color:var(--nx-muted);flex:none}
+.nx-nav-drawer-sep{height:1px;background:var(--nx-line);margin:6px 2px}
+.nx-nav-drawer-cta{display:grid;gap:8px;margin-top:4px}
+.nx-nav-drawer-cta .nx-btn{width:100%;min-height:44px}
+
+/* در موبایل، دکمه‌های نوار بالا جمع‌وجور می‌شوند تا سرریز نکنند */
+@media(max-width:899px){
+    .nx-nav-in{gap:8px;height:58px}
+    .nx-nav-cta{gap:6px;margin-inline-start:auto;min-width:0}
+    .nx-brand{min-width:0}
+    .nx-brand>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* پیوند «ورود» به داخل کشو منتقل شده؛ در نوار فقط کنش اصلی می‌ماند */
+    .nx-nav-cta .nx-btn-ghost{display:none}
+    .nx-nav-cta .nx-btn-primary{padding:7px 12px;font-size:.74rem}
+    .nx-nav-cta .nx-btn-primary svg{display:none}
+}
+@media(max-width:359px){
+    .nx-brand>span:last-child{display:none}
+    .nx-nav-cta .nx-btn-primary{padding:7px 10px}
+}
