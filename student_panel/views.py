@@ -22,6 +22,7 @@ from django.core.cache import cache
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import PermissionDenied
 from django.core.files.images import get_image_dimensions
+from django.db.models import Count, Sum
 
 from exams.models import (Exam, Question, StudentAnswer, ExamAttempt, ExamSession,
                           CheatAttempt, TeacherAnswer)
@@ -329,68 +330,51 @@ def build_fill_blank_text(values):
 
 
 
-@login_required
-def student_dashboard(request):
-    """داشبورد دانش‌آموز با کارنامه کامل"""
-    if request.user.role != 'student':
-        return redirect('/')
+STUDENT_EXAMS_PAGE = 6      # آزمون‌هایی که همان ابتدا رندر می‌شوند؛ بقیه با «نمایش بیشتر»
 
-    now = timezone.now()
-    student = request.user
 
-    exams = Exam.objects.filter(students=student).order_by('-created_at')
+def _build_exam_items(student, now):
+    """ساخت فهرست آزمون‌های دانش‌آموز با وضعیت و اولویت (یک پرس‌وجو برای همه)."""
+    exams = (Exam.objects.filter(students=student)
+             .select_related('grade')
+             .annotate(questions_count=Count('questions'))
+             .order_by('-created_at'))
 
-    exams_with_status = []
+    items = []
     for exam in exams:
         attempt = ExamAttempt.objects.filter(student=student, exam=exam).first()
-
+        can_start = False
         if not exam.is_active:
-            status = 'inactive'
-            status_text = 'غیرفعال'
-            status_badge_class = 'status-inactive'
-            status_class = 'inactive'
-            can_start = False
+            status, status_text, badge, cls = 'inactive', 'غیرفعال', 'status-inactive', 'inactive'
         elif exam.start_time <= now <= exam.end_time:
-            status = 'ongoing'
-            status_text = 'در حال برگزاری'
-            status_badge_class = 'status-ongoing'
-            status_class = 'ongoing'
+            status, status_text, badge, cls = 'ongoing', 'در حال برگزاری', 'status-ongoing', 'ongoing'
             can_start = True
         elif exam.end_time < now:
-            status = 'ended'
-            status_text = 'تمام شده'
-            status_badge_class = 'status-ended'
-            status_class = 'ended'
-            can_start = False
+            status, status_text, badge, cls = 'ended', 'تمام شده', 'status-ended', 'ended'
         elif exam.start_time > now:
-            status = 'not_started'
-            status_text = 'شروع نشده'
-            status_badge_class = 'status-not-started'
-            status_class = 'not-started'
-            can_start = False
+            status, status_text, badge, cls = 'not_started', 'شروع نشده', 'status-not-started', 'not-started'
         else:
-            status = 'active'
-            status_text = 'فعال'
-            status_badge_class = 'status-active'
-            status_class = 'active'
+            status, status_text, badge, cls = 'active', 'فعال', 'status-active', 'active'
             can_start = True
 
-        exams_with_status.append({
+        items.append({
             'exam': exam,
             'attempt': attempt,
             'hashed_id': hash_exam_id(exam.id),
             'status': status,
             'status_text': status_text,
-            'status_badge_class': status_badge_class,
-            'status_class': status_class,
+            'status_badge_class': badge,
+            'status_class': cls,
             'can_start': can_start,
             'start_time_jalali': to_jalali(exam.start_time),
             'end_time_jalali': to_jalali(exam.end_time),
             'start_iso': exam.start_time.isoformat(),
-            'questions_count': exam.questions.count(),
+            'end_iso': exam.end_time.isoformat(),
+            'start_ts': int(exam.start_time.timestamp()),
+            'end_ts': int(exam.end_time.timestamp()),
+            'questions_count': exam.questions_count,
         })
 
-    # ترتیب بر اساس اولویت کار دانش‌آموز: در حال انجام ← قابل شروع ← به‌زودی ← بقیه
     def _priority(item):
         att = item['attempt']
         if att and att.status == 'submitted':
@@ -402,102 +386,59 @@ def student_dashboard(request):
         if item['status'] == 'not_started' and item['exam'].is_active:
             return (2, item['exam'].start_time.timestamp())
         return (3, -item['exam'].end_time.timestamp())
-    exams_with_status.sort(key=_priority)
-    next_exam = next((i for i in exams_with_status
+
+    items.sort(key=_priority)
+    next_exam = next((i for i in items
                       if i['can_start'] and i['exam'].is_active
                       and not (i['attempt'] and i['attempt'].status == 'submitted')), None)
+    return items, next_exam
 
-    # نتایج ثبت شده
-    completed_attempts = ExamAttempt.objects.filter(
-        student=student,
-        status='submitted'
-    ).select_related('exam')
 
-    completed_results = []
-    total_score_sum = Decimal('0.00')
-    total_possible_sum = Decimal('0.00')
+def _student_quick_stats(student):
+    """آمارِ سبکِ بالای صفحه — تنها ۳ پرس‌وجو، بدون پیمایشِ پاسخ‌ها."""
+    submitted_ids = list(ExamAttempt.objects.filter(
+        student=student, status__in=['submitted', 'timeout']).values_list('exam_id', flat=True))
+    total = Exam.objects.filter(students=student).count()
 
-    for attempt in completed_attempts:
-        answers = StudentAnswer.objects.filter(
-            student=student,
-            question__exam=attempt.exam
-        )
+    avg_pct = None
+    if submitted_ids:
+        scored = dict(StudentAnswer.objects.filter(
+            student=student, question__exam_id__in=submitted_ids,
+        ).values('question__exam_id').annotate(t=Sum('score_obtained'))
+            .values_list('question__exam_id', 't'))
+        possible = dict(Question.objects.filter(exam_id__in=submitted_ids)
+                        .values('exam_id').annotate(t=Sum('max_score'))
+                        .values_list('exam_id', 't'))
+        got = sum(float(scored.get(eid, 0) or 0) for eid in submitted_ids)
+        full = sum(float(possible.get(eid, 0) or 0) for eid in submitted_ids)
+        if full > 0:
+            avg_pct = round(got / full * 100, 1)
 
-        total_score = Decimal('0.00')
-        total_possible = Decimal('0.00')
+    return {
+        'total': total,
+        'submitted': len(submitted_ids),
+        'avg_pct': avg_pct,
+        'avg_of_20': round(avg_pct * 20 / 100, 2) if avg_pct is not None else None,
+    }
 
-        for a in answers:
-            # ✅ تبدیل امن به Decimal
-            if a.score_obtained is not None:
-                try:
-                    total_score += Decimal(str(a.score_obtained))
-                except:
-                    total_score += Decimal('0.00')
-            if a.question.max_score is not None:
-                try:
-                    total_possible += Decimal(str(a.question.max_score))
-                except:
-                    total_possible += Decimal('0.00')
 
-        total_score_float = float(total_score)
-        total_possible_float = float(total_possible)
-        percentage = (total_score_float / total_possible_float * 100) if total_possible_float > 0 else 0
-        show_score = attempt.exam.show_score_to_student
-
-        completed_results.append({
-            'exam': attempt.exam,
-            'attempt': attempt,
-            'score': total_score_float,
-            'total_possible': total_possible_float,
-            'percentage': round(percentage, 1),
-            'date_jalali': to_jalali(attempt.submitted_at or attempt.started_at or attempt.exam.end_time),
-            'show_score': show_score,
-        })
-
-        if show_score:
-            total_score_sum += total_score
-            total_possible_sum += total_possible
-
-    # محاسبه معدل
-    total_score_sum_float = float(total_score_sum)
-    total_possible_sum_float = float(total_possible_sum)
-    overall_average = (total_score_sum_float / total_possible_sum_float * 20) if total_possible_sum_float > 0 else 0
-
-    # کارنامه
-    try:
-        from admin_panel.models import SystemSetting
-        show_report_card = SystemSetting.get_setting('show_report_card_to_students', False)
-    except ImportError:
-        show_report_card = getattr(settings, 'SHOW_REPORT_CARD', False)
-
-    report_data = []
-    for result in completed_results:
-        if result['show_score']:
-            report_data.append({
-                'exam_title': result['exam'].title,
-                'score': result['score'],
-                'total_possible': result['total_possible'],
-                'percentage': result['percentage'],
-                'date_jalali': result['date_jalali'],
-                'semester': get_exam_semester(result['exam']),
-                'grade_name': result['exam'].grade.get_name_display() if result['exam'].grade else '',
-            })
-
-    # ---------------- اطلاعیه‌ها (با وضعیت خوانده‌شده در نشست) ----------------
+def _student_announcements(request, student, now, limit=5):
+    """اطلاعیه‌های قابل نمایش + وضعیت «جدید» بر اساس نشست."""
     from django.db.models import Q as _Q
     from exams.models import Announcement
-    announcements_qs = Announcement.objects.filter(
-        _Q(grade__isnull=True) | _Q(grade_id=student.grade_id)
-    ).select_related('created_by', 'grade').order_by('-created_at')
+
+    qs = (Announcement.objects
+          .filter(_Q(grade__isnull=True) | _Q(grade_id=student.grade_id))
+          .select_related('created_by', 'grade').order_by('-created_at'))
 
     if request.method == 'POST' and request.POST.get('action') == 'read_announcements':
-        request.session['read_announcements'] = [a.id for a in announcements_qs[:60]]
-        return redirect('student_dashboard')
+        request.session['read_announcements'] = [a.id for a in qs[:60]]
+        return redirect('student_dashboard'), None, 0
 
     read_ids = set(request.session.get('read_announcements') or [])
-    announcements = []
-    for a in announcements_qs[:30]:
-        announcements.append({
+    rows = []
+    for a in qs[:limit]:
+        rows.append({
             'id': a.id,
             'title': a.title,
             'body': a.body or '',
@@ -510,35 +451,156 @@ def student_dashboard(request):
             'is_new': a.id not in read_ids,
             'age_hours': max(0, int((now - a.created_at).total_seconds() // 3600)),
         })
-    unread_count = sum(1 for a in announcements if a['is_new'])
+    return None, rows, sum(1 for a in rows if a['is_new'])
 
-    # ---------------- نتایج: خلاصه برای داشبورد (صفحهٔ کامل: /student/results/) -------
+
+def _student_overview_data(student):
+    """دادهٔ سنگینِ «نمای کلی و نتایج» — فقط برای درخواستِ تنبل صدا زده می‌شود."""
+    completed_attempts = (ExamAttempt.objects.filter(student=student, status='submitted')
+                          .select_related('exam', 'exam__grade'))
+    completed_results = []
+    total_score_sum = Decimal('0.00')
+    total_possible_sum = Decimal('0.00')
+
+    answers_by_exam = {}
+    qs = StudentAnswer.objects.filter(
+        student=student, question__exam__in=[a.exam_id for a in completed_attempts]
+    ).select_related('question')
+    for a in qs:
+        answers_by_exam.setdefault(a.question.exam_id, []).append(a)
+
+    for attempt in completed_attempts:
+        total_score = Decimal('0.00')
+        total_possible = Decimal('0.00')
+        for a in answers_by_exam.get(attempt.exam_id, []):
+            if a.score_obtained is not None:
+                try:
+                    total_score += Decimal(str(a.score_obtained))
+                except Exception:
+                    pass
+            if a.question.max_score is not None:
+                try:
+                    total_possible += Decimal(str(a.question.max_score))
+                except Exception:
+                    pass
+        pct = (float(total_score) / float(total_possible) * 100) if total_possible > 0 else 0
+        completed_results.append({
+            'exam': attempt.exam,
+            'attempt': attempt,
+            'score': float(total_score),
+            'total_possible': float(total_possible),
+            'percentage': round(pct, 1),
+            'date_jalali': to_jalali(attempt.submitted_at or attempt.started_at or attempt.exam.end_time),
+            'show_score': attempt.exam.show_score_to_student,
+        })
+        if attempt.exam.show_score_to_student:
+            total_score_sum += total_score
+            total_possible_sum += total_possible
+
+    overall_average = (float(total_score_sum) / float(total_possible_sum) * 20) if total_possible_sum > 0 else 0
+
+    try:
+        from admin_panel.models import SystemSetting
+        show_report_card = SystemSetting.get_setting('show_report_card_to_students', False)
+    except Exception:
+        show_report_card = getattr(settings, 'SHOW_REPORT_CARD', False)
+
+    report_data = [{
+        'exam_title': r['exam'].title,
+        'score': r['score'],
+        'total_possible': r['total_possible'],
+        'percentage': r['percentage'],
+        'date_jalali': r['date_jalali'],
+        'semester': get_exam_semester(r['exam']),
+        'grade_name': r['exam'].grade.get_name_display() if r['exam'].grade else '',
+    } for r in completed_results if r['show_score']]
+
     published = [r for r in completed_results if r['show_score']]
     published.sort(key=lambda r: (r['attempt'].submitted_at or r['attempt'].started_at
                                  or r['exam'].end_time), reverse=True)
-    results_summary = {
-        'published': published,
-        'top': published[:3],
-        'published_count': len(published),
-        'hidden_count': len(completed_results) - len(published),
-        'submitted_count': len(completed_results),
-        'best': max(published, key=lambda r: r['percentage'], default=None),
-    }
 
-    return render(request, 'student_panel/dashboard.html', {
-        'exams_with_status': exams_with_status,
-        'next_exam': next_exam,
+    return {
         'completed_results': completed_results,
-        'results_summary': results_summary,
-        'announcements': announcements,
-        'unread_count': unread_count,
-        'now': now,
+        'results_summary': {
+            'published': published,
+            'top': published[:4],
+            'published_count': len(published),
+            'hidden_count': len(completed_results) - len(published),
+            'submitted_count': len(completed_results),
+            'best': max(published, key=lambda r: r['percentage'], default=None),
+        },
         'overall_average': round(overall_average, 2),
         'total_possible_sum': float(total_possible_sum),
         'show_report_card': show_report_card,
         'report_data': report_data,
         'current_semester': get_current_semester(),
+    }
+
+
+@login_required
+def student_dashboard(request):
+    """داشبورد دانش‌آموز — سبک: همان ابتدا فقط بخش‌های ضروری رندر می‌شوند.
+
+    کارنامه و ریزِ نتایج (سنگین‌ترین قسمت) هنگام اسکرول و به‌صورت تنبل
+    از /student/api/overview/ دریافت می‌شود.
+    """
+    if request.user.role != 'student':
+        return redirect('/')
+
+    now = timezone.now()
+    student = request.user
+
+    items, next_exam = _build_exam_items(student, now)
+    redirected, announcements, unread_count = _student_announcements(request, student, now, limit=5)
+    if redirected:
+        return redirected
+
+    stats = _student_quick_stats(student)
+    stats['ongoing'] = sum(1 for i in items if i['status'] == 'ongoing')
+    stats['upcoming'] = sum(1 for i in items if i['status'] == 'not_started')
+    hour = timezone.localtime(now).hour
+    greeting = 'صبح بخیر' if hour < 12 else ('عصر بخیر' if hour >= 17 else 'روز بخیر')
+
+    return render(request, 'student_panel/dashboard.html', {
+        'greeting': greeting,
+        'exams_with_status': items[:STUDENT_EXAMS_PAGE],
+        'exams_rest_count': max(0, len(items) - STUDENT_EXAMS_PAGE),
+        'exams_total': len(items),
+        'next_exam': next_exam,
+        'announcements': announcements,
+        'unread_count': unread_count,
+        'now': now,
+        'stats': stats,
+        'current_semester': get_current_semester(),
     })
+
+
+@login_required
+def student_overview_partial(request):
+    """بخش تنبلِ «نمای کلی و نتایج» در داشبورد دانش‌آموز."""
+    if request.user.role != 'student':
+        return redirect('/')
+    ctx = _student_overview_data(request.user)
+    return render(request, 'student_panel/_overview.html', ctx)
+
+
+@login_required
+def student_exams_partial(request):
+    """ادامهٔ فهرست آزمون‌ها (دکمهٔ «نمایش بیشتر»)."""
+    if request.user.role != 'student':
+        return redirect('/')
+    try:
+        offset = int(request.GET.get('offset', 0))
+    except (TypeError, ValueError):
+        offset = 0
+    offset = max(0, min(offset, 500))
+    items, _next = _build_exam_items(request.user, timezone.now())
+    page = items[offset:offset + STUDENT_EXAMS_PAGE]
+    return render(request, 'student_panel/_exams.html', {
+        'exams_with_status': page,
+        'now': timezone.now(),
+    })
+
 
 @login_required
 def student_results(request):
@@ -1041,43 +1103,42 @@ def remove_answer_image(request):
 @login_required
 @exam_access_required
 def submit_exam(request, exam):
-    """ثبت نهایی آزمون (GET: ریدایرکت / POST: ذخیره پاسخ‌ها + ثبت نهایی)"""
-    # ✅ در حالت POST می‌توان پاسخ‌های نهایی را همراه درخواست فرستاد
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body or b'{}')
-        except json.JSONDecodeError:
-            data = {}
+    """ثبت نهایی آزمون — فقط با POST (جلوگیری از ثبتِ ناخواسته با لینک/GET).
 
-        answers = data.get('answers') if isinstance(data, dict) else None
-        if isinstance(answers, dict) and answers:
-            attempt_check = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
-            already_done = bool(attempt_check and attempt_check.status in ['submitted', 'timeout'])
-            if not already_done:
-                question_ids = [int(k) for k in answers.keys() if str(k).isdigit()]
-                questions = {q.id: q for q in Question.objects.filter(id__in=question_ids, exam=exam)}
-                for qid, value in answers.items():
-                    question = questions.get(int(qid)) if str(qid).isdigit() else None
-                    if not question:
-                        continue
-                    payload = value if isinstance(value, dict) else {'answer_text': value}
-                    result = _apply_answer_payload(request.user, question, payload)
-                    if isinstance(result, JsonResponse) and result.status_code == 403:
-                        break
+    پاسخ‌های نهایی می‌توانند همان لحظه همراهِ درخواست فرستاده شوند.
+    """
+    try:
+        data = json.loads(request.body or b'{}')
+    except json.JSONDecodeError:
+        data = {}
+
+    answers = data.get('answers') if isinstance(data, dict) else None
+    if isinstance(answers, dict) and answers:
+        attempt_check = ExamAttempt.objects.filter(student=request.user, exam=exam).first()
+        already_done = bool(attempt_check and attempt_check.status in ['submitted', 'timeout'])
+        if not already_done:
+            question_ids = [int(k) for k in answers.keys() if str(k).isdigit()]
+            questions = {q.id: q for q in Question.objects.filter(id__in=question_ids, exam=exam)}
+            for qid, value in answers.items():
+                question = questions.get(int(qid)) if str(qid).isdigit() else None
+                if not question:
+                    continue
+                payload = value if isinstance(value, dict) else {'answer_text': value}
+                result = _apply_answer_payload(request.user, question, payload)
+                if isinstance(result, JsonResponse) and result.status_code == 403:
+                    break
 
     attempt = get_object_or_404(ExamAttempt, student=request.user, exam=exam)
 
     if attempt.status == 'submitted':
-        if request.method == 'POST':
-            return JsonResponse({'success': True, 'already_submitted': True,
-                                 'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
-        return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
+        return JsonResponse({'success': True, 'already_submitted': True,
+                             'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
 
     attempt.status = 'submitted'
     attempt.submitted_at = timezone.now()
     attempt.save()
 
-    # ✅ تصحیح خودکار پاسخ‌های عینی (تستی/صحیح‌غلط/جاخالی/وصل‌کردنی)
+    # تصحیح خودکار پاسخ‌های عینی (تستی/صحیح‌غلط/جاخالی/وصل‌کردنی)
     from exams.grading import auto_grade_attempt
     auto_grade_attempt(request.user, exam)
 
@@ -1085,15 +1146,10 @@ def submit_exam(request, exam):
     if exam.track_ip:
         ExamSession.objects.filter(student=request.user, exam=exam).update(is_active=False)
 
-    if request.method == 'POST':
-        return JsonResponse({'success': True,
-                             'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
-
-    return redirect('exam_thanks', hashed_exam_id=hash_exam_id(exam.id))
+    return JsonResponse({'success': True,
+                         'redirect': reverse('exam_thanks', kwargs={'hashed_exam_id': hash_exam_id(exam.id)})})
 
 
-@login_required
-@exam_access_required
 def exam_thanks(request, exam):
     """صفحه تشکر بعد از ثبت آزمون"""
     return render(request, 'student_panel/thanks.html', {'exam': exam})

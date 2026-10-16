@@ -1,0 +1,61 @@
+{% comment %}بخشِ تکرارشوندهٔ کارت آزمون — هم در رندر اولیه و هم در «نمایش بیشتر» استفاده می‌شود.{% endcomment %}
+{% load static %}
+{% for item in exams_with_status %}
+<article class="nx-exam nx-reveal">
+    <div class="nx-exam-top">
+        <h3 class="nx-exam-title">{{ item.exam.title }}</h3>
+        {% if item.status == 'ongoing' %}
+            <span class="nx-badge ok"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg>در حال برگزاری</span>
+        {% elif item.status == 'not_started' %}
+            <span class="nx-badge info"><svg viewBox="0 0 24 24"><use href="#i-calendar"/></svg>به‌زودی</span>
+        {% elif item.status == 'ended' %}
+            <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>پایان‌یافته</span>
+        {% elif item.status == 'inactive' %}
+            <span class="nx-badge warn"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg>غیرفعال</span>
+        {% else %}
+            <span class="nx-badge teal"><svg viewBox="0 0 24 24"><use href="#i-play"/></svg>آماده</span>
+        {% endif %}
+    </div>
+
+    <div class="nx-exam-meta">
+        <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg>{{ item.questions_count|fa_num }} سؤال</span>
+        <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-timer"/></svg>{{ item.exam.duration_minutes|fa_num }} دقیقه</span>
+        {% if item.exam.grade %}<span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-graduation"/></svg>{{ item.exam.grade.get_name_display }}</span>{% endif %}
+    </div>
+
+    <div class="nx-exam-time">
+        <svg viewBox="0 0 24 24"><use href="#i-clock"/></svg>
+        <span>{{ item.start_time_jalali }} → {{ item.end_time_jalali }}</span>
+    </div>
+
+    {% if item.status == 'ongoing' %}
+        <div>
+            <div class="nx-badge warn" style="margin-bottom:7px">زمان باقی‌مانده</div>
+            <span class="nx-countdown" data-deadline="{{ item.end_ts }}000" data-start="{{ item.start_ts }}">…</span>
+        </div>
+    {% elif item.status == 'not_started' %}
+        <span class="nx-countdown" data-deadline="{{ item.end_ts }}000" data-start="{{ item.start_ts }}">…</span>
+    {% endif %}
+
+    <div class="nx-exam-foot">
+        {% if item.attempt and item.attempt.status == 'submitted' %}
+            <span class="nx-badge ok"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>تحویل داده‌شده</span>
+            <a class="nx-btn nx-btn-soft nx-btn-sm" href="{% url 'exam_result_detail' exam_id=item.exam.id %}">مشاهدهٔ نتیجه<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
+        {% elif item.can_start %}
+            <span class="nx-badge info">{% if item.attempt %}در حال پاسخ‌گویی{% else %}آمادهٔ شروع{% endif %}</span>
+            <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url 'take_exam' hashed_exam_id=item.hashed_id %}">
+                {% if item.attempt %}ادامهٔ آزمون{% else %}شروع آزمون{% endif %}<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg>
+            </a>
+        {% else %}
+            <span class="nx-badge">{{ item.status_text }}</span>
+            <span class="nx-btn nx-btn-soft nx-btn-sm" aria-disabled="true">غیرقابل دسترسی</span>
+        {% endif %}
+    </div>
+</article>
+{% empty %}
+<div class="nx-empty">
+    <div class="nx-empty-ic"><svg viewBox="0 0 24 24"><use href="#i-inbox"/></svg></div>
+    <div class="nx-empty-t">هنوز آزمونی برای شما تعریف نشده است</div>
+    <div class="nx-empty-d">به‌محض اینکه معلم آزمونی را برای شما منتشر کند، اینجا ظاهر می‌شود.</div>
+</div>
+{% endfor %}

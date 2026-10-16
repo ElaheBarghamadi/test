@@ -272,7 +272,7 @@ class TakeExamSettingsTests(StudentPanelTestCase):
         self.assertIn('preventCopy: false', html)
         self.assertIn('timerType: "fixed"', html)
         self.assertIn('trackIp: false', html)
-        self.assertIn('class="mode-all timer-fixed', html)
+        self.assertIn('mode-all timer-fixed', html)
 
     def test_anti_cheat_notice_only_when_enabled(self):
         on = self.make_exam(title='on', enable_anti_cheat=True)
@@ -512,10 +512,11 @@ class SubmitExamPostTests(StudentPanelTestCase):
         self.assertTrue(res.json().get('already_submitted'))
         self.assertFalse(StudentAnswer.objects.filter(question=self.q).exists())
 
-    def test_get_still_redirects(self):
+    def test_get_is_not_allowed(self):
+        """ثبت نهایی فقط با POST مجاز است (جلوگیری از ثبت ناخواسته با لینک/GET)"""
         res = self.client.get(self.url)
-        self.assertEqual(res.status_code, 302)
-        self.assertEqual(ExamAttempt.objects.get(exam=self.exam).status, 'submitted')
+        self.assertEqual(res.status_code, 405)
+        self.assertEqual(ExamAttempt.objects.get(exam=self.exam).status, 'in_progress')
 
     def test_submit_closes_tracking_session(self):
         exam = self.make_exam(title='tracked', track_ip=True)

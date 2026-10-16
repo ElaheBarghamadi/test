@@ -3,6 +3,7 @@
 
 # ========== ایمپورت‌های پایه ==========
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Count, Sum
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse, Http404
@@ -207,57 +208,165 @@ def validate_exam_times(post_data):
 
 
 # ========== ویوهای داشبورد ==========
+TEACHER_EXAMS_PAGE = 8      # تعداد آزمون‌هایی که همان ابتدا رندر می‌شود
+
+
+def _teacher_exam_items(user, now):
+    """ساخت فهرست آزمون‌های معلم همراه با وضعیت (بدون پرس‌وجوی اضافه به‌ازای هر آزمون)."""
+    exams = (Exam.objects.filter(teacher=user)
+             .select_related('grade')
+             .annotate(students_count=Count('students'), questions_count=Count('questions'))
+             .order_by('-created_at'))
+
+    submitted_map = dict(
+        ExamAttempt.objects.filter(exam__teacher=user, status__in=['submitted', 'timeout'])
+        .values('exam_id').annotate(c=Count('id')).values_list('exam_id', 'c'))
+    total_map = dict(
+        ExamAttempt.objects.filter(exam__teacher=user)
+        .values('exam_id').annotate(c=Count('id')).values_list('exam_id', 'c'))
+
+    items = []
+    for exam in exams:
+        if not exam.is_active:
+            status, status_text, badge, cls = 'inactive', 'غیرفعال', 'status-inactive', 'inactive'
+        elif exam.start_time <= now <= exam.end_time:
+            status, status_text, badge, cls = 'ongoing', 'در حال برگزاری', 'status-ongoing', 'ongoing'
+        elif exam.end_time < now:
+            status, status_text, badge, cls = 'ended', 'تمام شده', 'status-ended', 'ended'
+        else:
+            status, status_text, badge, cls = 'scheduled', 'زمان‌بندی‌شده', 'status-active', 'active'
+
+        submitted = submitted_map.get(exam.id, 0)
+        total_attempts = total_map.get(exam.id, 0)
+        exam.status = status
+        exam.status_text = status_text
+        exam.status_badge_class = badge
+        exam.status_class = cls
+        exam.submitted_count = submitted
+        exam.attempts_count = total_attempts
+        exam.questions_count = exam.questions_count
+        exam.students_count = exam.students_count
+        exam.participation = round(submitted * 100 / exam.students_count) if exam.students_count else 0
+        exam.end_ts = int(exam.end_time.timestamp())
+        exam.start_ts = int(exam.start_time.timestamp())
+        items.append(exam)
+    return items
+
+
+def _teacher_overview_data(user):
+    """دادهٔ تحلیلیِ داشبورد (سنگین‌تر) — فقط برای درخواستِ تنبل."""
+    now = timezone.now()
+    my_exams = Exam.objects.filter(teacher=user)
+    exam_ids = list(my_exams.values_list('id', flat=True))
+
+    attempts = ExamAttempt.objects.filter(exam_id__in=exam_ids).select_related('student', 'exam')
+    total_attempts = attempts.count()
+    finalized = attempts.filter(status__in=['submitted', 'timeout']).count()
+    participants = attempts.values('student_id').distinct().count()
+
+    answers = StudentAnswer.objects.filter(question__exam_id__in=exam_ids)
+    pending_manual = answers.filter(question__question_type__in=['long_answer', 'short_answer'],
+                                    score_obtained__isnull=True).count()
+    graded = answers.filter(score_obtained__isnull=False)
+
+    per_exam = {}
+    for row in graded.values('question__exam_id').annotate(s=Sum('score_obtained')).values_list('question__exam_id', 's'):
+        per_exam[row[0]] = float(row[1] or 0)
+    possible_map = dict(Question.objects.filter(exam_id__in=exam_ids)
+                        .values('exam_id').annotate(t=Sum('max_score')).values_list('exam_id', 't'))
+
+    percentages = []
+    for eid, got in per_exam.items():
+        full = float(possible_map.get(eid) or 0)
+        if full > 0:
+            percentages.append(min(100.0, got / full * 100))
+
+    recent = (attempts.order_by('-updated_at', '-started_at')[:8]
+              if hasattr(ExamAttempt, 'updated_at') else attempts.order_by('-started_at')[:8])
+    activity = [{
+        'student': (a.student.get_full_name() or a.student.username),
+        'exam': a.exam.title,
+        'state': 'در حال پاسخ‌گویی' if a.status == 'in_progress' else 'تحویل داده‌شده',
+        'is_open': a.status == 'in_progress',
+        'at': to_jalali(a.submitted_at or a.started_at),
+        'exam_id': a.exam_id,
+    } for a in recent]
+
+    return {
+        'ov': {
+            'attempts': total_attempts,
+            'finalized': finalized,
+            'participants': participants,
+            'completion': round(finalized * 100 / total_attempts) if total_attempts else 0,
+            'average': round(sum(percentages) / len(percentages), 1) if percentages else None,
+            'graded_results': len(percentages),
+            'pending_manual': pending_manual,
+        },
+        'activity': activity,
+    }
+
+
 @login_required
 def teacher_dashboard(request):
-    """داشبورد معلم - لیست آزمون‌ها با وضعیت"""
+    """داشبورد معلم — الهام‌گرفته از طراحیِ Examora: سربرگ، کارت‌های آمار،
+    فهرست آزمون‌ها و بخش‌های تحلیلی که تنبل بارگذاری می‌شوند.
+    """
     if request.user.role != 'teacher':
         return redirect('/')
 
-    exams = Exam.objects.filter(teacher=request.user).annotate(
-        students_count=Count('students')
-    )
-
+    user = request.user
     now = timezone.now()
-    exams_with_status = []
-    active_count = ongoing_count = inactive_count = 0
+    items = _teacher_exam_items(user, now)
 
-    for exam in exams:
-        # آمار سریع هر آزمون برای کارت‌های داشبورد
-        from django.db.models import Sum
-        submitted = ExamAttempt.objects.filter(exam=exam, status__in=['submitted', 'timeout']).count()
-        totals = [r['t'] for r in StudentAnswer.objects.filter(
-            question__exam=exam, score_obtained__isnull=False
-        ).values('student').annotate(t=Sum('score_obtained'))]
-        exam.submitted_count = submitted
-        exam.avg_total = round(sum(totals) / len(totals), 1) if totals else None
-        exam.questions_count = exam.questions.count()
+    active = [e for e in items if e.status in ('ongoing', 'scheduled') and e.is_active]
+    ongoing = [e for e in items if e.status == 'ongoing']
+    drafts = [e for e in items if not e.is_active]
+    ended = [e for e in items if e.status == 'ended']
 
-        if not exam.is_active:
-            status_data = ('inactive', 'غیرفعال', 'status-inactive', 'inactive')
-            inactive_count += 1
-        elif exam.start_time <= now <= exam.end_time:
-            status_data = ('ongoing', 'در حال برگزاری', 'status-ongoing', 'ongoing')
-            ongoing_count += 1
-            active_count += 1
-        elif exam.end_time < now:
-            status_data = ('ended', 'تمام شده', 'status-ended', '')
-            active_count += 1
-        else:
-            status_data = ('active', 'فعال', 'status-active', 'active')
-            active_count += 1
+    hour = timezone.localtime(now).hour
+    greeting = 'صبح بخیر' if hour < 12 else ('عصر بخیر' if hour >= 17 else 'روز بخیر')
 
-        exam.status, exam.status_text, exam.status_badge_class, exam.status_class = status_data
-        exams_with_status.append(exam)
+    announcements_qs = (Announcement.objects.filter(created_by=user)
+                        .select_related('grade').order_by('-created_at')[:4])
 
     return render(request, 'teacher_panel/dashboard.html', {
-        'exams': exams_with_status,
+        'greeting': greeting,
+        'exams': items[:TEACHER_EXAMS_PAGE],
+        'exams_rest_count': max(0, len(items) - TEACHER_EXAMS_PAGE),
+        'counts': {
+            'all': len(items),
+            'active': len(active),
+            'ongoing': len(ongoing),
+            'drafts': len(drafts),
+            'ended': len(ended),
+            'students': User.objects.filter(role='student').count(),
+            'questions': Question.objects.filter(exam__teacher=user).count(),
+        },
+        'my_announcements': announcements_qs,
         'grades': Grade.objects.all(),
-        'active_exams_count': active_count,
-        'ongoing_exams_count': ongoing_count,
-        'inactive_exams_count': inactive_count,
-        'total_students': User.objects.filter(role='student').count(),
-        'my_announcements': Announcement.objects.filter(created_by=request.user)[:10],
     })
+
+
+@login_required
+def teacher_overview_partial(request):
+    """بخش تنبلِ «تحلیل و فعالیت‌ها» در داشبورد معلم."""
+    if request.user.role != 'teacher':
+        return redirect('/')
+    return render(request, 'teacher_panel/_overview.html', _teacher_overview_data(request.user))
+
+
+@login_required
+def teacher_exams_partial(request):
+    """ادامهٔ فهرست آزمون‌ها (دکمهٔ «نمایش بیشتر»)."""
+    if request.user.role != 'teacher':
+        return redirect('/')
+    try:
+        offset = int(request.GET.get('offset', 0))
+    except (TypeError, ValueError):
+        offset = 0
+    offset = max(0, min(offset, 500))
+    items = _teacher_exam_items(request.user, timezone.now())
+    return render(request, 'teacher_panel/_exams.html', {'exams': items[offset:offset + TEACHER_EXAMS_PAGE]})
 
 
 # ========== مدیریت آزمون ==========

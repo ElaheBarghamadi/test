@@ -20,12 +20,12 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from accounts.views import login_view, logout_view, protected_media
+from accounts.views import login_view, logout_view, protected_media, home
 
 urlpatterns = [
     # 🔒 فایل‌های آپلودشده فقط با احراز دسترسی سرو می‌شوند
     re_path(r'^media/(?P<path>.+)$', protected_media, name='protected_media'),
-    path('', login_view, name='login'),
+    path('', home, name='home'),
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout_view'),
     path('admin/', admin.site.urls),

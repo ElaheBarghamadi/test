@@ -1,0 +1,99 @@
+{% comment %}
+  بخش تنبلِ «نمای کلی و نتایج» — فقط وقتی دانش‌آموز به آن بخش اسکرول می‌کند
+  از سرور گرفته می‌شود؛ بنابراین صفحهٔ اصلی داشبورد سبک می‌ماند.
+{% endcomment %}
+{% if not completed_results %}
+    <div class="nx-empty">
+        <div class="nx-empty-ic"><svg viewBox="0 0 24 24"><use href="#i-award"/></svg></div>
+        <div class="nx-empty-t">نتیجه‌ای ثبت نشده است</div>
+        <div class="nx-empty-d">پس از شرکت در اولین آزمون، کارنامه و نمودارِ پیشرفت اینجا ساخته می‌شود.</div>
+    </div>
+{% else %}
+<div class="nx-dash-2">
+    <!-- کارنامه و معدل -->
+    <div class="nx-card nx-reveal">
+        <div class="nx-card-head">
+            <div>
+                <h3 class="nx-card-title">کارنامهٔ من</h3>
+                <p class="nx-card-sub">{% if show_report_card %}میانگینِ {{ current_semester }} بر اساس نمره‌های اعلام‌شده{% else %}خلاصهٔ نتایج اعلام‌شده{% endif %}</p>
+            </div>
+            {% if overall_average %}<span class="nx-badge info">معدل {{ overall_average|fa_num }} از ۲۰</span>{% endif %}
+        </div>
+        <div class="nx-card-body">
+            <div class="nx-metric-grid">
+                <div class="nx-metric">
+                    <div class="nx-metric-l">میانگین درصد</div>
+                    <div class="nx-metric-v">{% if overall_average %}{% widthratio overall_average 20 100 %}٪{% else %}—{% endif %}</div>
+                    <div class="nx-metric-h">بر پایهٔ {{ results_summary.published_count|fa_num }} آزمونِ اعلام‌شده</div>
+                </div>
+                <div class="nx-metric">
+                    <div class="nx-metric-l">آزمون‌های تحویل‌شده</div>
+                    <div class="nx-metric-v">{{ results_summary.submitted_count|fa_num }}</div>
+                    <div class="nx-metric-h">از کل آزمون‌های شما</div>
+                </div>
+                <div class="nx-metric">
+                    <div class="nx-metric-l">بهترین نتیجه</div>
+                    <div class="nx-metric-v">{% if results_summary.best %}{{ results_summary.best.percentage|fa_num }}٪{% else %}—{% endif %}</div>
+                    <div class="nx-metric-h">{% if results_summary.best %}{{ results_summary.best.exam.title|truncatechars:26 }}{% else %}هنوز نمره‌ای اعلام نشده{% endif %}</div>
+                </div>
+                <div class="nx-metric">
+                    <div class="nx-metric-l">منتشرنشده</div>
+                    <div class="nx-metric-v">{{ results_summary.hidden_count|fa_num }}</div>
+                    <div class="nx-metric-h">منتظرِ اعلامِ نتیجه توسط معلم</div>
+                </div>
+            </div>
+
+            {% if results_summary.top %}
+            <div style="margin-top:14px">
+                <div class="nx-metric-l" style="margin-bottom:8px">آخرین نتایج</div>
+                <div class="nx-rows">
+                    {% for r in results_summary.top %}
+                    <a class="nx-row" href="{% url 'exam_result_detail' exam_id=r.exam.id %}">
+                        <span class="nx-row-ic"><svg viewBox="0 0 24 24"><use href="#i-award"/></svg></span>
+                        <span class="nx-row-main">
+                            <span class="nx-row-t">{{ r.exam.title }}</span>
+                            <span class="nx-row-s">{{ r.date_jalali }} · {{ r.score|fa_num }} از {{ r.total_possible|fa_num }}</span>
+                        </span>
+                        <span class="nx-badge {% if r.percentage >= 50 %}ok{% else %}warn{% endif %}">{{ r.percentage|fa_num }}٪</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- جزئیات کارنامه -->
+    <div class="nx-card nx-reveal">
+        <div class="nx-card-head">
+            <div>
+                <h3 class="nx-card-title">ریزِ نمرات</h3>
+                <p class="nx-card-sub">نمودارِ درصد هر آزمونِ اعلام‌شده</p>
+            </div>
+        </div>
+        <div class="nx-card-body">
+            {% if report_data %}
+                {% for row in report_data|slice:":6" %}
+                <div style="margin-bottom:12px">
+                    <div style="display:flex;justify-content:space-between;gap:10px;font-size:.76rem;font-weight:700;margin-bottom:5px">
+                        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ row.exam_title }}</span>
+                        <span class="nx-fa">{{ row.percentage|fa_num }}٪</span>
+                    </div>
+                    <div class="nx-progress {% if row.percentage >= 50 %}ok{% else %}warn{% endif %}">
+                        <i style="width:{{ row.percentage|floatformat:0 }}%"></i>
+                    </div>
+                    <div class="nx-metric-h">{{ row.score|fa_num }} از {{ row.total_possible|fa_num }} · {{ row.date_jalali }}</div>
+                </div>
+                {% endfor %}
+                <a class="nx-btn nx-btn-outline nx-btn-block nx-btn-sm" href="{% url 'student_results' %}">کارنامهٔ کامل و ریزنمرات<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
+            {% else %}
+                <div class="nx-empty" style="padding:22px 14px">
+                    <div class="nx-empty-ic"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></div>
+                    <div class="nx-empty-t">نمره‌ای اعلام نشده است</div>
+                    <div class="nx-empty-d">هر زمان معلم نتیجه را منتشر کند، نمودارِ پیشرفت اینجا نمایش داده می‌شود.</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

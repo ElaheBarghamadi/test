@@ -42,3 +42,10 @@ def to_jalali_time(value):
     if isinstance(value, _dt.date) and not isinstance(value, _dt.datetime):
         return ''
     return _to_jalali(value, '%H:%M')
+
+@register.filter
+def fa_num(value):
+    """تبدیل اعداد به ارقام فارسی (برای نمایش در رابط کاربری)"""
+    if value is None:
+        return ''
+    return str(value).translate(str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹'))

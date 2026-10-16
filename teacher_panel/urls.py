@@ -5,6 +5,8 @@ from . import views
 urlpatterns = [
     # داشبورد
     path('dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
+    path('api/overview/', views.teacher_overview_partial, name='teacher_overview_partial'),
+    path('api/exams/', views.teacher_exams_partial, name='teacher_exams_partial'),
 
     # مدیریت آزمون
     path('exam/create/', views.create_exam, name='create_exam'),

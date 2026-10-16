@@ -52,6 +52,45 @@ def _sec(request, user=None, username='', event_type='login', severity='info', d
         pass
 
 
+def home(request):
+    """صفحهٔ اصلی/معرفی سامانه — عمومی، سبک و بدون نیاز به ورود.
+
+    آمارها از پایگاه دادهٔ همین نصب خوانده می‌شوند (نه عددهای ساختگی)،
+    و با کشِ کوتاه‌مدت نگه داشته می‌شوند تا هر بازدید کوئریِ سنگین نداشته باشد.
+    """
+    from exams.models import Exam
+    from accounts.models import User
+
+    def _counts():
+        return {
+            'exams': Exam.objects.count(),
+            'students': User.objects.filter(role='student').count(),
+            'teachers': User.objects.filter(role='teacher').count(),
+            'questions': Question.objects.count(),
+        }
+
+    counts = cache.get_or_set('home:counters', _counts, 120)
+
+    # مقصدِ دکمهٔ اصلی بر اساس نقشِ کاربر
+    target = None
+    if request.user.is_authenticated:
+        u = request.user
+        if u.is_superuser:
+            target = 'control_dashboard'
+        elif u.role == 'admin':
+            target = 'admin_dashboard'
+        elif u.role == 'teacher':
+            target = 'teacher_dashboard'
+        else:
+            target = 'student_dashboard'
+
+    return render(request, 'home.html', {
+        'counts': counts,
+        'signed_in': request.user.is_authenticated,
+        'panel_url_name': target,
+    })
+
+
 def login_view(request):
     """صفحه ورود یکسان برای همه نقش‌ها"""
     # اگر کاربر وارد شده بود، بره به پنل خودش
