@@ -90,28 +90,69 @@ python manage.py runserver
 
 ## 🔧 تنظیمات
 
-فعلاً فایل `.env` و متغیر محیطی نداریم؛ همهٔ مقادیر مستقیماً در `exam_system/settings.py` هستند:
+همهٔ مقدارهای حساس از **متغیرهای محیطی** خوانده می‌شوند تا هیچ رازی داخل مخزن نماند.
+
+### متغیرهای محیطی
+
+| متغیر | لازم در تولید؟ | پیش‌فرض | توضیح |
+|---|---|---|---|
+| `DJANGO_SECRET_KEY` | ✅ **بله** | — (بدون آن برنامه بالا نمی‌آید) | کلید امضا. ساخت: `python -c "import secrets;print(secrets.token_urlsafe(50))"` |
+| `DJANGO_ALLOWED_HOSTS` | توصیه می‌شود | `.onrender.com,localhost,127.0.0.1` | فهرست جداشده با کاما. نقطهٔ آغازین = همهٔ زیردامنه‌ها |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | در صورت دامنهٔ دیگر | onrender.com، e2b.app، localhost | فهرست جداشده با کاما |
+| `DJANGO_HTTPS_ONLY` | نه | **`true` در تولید** / `false` در توسعه | کوکی Secure + ریدایرکت HTTPS + HSTS |
+| `DJANGO_HSTS_SECONDS` | نه | `31536000` (یک سال) | عمر HSTS |
+| `DJANGO_HSTS_INCLUDE_SUBDOMAINS` | نه | `true` | شامل زیردامنه‌ها |
+| `DJANGO_HSTS_PRELOAD` | نه | `false` | ⚠️ برگشت‌ناپذیر است؛ فقط وقتی مطمئنید `true` کنید |
+| `DJANGO_ENV` | نه | استنتاج می‌شود | `production` یا `development` برای override صریح |
+| `DJANGO_DEBUG` | نه | استنتاج می‌شود | `1`/`0` برای override صریح |
+| `REDIS_URL` | نه | کش درون‌حافظه | برای rate-limit مشترک بین چند worker |
+| `TRUSTED_PROXY_COUNT` | نه | `0` | فقط پشت reverse proxy مطمئن |
+
+### تشخیص خودکار توسعه / تولید
+
+| نحوهٔ اجرا | `DEBUG` | `IS_PRODUCTION` |
+|---|---|---|
+| `python manage.py runserver` | `True` | `False` |
+| `python manage.py test` / `migrate` / `check` / `collectstatic` | `False` | `False` |
+| `gunicorn` / `uwsgi` (WSGI واقعی) | `False` | **`True`** |
+
+در حالت تولید، **نبودِ `DJANGO_SECRET_KEY` باعث شکست عمدی (fail-fast) می‌شود** تا هرگز
+با کلیدِ عمومی بالا نیایید. در توسعه یک کلید مشخصاً «dev-only» استفاده می‌شود.
+
+سایر تنظیمات:
 
 | تنظیم | مقدار فعلی |
 |---|---|
-| `DEBUG` | خودکار: با `runserver` = توسعه، با gunicorn = تولید (برای اجبار، مستقیم `True`/`False` بگذارید) |
-| `SECRET_KEY` | در خود فایل (برای تولید واقعی یک کلید تازه بسازید) |
-| `ALLOWED_HOSTS` | `['*']` |
-| `CSRF_TRUSTED_ORIGINS` | onrender.com و localhost — دامنهٔ خود را به این فهرست اضافه کنید |
 | `DATABASES` | sqlite فایل `db.sqlite3` |
+| `LOGIN_URL` | `login` → `/login/` (پیش‌تر تنظیم نشده بود و به `/accounts/login/` می‌رفت که ۴۰۴ است) |
 
 ---
 
 ## 🌐 اجرای تولید (Production)
 
 ```bash
+export DJANGO_SECRET_KEY="$(python -c 'import secrets;print(secrets.token_urlsafe(50))')"
+export DJANGO_ALLOWED_HOSTS="example.com,www.example.com"
+export DJANGO_CSRF_TRUSTED_ORIGINS="https://example.com"
+
 python manage.py migrate
 python manage.py collectstatic --noinput
 gunicorn exam_system.wsgi:application --bind 0.0.0.0:8000
 ```
-در حالت تولید: کوکی‌ها `Secure` می‌شوند، ریدایرکت HTTPS و HSTS فعال است و
-فایل‌های استاتیک با WhiteNoise سرو می‌شوند (پوشه `staticfiles/` توسط `collectstatic` ساخته می‌شود).
+در حالت تولید به‌صورت پیش‌فرض: کوکی‌ها `Secure` می‌شوند، ریدایرکت HTTPS و HSTS فعال است،
+`ALLOWED_HOSTS` محدود است و فایل‌های استاتیک با WhiteNoise سرو می‌شوند
+(پوشه `staticfiles/` توسط `collectstatic` ساخته می‌شود).
 فایل‌های آپلودشده (`media/`) فقط از مسیر محافظت‌شده `/media/` و با احراز دسترسی سرو می‌شوند.
+
+### بررسی سلامت استقرار
+```bash
+DJANGO_ENV=production DJANGO_SECRET_KEY=... DJANGO_ALLOWED_HOSTS=... \
+  python manage.py check --deploy
+```
+باید `System check identified no issues` بدهد.
+
+> ⚠️ اگر سایت شما واقعاً روی **http** سرو می‌شود (پشت HTTPS نیست)،
+> `DJANGO_HTTPS_ONLY=0` بگذارید؛ وگرنه کوکی ورود ارسال نمی‌شود و لاگین کار نمی‌کند.
 
 ---
 
