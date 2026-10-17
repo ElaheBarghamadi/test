@@ -294,11 +294,20 @@ document.getElementById('editForm').addEventListener('submit', async e => {
     if (d.success) setTimeout(() => location.reload(), 700);
 });
 
-document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click', async () => {
-    if (!confirm('کاربر «' + btn.dataset.name + '» حذف شود؟')) return;
-    const r = await fetch('/admin-panel/users/' + btn.dataset.id + '/delete/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
-    const d = await r.json();
-    if (d.success) location.reload(); else alert('' + (d.error || 'خطا'));
+// حذف کاربر با تأییدِ تم‌دار (پیش‌تر confirm() بومی مرورگر بود)
+document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click', () => {
+    window.AppConfirm.show({
+        title: 'حذف کاربر',
+        message: 'کاربر «' + btn.dataset.name + '» حذف شود؟ این کار برگشت‌پذیر نیست.',
+        confirmText: 'حذف کن', danger: true,
+        onConfirm: async () => {
+            const r = await fetch('/admin-panel/users/' + btn.dataset.id + '/delete/',
+                                  { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+            const d = await r.json();
+            if (d.success) location.reload();
+            else window.AppToast.show(String(d.error || 'خطا'), 'error');
+        }
+    });
 }));
 </script>
 {% endblock %}

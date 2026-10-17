@@ -384,10 +384,13 @@
             animation: fadeInDrop 0.25s ease;
         }
 
-        .site-message.success { border-right-color: #7a9c3e; }
-        .site-message.error, .site-message.danger { border-right-color: #e8a0b4; background: rgba(255, 245, 245, 0.94); color: #9f1239; }
-        .site-message.warning { border-right-color: #f5a623; background: rgba(255, 250, 235, 0.94); color: #92400e; }
-        .site-message.info { border-right-color: #48527a; }
+        {# رنگ‌ها از توکن‌های مشترک site.css می‌آیند، نه مقدارِ hardcode.
+           پیش‌تر سبزِ زیتونی (#7a9c3e) و قرمزِ (#9f1239) و کهرباییِ (#92400e)
+           جداگانه بودند و با بقیهٔ سایت نمی‌خواندند. #}
+        .site-message.success { border-right-color: var(--ok); background: var(--oksoft); color: var(--ok); }
+        .site-message.error, .site-message.danger { border-right-color: var(--err); background: var(--errsoft); color: var(--err); }
+        .site-message.warning { border-right-color: var(--warn); background: var(--warnsoft); color: var(--warn); }
+        .site-message.info { border-right-color: var(--ink2); }
 
         /* ========== Responsive ========== */
         @media (max-width: 768px) {
@@ -734,9 +737,42 @@
         const b = e.submitter;
         if (b && b.tagName === 'BUTTON' && !b.dataset.keepLabel) { b.setAttribute('aria-busy', 'true'); b.classList.add('is-busy'); }
     });
+    // تأییدِ تم‌دار به‌جای confirm() بومیِ مرورگر.
+    // چون AppConfirm ناهمگام است، رویداد را فوراً متوقف می‌کنیم و پس از تأییدِ
+    // کاربر، همان کار را خودمان انجام می‌دهیم. این یک هندلر، همهٔ
+    // data-confirmهای سایت را پوشش می‌دهد.
     document.addEventListener('click', function (e) {
         const t = e.target.closest('[data-confirm]');
-        if (t && !confirm(t.dataset.confirm)) { e.preventDefault(); e.stopImmediatePropagation(); }
+        if (!t || t.dataset.confirmed === '1') return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const run = function () {
+            const form = t.closest('form');
+            if (form && t.type === 'submit') {
+                // requestSubmit(submitter) نام/مقدارِ خودِ همان دکمه را هم می‌فرستد،
+                // که برای فرم‌های چنددکمه‌ای (ذخیره/حذف) ضروری است.
+                if (form.requestSubmit) form.requestSubmit(t); else form.submit();
+            } else if (t.getAttribute('href')) {
+                window.location.href = t.getAttribute('href');
+            } else {
+                t.dataset.confirmed = '1';
+                t.click();
+                delete t.dataset.confirmed;
+            }
+        };
+
+        if (!window.AppConfirm) {           // اگر اسکریپت مشترک نرسید، بی‌توقف نمانیم
+            if (window.confirm(t.dataset.confirm)) run();
+            return;
+        }
+        window.AppConfirm.show({
+            title: t.getAttribute('data-confirm-title') || undefined,
+            message: t.dataset.confirm,
+            confirmText: t.getAttribute('data-confirm-ok') || undefined,
+            danger: t.hasAttribute('data-confirm-danger'),
+            onConfirm: run
+        });
     }, true);
 
     // ========== زنگوله: بستن با کلیک بیرون یا ESC ==========
@@ -757,7 +793,28 @@
         window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     }
 </script>
-<script src="{% static 'js/modal.js' %}?v=1" defer></script>
+{# ================= تأییدِ تم‌دارِ مشترک =================
+   یک نمونه برای کل سایت. هر دکمه‌ای با data-confirm و هر فراخوانیِ
+   AppConfirm.show() از همین استفاده می‌کند — به‌جای confirm() بومیِ مرورگر
+   که با تم سایت نمی‌خواند و روی موبایل هم بد دیده می‌شود. #}
+<div class="modal-backdrop" id="appConfirm" aria-hidden="true">
+    <div class="modal-card sm">
+        <div class="modal-head">
+            <div><h3 class="modal-title" id="appConfirmTitle">تأیید</h3></div>
+            <button type="button" class="modal-close" data-modal-close aria-label="بستن">×</button>
+        </div>
+        <div class="modal-body"><p id="appConfirmMsg"></p></div>
+        <div class="modal-foot">
+            <button type="button" class="btn" id="appConfirmCancel" data-modal-close>انصراف</button>
+            <button type="button" class="btn btn-primary" id="appConfirmOk">تأیید</button>
+        </div>
+    </div>
+</div>
+
+{# ظرف اعلان‌های سمت کاربر — هم‌سبک با پیام‌های سرورِ جنگو #}
+<div class="site-messages app-toasts" id="appToasts" role="status" aria-live="polite"></div>
+
+<script src="{% static 'js/modal.js' %}?v=2" defer></script>
 <script src="{% static 'js/app.js' %}?v=1" defer></script>
 {# اسکریپت مخصوص هر صفحه. چون modal.js با defer بارگذاری می‌شود، اگر #}
 {# اسکریپت صفحه به AppModal نیاز داشت باید داخل DOMContentLoaded باشد. #}

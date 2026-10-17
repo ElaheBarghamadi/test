@@ -418,7 +418,7 @@
             sync();
         });
         $('.js-del', row).addEventListener('click', () => {
-            if ($$('.row', optRows).length <= 2) { alert('سوال تستی حداقل دو گزینه دارد.'); return; }
+            if ($$('.row', optRows).length <= 2) { window.AppToast.show('سوال تستی حداقل دو گزینه دارد.', 'warning'); return; }
             row.remove(); renumber(); sync();
         });
         return row;
@@ -499,7 +499,7 @@
         $('.js-left', row).value = d.left || '';
         $('.js-right', row).value = d.right || '';
         $('.js-del', row).addEventListener('click', () => {
-            if ($$('.row', pairRows).length <= 2) { alert('سوال وصل‌کردنی حداقل دو جفت دارد.'); return; }
+            if ($$('.row', pairRows).length <= 2) { window.AppToast.show('سوال وصل‌کردنی حداقل دو جفت دارد.', 'warning'); return; }
             row.remove(); renumberPairs(); sync();
         });
         return row;
@@ -635,7 +635,7 @@
             if (t === 'matching' && $$('.row', pairRows).filter(r => $('.js-left', r).value.trim() && $('.js-right', r).value.trim()).length < 2) return 'حداقل دو جفت کامل لازم است.';
             return '';
         })();
-        if (msg) { e.preventDefault(); alert(msg); }
+        if (msg) { e.preventDefault(); window.AppToast.show(msg, 'warning'); }
     });
 
     const stb = document.getElementById('saveToBank');

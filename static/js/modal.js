@@ -137,6 +137,96 @@
     });
 
     window.AppModal = { open: open, close: close, isOpen: function (id) { return !!stack.length; } };
+
+    /* ================= تأییدِ تم‌دار (جایگزین confirm() بومی) =================
+     * یک مودال مشترک در base.html با شناسهٔ appConfirm وجود دارد.
+     *
+     *   AppConfirm.show({ message: 'حذف شود؟', danger: true,
+     *                     onConfirm: function () { … } });
+     *
+     * یا به‌صورت اعلانی روی هر دکمه/پیوند:  data-confirm="حذف شود؟"
+     * (هندلرش در base.html است و به این تابع وصل می‌شود).
+     */
+    var pending = null;
+
+    function showConfirm(opts) {
+        opts = opts || {};
+        var box = document.getElementById('appConfirm');
+        if (!box) {
+            // اگر صفحه مودال مشترک را نداشت (قالب‌های مستقل)، به confirm بومی برمی‌گردیم
+            if (window.confirm(opts.message || 'مطمئنید؟')) { if (opts.onConfirm) opts.onConfirm(); }
+            return;
+        }
+        pending = opts.onConfirm || null;
+        var msg = document.getElementById('appConfirmMsg');
+        var title = document.getElementById('appConfirmTitle');
+        var ok = document.getElementById('appConfirmOk');
+        var cancel = document.getElementById('appConfirmCancel');
+        if (title) title.textContent = opts.title || (opts.danger ? 'نیاز به تأیید' : 'تأیید');
+        if (msg) msg.textContent = opts.message || 'مطمئنید؟';
+        if (ok) {
+            ok.textContent = opts.confirmText || (opts.danger ? 'حذف کن' : 'تأیید');
+            ok.className = 'btn ' + (opts.danger ? 'btn-danger' : 'btn-primary');
+        }
+        if (cancel) cancel.textContent = opts.cancelText || 'انصراف';
+        open(box);
+    }
+
+    document.addEventListener('click', function (e) {
+        var ok = e.target.closest && e.target.closest('#appConfirmOk');
+        if (!ok) return;
+        var fn = pending; pending = null;
+        close(document.getElementById('appConfirm'));
+        if (fn) fn();
+    });
+
+    // بستن با انصراف/Escape/پس‌زمینه یعنی «نه» — پس فقط pending را دور می‌ریزیم
+    document.addEventListener('modal:close', function (e) {
+        if (e.target && e.target.id === 'appConfirm') pending = null;
+    });
+
+    window.AppConfirm = { show: showConfirm };
+
+    /* ================= اعلانِ تم‌دار (جایگزین alert() بومی) =================
+     *   AppToast.show('ذخیره شد')            // موفقیت
+     *   AppToast.show('خطا', 'error')        // success|error|warning|info
+     * همان سبکِ .site-message که پیام‌های سرورِ جنگو دارند، پس کاربر
+     * یک زبانِ بصریِ واحد برای پیام‌ها می‌بیند.
+     */
+    var ICONS = { success: '✅', error: '⚠️', warning: '🔶', info: 'ℹ️' };
+
+    function showToast(message, kind) {
+        kind = kind || 'success';
+        var host = document.getElementById('appToasts');
+        if (!host) { window.alert(message); return; }
+        var el = document.createElement('div');
+        el.className = 'site-message ' + kind;
+        el.setAttribute('role', 'status');
+        var ic = document.createElement('span');
+        ic.textContent = ICONS[kind] || ICONS.info;
+        var tx = document.createElement('span');
+        tx.className = 'sm-text';
+        tx.textContent = message;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sm-close';
+        btn.setAttribute('aria-label', 'بستن پیام');
+        btn.textContent = '✕';
+        el.appendChild(ic); el.appendChild(tx); el.appendChild(btn);
+        host.appendChild(el);
+
+        var timer = setTimeout(dismiss, kind === 'error' ? 7000 : 4200);
+        function dismiss() {
+            clearTimeout(timer);
+            el.style.transition = 'opacity .25s,transform .25s';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-6px)';
+            setTimeout(function () { el.remove(); }, 250);
+        }
+        btn.addEventListener('click', dismiss);
+    }
+
+    window.AppToast = { show: showToast };
 })();
 
 /* ==================== انتخاب‌گر چندتایی با جست‌وجو ====================

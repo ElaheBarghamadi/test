@@ -1080,3 +1080,19 @@ span.label, .exam-details .label { font-size: .72rem; }
 /* اندازهٔ آیکن‌ها در اجزای مشترک — تا قالب‌ها style درون‌خطی ننویسند */
 .badge svg, .status-badge svg, .section-title svg, .welcome-eyebrow svg,
 .list-row svg, .btn svg, .card-title svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+/* ==================== اعلان‌های سمت کاربر (toast) ====================
+   هم‌سبک با .site-message که پیام‌های سرورِ جنگو دارند، ولی شناور و موقتی.
+   توسط AppToast.show() در static/js/modal.js پر می‌شود. */
+.app-toasts {
+    position: fixed; z-index: 1400; top: 14px; inset-inline-start: 0; inset-inline-end: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    margin: 0; padding: 0 14px; pointer-events: none;
+}
+.app-toasts .site-message {
+    pointer-events: auto; width: min(520px, 100%); margin: 0;
+    box-shadow: var(--sh2); animation: popIn .18s ease;
+}
+@media (max-width: 640px) {
+    .app-toasts { top: 10px; padding: 0 10px; }
+}

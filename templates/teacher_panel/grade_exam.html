@@ -556,12 +556,12 @@
                 renderCurrent();
             } else {
                 if (btn) btn.innerHTML = originalText;
-                alert('خطا در ذخیره');
+                window.AppToast.show('خطا در ذخیرهٔ نمره', 'error');
             }
         } catch(e) {
             console.error(e);
             if (btn) btn.innerHTML = originalText;
-            alert('خطا در ارتباط با سرور');
+            window.AppToast.show('خطا در ارتباط با سرور', 'error');
         }
     }
 

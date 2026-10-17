@@ -174,10 +174,10 @@
     <div class="actions">
         <a class="btn btn-gold" href="{% url 'bank_question_new' %}{% if folder_id %}?folder={{ folder_id }}{% endif %}">سوال جدید</a>
         <button class="btn btn-secondary" id="btnNewF" type="button">پوشه جدید</button>
-        <form method="post" action="{% url 'bank_seed_sample' %}" style="display:inline;"
-              onsubmit="return confirm('بانک آماده (پایه‌ها، درس‌ها و فصل‌ها با ده‌ها سوال) به بانک شما اضافه شود؟ سوال‌های فعلی دست نمی‌خورند.');">
+        <form method="post" action="{% url 'bank_seed_sample' %}" style="display:inline;">
             {% csrf_token %}
-            <button class="btn btn-secondary" type="submit">بارگذاری بانک نمونه</button>
+            <button class="btn btn-secondary" type="submit"
+                    data-confirm="بانک آماده (پایه‌ها، درس‌ها و فصل‌ها با ده‌ها سوال) به بانک شما اضافه شود؟ سوال‌های فعلی دست نمی‌خورند.">بارگذاری بانک نمونه</button>
         </form>
     </div>
 </div>
@@ -258,9 +258,11 @@
                     </select>
                     <button class="btn btn-gold" type="submit" {% if not current_folder.cnt %}disabled{% endif %}>افزودن همه</button>
                 </form>
-                <form method="post" action="{% url 'bank_folder_delete' current_folder.id %}" onsubmit="return confirm('پوشه حذف شود؟ سوال‌ها و زیرپوشه‌ها به پوشهٔ والد منتقل می‌شوند.');">
+                <form method="post" action="{% url 'bank_folder_delete' current_folder.id %}">
                     {% csrf_token %}
-                    <button class="btn btn-delete" type="submit">حذف پوشه</button>
+                    <button class="btn btn-delete" type="submit" data-confirm-danger
+                            data-confirm-title="حذف پوشه" data-confirm-ok="حذف کن"
+                            data-confirm="پوشه حذف شود؟ سوال‌ها و زیرپوشه‌ها به پوشهٔ والد منتقل می‌شوند.">حذف پوشه</button>
                 </form>
             </div>
         </div>
@@ -375,9 +377,11 @@
                         </form>
                         </div>
                         </details>
-                        <form method="post" action="{% url 'delete_bank_question' b.id %}" onsubmit="return confirm('سوال از بانک حذف شود؟');">
+                        <form method="post" action="{% url 'delete_bank_question' b.id %}">
                             {% csrf_token %}<input type="hidden" name="back" value="{{ folder_id }}">
-                            <button type="submit" class="btn-del" title="حذف" aria-label="حذف سوال"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+                            <button type="submit" class="btn-del" title="حذف" aria-label="حذف سوال"
+                                    data-confirm-danger data-confirm-title="حذف سوال" data-confirm-ok="حذف کن"
+                                    data-confirm="سوال از بانک حذف شود؟"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
                         </form>
                     </div>
                 </div>
@@ -428,8 +432,27 @@ document.getElementById('btnNewF').addEventListener('click', () => showOnly(newF
             const i = document.createElement('input'); i.type = 'hidden'; i.name = 'ids'; i.value = b.value; bulk.appendChild(i);
         });
         const act = e.submitter && e.submitter.value;
-        if (act === 'import' && !bulk.querySelector('[name=exam_id]').value) { e.preventDefault(); alert('ابتدا آزمون را انتخاب کنید.'); return; }
-        if (act === 'delete' && !confirm('سوال‌های انتخاب‌شده حذف شوند؟')) e.preventDefault();
+        if (act === 'import' && !bulk.querySelector('[name=exam_id]').value) {
+            e.preventDefault();
+            window.AppToast.show('ابتدا آزمون را انتخاب کنید.', 'warning');
+            return;
+        }
+        // حذف انبوه با تأییدِ تم‌دار: ارسال را متوقف می‌کنیم و پس از تأیید،
+        // با پرچمِ confirming دوباره submit می‌کنیم تا این هندلر جلوی خودش را نگیرد.
+        if (act === 'delete' && bulk.dataset.confirming !== '1') {
+            e.preventDefault();
+            window.AppConfirm.show({
+                title: 'حذف سوال‌ها',
+                message: 'سوال‌های انتخاب‌شده حذف شوند؟ این کار برگشت‌پذیر نیست.',
+                confirmText: 'حذف کن',
+                danger: true,
+                onConfirm: function () {
+                    bulk.dataset.confirming = '1';
+                    bulk.requestSubmit(e.submitter);
+                    delete bulk.dataset.confirming;
+                }
+            });
+        }
     });
 })();
 

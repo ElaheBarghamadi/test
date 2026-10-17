@@ -82,16 +82,23 @@
 
 <script>
 const csrftoken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
-document.querySelectorAll('.js-toggle').forEach(btn => btn.addEventListener('click', async () => {
-    const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/toggle/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+async function _examPost(btn, kind) {
+    const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/' + kind + '/',
+                          { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
     const d = await r.json();
-    if (d.success) location.reload(); else alert('' + (d.error || 'خطا'));
-}));
-document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click', async () => {
-    if (!confirm('آزمون «' + btn.dataset.name + '» همراه همهٔ پاسخ‌ها حذف شود؟')) return;
-    const r = await fetch('/admin-panel/exams/' + btn.dataset.id + '/delete/', { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
-    const d = await r.json();
-    if (d.success) location.reload(); else alert('' + (d.error || 'خطا'));
+    if (d.success) location.reload();
+    else window.AppToast.show(String(d.error || 'خطا'), 'error');
+}
+document.querySelectorAll('.js-toggle').forEach(btn =>
+    btn.addEventListener('click', () => _examPost(btn, 'toggle')));
+// حذف با تأییدِ تم‌دار (پیش‌تر confirm() بومی مرورگر بود)
+document.querySelectorAll('.js-del').forEach(btn => btn.addEventListener('click', () => {
+    window.AppConfirm.show({
+        title: 'حذف آزمون',
+        message: 'آزمون «' + btn.dataset.name + '» همراه همهٔ پاسخ‌ها حذف شود؟ این کار برگشت‌پذیر نیست.',
+        confirmText: 'حذف کن', danger: true,
+        onConfirm: () => _examPost(btn, 'delete')
+    });
 }));
 </script>
 {% endblock %}
