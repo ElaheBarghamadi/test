@@ -1,6 +1,3 @@
-from django.db import models
-
-# Create your models here.
 # accounts/models.py
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -33,3 +30,21 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_role_display()})"
+
+    @property
+    def display_name(self):
+        """نام قابل‌نمایش.
+
+        جایگزین الگوی تکراری `get_full_name|default:username` که در ۲۹ نقطه از
+        قالب‌ها نوشته شده بود؛ یک تعریف به‌جای ۲۹ کپی.
+        """
+        return self.get_full_name() or self.username
+
+    @property
+    def initials(self):
+        """حروف اولیه برای آواتار دایره‌ای (نام+نام‌خانوادگی، وگرنه نام کاربری)"""
+        parts = [p for p in (self.first_name.strip(), self.last_name.strip()) if p]
+        if len(parts) >= 2:
+            return (parts[0][0] + parts[1][0]).upper()
+        name = parts[0] if parts else self.username
+        return (name[:2] if name else '?').upper()

@@ -441,7 +441,7 @@
     </style>
     {% block extra_css %}{% endblock %}
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=7">
+    <link rel="stylesheet" href="{% static 'css/site.css' %}?v=8">
     <link rel="stylesheet" href="{% static 'css/layout.css' %}?v=11">
     <link rel="stylesheet" href="{% static 'css/spacing.css' %}?v=11">
     {% block late_css %}{% endblock %}
@@ -749,6 +749,10 @@
         window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
     }
 </script>
+<script src="{% static 'js/modal.js' %}?v=1" defer></script>
 <script src="{% static 'js/modern.js' %}?v=4" defer></script>
+{# اسکریپت مخصوص هر صفحه. چون modal.js با defer بارگذاری می‌شود، اگر #}
+{# اسکریپت صفحه به AppModal نیاز داشت باید داخل DOMContentLoaded باشد. #}
+{% block late_js %}{% endblock %}
 </body>
 </html>

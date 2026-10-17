@@ -1,84 +1,236 @@
 {% extends 'base.html' %}
-{% block title %}گروه‌های دانش‌آموزی{% endblock %}
+{% load static %}
 
-{% block extra_css %}
-<style>
-    .group-card { border-right: 4px solid var(--brand); }
-    .group-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-    .group-name { font-weight: 800; font-size: .95rem; color: var(--ink); }
-    .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; margin: 10px 0; }
-    .member-item { background: var(--card2); border: 1px solid var(--line2); border-radius: 10px; padding: 6px 8px; }
-    .member-item label { display: flex; gap: 6px; align-items: center; font-size: .8rem; color: var(--ink); cursor: pointer; margin: 0; }
-    .member-item input { width: 16px; height: 16px; accent-color: #4f46e5; }
-    .group-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .group-form-row input[type=text] { flex: 1 1 200px; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 9px 12px; font-family: inherit; font-size: .86rem; }
-</style>
-{% endblock %}
+{% block title %}گروه‌های دانش‌آموزی{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="exam-hero">
         <h1><span>👥</span> گروه‌های دانش‌آموزی</h1>
         <div class="exam-meta">
-            <span>{{ groups|length }} گروه</span>
+            <span>{{ groups|length|fa_num }} گروه</span>
+            <span>{{ students|length|fa_num }} دانش‌آموز</span>
             <span>انتخاب سریع دانش‌آموزان هنگام ساخت آزمون</span>
         </div>
     </div>
 
-    <div class="card">
-        <h3 style="margin-bottom: 10px;">ساخت گروه جدید</h3>
-        <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="create">
-            <div class="group-form-row" style="margin-bottom: 10px;">
-                <input type="text" name="name" required placeholder="نام گروه (مثلاً کلاس ۹ الف)">
-                <button type="submit" class="btn btn-gold">ساخت گروه</button>
-            </div>
-            <div class="member-grid">
-                {% for s in students %}
-                <div class="member-item">
-                    <label><input type="checkbox" name="students" value="{{ s.id }}">
-                        {{ s.get_full_name|default:s.username }} <span style="color: var(--ink3); font-size: .7rem;">({{ s.username }})</span>
-                    </label>
-                </div>
-                {% empty %}
-                <div class="empty-state">دانش‌آموزی ثبت نشده است.</div>
-                {% endfor %}
-            </div>
-        </form>
+    <div class="toolbar">
+        <div class="toolbar-note">
+            دانش‌آموزان یک کلاس را در گروه دسته‌بندی کنید تا موقع ساخت آزمون یک‌جا اضافه‌شان کنید.
+        </div>
+        <div class="toolbar-actions">
+            <button type="button" class="btn btn-primary"
+                    data-modal-open="grpModal" data-grp-mode="create">+ ساخت گروه</button>
+        </div>
     </div>
 
-    {% for g in groups %}
-    <div class="card group-card">
-        <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="save">
-            <input type="hidden" name="group_id" value="{{ g.id }}">
-            <div class="group-head">
-                <span class="group-name">👥 {{ g.name }} <span class="info-stat">{{ g.students.count }} نفر</span></span>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                    <button type="submit" class="btn btn-green">ذخیره اعضا</button>
+    <div class="grp-grid">
+        {% for g in groups %}
+        <article class="grp-card">
+            <div class="grp-head">
+                <div class="ava lg">{{ g.name|slice:":1" }}</div>
+                <div style="min-width:0">
+                    <h2 class="grp-name">{{ g.name }}</h2>
+                    <div class="grp-meta">
+                        {{ g.member_count|fa_num }} دانش‌آموز
+                        {% if g.created_at %}· {{ g.created_at|to_jalali_date }}{% endif %}
+                    </div>
                 </div>
             </div>
-            <div class="member-grid">
-                {% for s in students %}
-                <div class="member-item">
-                    <label><input type="checkbox" name="students" value="{{ s.id }}"
-                        {% if s in g.students.all %}checked{% endif %}>
-                        {{ s.get_full_name|default:s.username }}
-                    </label>
-                </div>
+
+            <div class="grp-members">
+                {% for s in g.member_preview %}
+                <span class="grp-member" title="{{ s.display_name }}">{{ s.display_name }}</span>
+                {% empty %}
+                <span class="grp-member more">هنوز عضوی ندارد</span>
                 {% endfor %}
+                {% if g.extra_count %}
+                <span class="grp-member more">+{{ g.extra_count|fa_num }} نفر دیگر</span>
+                {% endif %}
             </div>
-        </form>
-        <form method="post" onsubmit="return confirm('حذف گروه «{{ g.name }}»؟');">
+
+            <div class="ava-stack" aria-hidden="true">
+                {% for s in g.member_preview %}
+                <span class="ava sm">{{ s.initials }}</span>
+                {% endfor %}
+                {% if g.extra_count %}<span class="ava sm more">+{{ g.extra_count|fa_num }}</span>{% endif %}
+            </div>
+
+            <div class="grp-foot">
+                <button type="button" class="btn btn-sm"
+                        data-modal-open="grpModal" data-grp-mode="edit"
+                        data-grp-id="{{ g.id }}" data-grp-name="{{ g.name }}"
+                        data-grp-members="{% for s in g.member_list %}{{ s.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                    ویرایش اعضا
+                </button>
+                <button type="button" class="btn btn-sm btn-danger"
+                        data-modal-open="grpDelModal"
+                        data-grp-id="{{ g.id }}" data-grp-name="{{ g.name }}"
+                        data-grp-count="{{ g.member_count }}">حذف</button>
+            </div>
+        </article>
+        {% empty %}
+        <div class="empty-state" style="grid-column:1/-1">
+            <p><b>هنوز گروهی نساخته‌اید.</b></p>
+            <p>با دکمهٔ «ساخت گروه» دانش‌آموزان یک کلاس را دسته‌بندی کنید تا بعداً یک‌جا به آزمون اضافه‌شان کنید.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# ===================== مودال ساخت/ویرایش گروه =====================
+   یک مودال مشترک برای هر دو کار. فهرست دانش‌آموزان فقط یک‌بار رندر
+   می‌شود، نه به ازای هر گروه — وگرنه صفحه با N گروه و M دانش‌آموز
+   N×M چک‌باکس تولید می‌کند. #}
+<div class="modal-backdrop" id="grpModal" aria-hidden="true">
+    <div class="modal-card lg">
+        <form method="post" id="grpForm">
             {% csrf_token %}
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="group_id" value="{{ g.id }}">
-            <button type="submit" class="btn btn-danger">حذف گروه</button>
+            <input type="hidden" name="action" id="grpAction" value="create">
+            <input type="hidden" name="group_id" id="grpId" value="">
+
+            <div class="modal-head">
+                <div>
+                    <h3 class="modal-title" id="grpTitle">ساخت گروه جدید</h3>
+                    <p class="modal-sub" id="grpSub">نام گروه را بنویسید و دانش‌آموزان را انتخاب کنید.</p>
+                </div>
+                <button type="button" class="modal-close" data-modal-close aria-label="بستن">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="grpName">نام گروه</label>
+                    <input type="text" id="grpName" name="name" maxlength="100"
+                           placeholder="مثلاً کلاس ۹ الف" autocomplete="off">
+                </div>
+
+                <div class="picker" data-picker>
+                    <div class="picker-bar">
+                        <input type="search" class="picker-search" data-picker-search
+                               placeholder="جست‌وجوی نام، نام کاربری یا کد دانش‌آموزی…"
+                               aria-label="جست‌وجوی دانش‌آموز" autocomplete="off">
+                        <span class="picker-count" data-picker-count>۰ انتخاب‌شده</span>
+                    </div>
+                    <div class="picker-actions">
+                        <button type="button" class="btn btn-sm" data-picker-all>انتخاب نتایج</button>
+                        <button type="button" class="btn btn-sm" data-picker-none>پاک‌کردن انتخاب</button>
+                    </div>
+                    <div class="picker-list" data-picker-list>
+                        {% for s in students %}
+                        <label class="picker-item" data-picker-item
+                               data-search="{{ s.display_name }} {{ s.username }} {{ s.student_code|default:'' }} {{ s.grade|default:'' }}">
+                            <input type="checkbox" name="students" value="{{ s.id }}">
+                            <span class="ava sm">{{ s.initials }}</span>
+                            <span class="picker-txt">
+                                <span class="picker-name">{{ s.display_name }}</span>
+                                <span class="picker-sub">
+                                    {{ s.username }}{% if s.grade %} · {{ s.grade }}{% endif %}{% if s.student_code %} · کد {{ s.student_code }}{% endif %}
+                                </span>
+                            </span>
+                        </label>
+                        {% empty %}
+                        <div class="picker-empty">دانش‌آموزی ثبت نشده است؛ ابتدا از پنل مدیریت کاربر بسازید.</div>
+                        {% endfor %}
+                    </div>
+                    <div class="picker-empty" data-picker-empty hidden>دانش‌آموزی با این مشخصات پیدا نشد.</div>
+                </div>
+            </div>
+
+            <div class="modal-foot">
+                <button type="button" class="btn" data-modal-close>انصراف</button>
+                <button type="submit" class="btn btn-primary" id="grpSubmit">ساخت گروه</button>
+            </div>
         </form>
     </div>
-    {% empty %}
-    {% endfor %}
 </div>
+
+{# ===================== مودال تأیید حذف =====================
+   جایگزین confirm() بومی مرورگر، که با تم سایت نمی‌خواند. #}
+<div class="modal-backdrop" id="grpDelModal" aria-hidden="true">
+    <div class="modal-card sm">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="group_id" id="grpDelId" value="">
+            <div class="modal-head">
+                <div><h3 class="modal-title">حذف گروه</h3></div>
+                <button type="button" class="modal-close" data-modal-close aria-label="بستن">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:6px">گروه «<b id="grpDelName"></b>» حذف شود؟</p>
+                <p class="help-text" id="grpDelHint">
+                    خودِ دانش‌آموزان حذف نمی‌شوند؛ فقط این دسته‌بندی از بین می‌رود و این کار برگشت‌پذیر نیست.
+                </p>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-modal-close>انصراف</button>
+                <button type="submit" class="btn btn-danger">حذف کن</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block late_js %}
+<script>
+    // پرکردن مودال مشترک بر اساس دکمه‌ای که زده شده (ساخت در برابر ویرایش).
+    // به AppModal وابسته نیست، پس ترتیب بارگذاری اسکریپت‌ها مهم نیست.
+    (function () {
+        var form = document.getElementById('grpForm');
+        if (!form) return;
+        var action = document.getElementById('grpAction'),
+            idField = document.getElementById('grpId'),
+            nameField = document.getElementById('grpName'),
+            title = document.getElementById('grpTitle'),
+            sub = document.getElementById('grpSub'),
+            submit = document.getElementById('grpSubmit'),
+            picker = form.querySelector('[data-picker]');
+
+        function setMembers(csv) {
+            var ids = {};
+            (csv || '').split(',').forEach(function (v) { if (v) ids[v.trim()] = 1; });
+            form.querySelectorAll('input[name="students"]').forEach(function (b) {
+                b.checked = !!ids[b.value];
+            });
+            if (window.AppPicker) window.AppPicker.refresh(picker);
+        }
+
+        document.querySelectorAll('[data-grp-mode]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var edit = btn.getAttribute('data-grp-mode') === 'edit';
+                action.value = edit ? 'save' : 'create';
+                idField.value = edit ? btn.getAttribute('data-grp-id') : '';
+                nameField.value = edit ? btn.getAttribute('data-grp-name') : '';
+                nameField.readOnly = false;
+                nameField.required = true;
+                title.textContent = edit ? 'ویرایش گروه' : 'ساخت گروه جدید';
+                sub.textContent = edit
+                    ? 'نام گروه را عوض کنید یا اعضا را اضافه و کم کنید.'
+                    : 'نام گروه را بنویسید و دانش‌آموزان را انتخاب کنید.';
+                submit.textContent = edit ? 'ذخیرهٔ تغییرات' : 'ساخت گروه';
+                setMembers(btn.getAttribute('data-grp-members'));
+                if (picker) {
+                    var s = picker.querySelector('[data-picker-search]');
+                    if (s) { s.value = ''; }
+                    window.AppPicker && window.AppPicker.applyFilter(picker);
+                }
+            });
+        });
+
+        // حذف: نام و شناسهٔ گروه در مودال تأیید نوشته می‌شود
+        var delName = document.getElementById('grpDelName'),
+            delId = document.getElementById('grpDelId'),
+            delHint = document.getElementById('grpDelHint');
+        document.querySelectorAll('[data-modal-open="grpDelModal"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                delId.value = btn.getAttribute('data-grp-id');
+                delName.textContent = btn.getAttribute('data-grp-name');
+                var n = btn.getAttribute('data-grp-count');
+                delHint.textContent = (n && n !== '0')
+                    ? 'این گروه ' + n + ' دانش‌آموز دارد. خودِ دانش‌آموزان حذف نمی‌شوند؛ فقط این دسته‌بندی از بین می‌رود و این کار برگشت‌پذیر نیست.'
+                    : 'خودِ دانش‌آموزان حذف نمی‌شوند؛ فقط این دسته‌بندی از بین می‌رود و این کار برگشت‌پذیر نیست.';
+            });
+        });
+    })();
+</script>
 {% endblock %}

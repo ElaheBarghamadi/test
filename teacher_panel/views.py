@@ -1927,17 +1927,24 @@ def groups(request):
                 messages.success(request, 'گروه ساخته شد.')
         elif action == 'save':
             g = get_object_or_404(StudentGroup, id=request.POST.get('group_id'), teacher=request.user)
+            name = (request.POST.get('name') or '').strip()
+            if name and name != g.name:
+                g.name = name
+                g.save(update_fields=['name'])
             g.students.set(User.objects.filter(id__in=request.POST.getlist('students'), role='student'))
-            messages.success(request, 'اعضای گروه به‌روزرسانی شد.')
+            messages.success(request, 'گروه به‌روزرسانی شد.')
         elif action == 'delete':
             g = get_object_or_404(StudentGroup, id=request.POST.get('group_id'), teacher=request.user)
             g.delete()
             messages.success(request, 'گروه حذف شد.')
         return redirect('groups')
     my_groups = StudentGroup.objects.filter(teacher=request.user).prefetch_related('students')
+    # select_related('grade') تا نمایش پایهٔ هر دانش‌آموز در انتخاب‌گر، کوئری اضافه نسازد
+    students = (User.objects.filter(role='student').select_related('grade')
+                .order_by('first_name', 'last_name', 'username'))
     return render(request, 'teacher_panel/groups.html', {
         'groups': my_groups,
-        'students': User.objects.filter(role='student').order_by('username'),
+        'students': students,
     })
 
 

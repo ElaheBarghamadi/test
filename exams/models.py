@@ -1,9 +1,8 @@
+# exams/models.py
+
+from django.conf import settings
 from django.db import models
 
-# Create your models here.
-# exams/models.py
-from django.db import models
-from django.conf import settings
 from accounts.models import Grade
 
 
@@ -312,6 +311,29 @@ class StudentGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+    # کارت گروه باید «چند نفر از اعضا» را نشان دهد. این هلپرها عمداً
+    # property معمولی‌اند نه cached_property: کش‌کردن روی نمونه باعث می‌شد
+    # بعد از g.students.set(...) یا refresh_from_db() مقدار کهنه برگردد.
+    # چون view از prefetch_related('students') استفاده می‌کند، این‌ها از
+    # حافظهٔ prefetch خوانده می‌شوند و کوئری اضافه نمی‌سازند.
+    @property
+    def member_list(self):
+        return list(self.students.all())
+
+    @property
+    def member_count(self):
+        return len(self.member_list)
+
+    @property
+    def member_preview(self):
+        """چند عضو اول برای نمایش روی کارت"""
+        return self.member_list[:4]
+
+    @property
+    def extra_count(self):
+        """تعداد اعضای باقی‌مانده که روی جا نمی‌شوند"""
+        return max(0, self.member_count - 4)
 
 
 class Announcement(models.Model):
