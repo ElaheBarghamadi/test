@@ -108,13 +108,20 @@ class LandingAndAuthThemeTests(ThemeTestCase):
         self.assertRegex(content, THEME_COLOR_RE, 'خانه: متاتگ theme-color ندارد')
 
     def test_home_has_mobile_navigation(self):
-        """رگرسیون: .nx-nav-links زیر ۹۰۰px مخفی می‌شد و هیچ جایگزینی نداشت،
-        پس در موبایل همهٔ پیوندهای ناوبری ناپدید می‌شدند."""
+        """رگرسیون: منوی ناوبری زیر ۹۰۰px مخفی می‌شد و هیچ جایگزینی نداشت،
+        پس در موبایل همهٔ پیوندها ناپدید می‌شدند.
+
+        صفحهٔ فرود حالا از base.html ارث می‌برد، پس همبرگر و کشوی مشترکِ
+        بقیهٔ سایت را می‌گیرد. پیوندهای بخش‌ها از templates/_landing_nav.html
+        می‌آیند که یک‌بار تعریف و در دو جا (نوار دسکتاپ و کشوی موبایل) include
+        می‌شود — این تست همان «دو جا» بودن را قفل می‌کند.
+        """
         content = self.client.get(reverse('home')).content.decode()
-        self.assertIn('nx-nav-burger', content, 'دکمهٔ منوی موبایل در صفحهٔ فرود نیست')
-        self.assertIn('nxNavDrawer', content, 'کشوی منوی موبایل در صفحهٔ فرود نیست')
+        self.assertIn('id="hamburger"', content, 'دکمهٔ منوی موبایل در صفحهٔ فرود نیست')
+        self.assertIn('id="sidebarMenu"', content, 'کشوی منوی موبایل در صفحهٔ فرود نیست')
         self.assertIn('aria-expanded', content, 'دکمهٔ منو aria-expanded ندارد')
         self.assertIn('aria-controls', content, 'دکمهٔ منو aria-controls ندارد')
+        self.assertIn('site-footer', content, 'صفحهٔ فرود باید پانوشت مشترک base.html را داشته باشد')
         for anchor in ('#features', '#question-types', '#how', '#roles', '#security'):
             self.assertGreaterEqual(content.count(anchor), 2,
                                     f'{anchor} باید هم در منوی دسکتاپ و هم در کشوی موبایل باشد')
@@ -212,11 +219,24 @@ class TeacherPanelThemeTests(ThemeTestCase):
             self.assertPageTheme(content, name)
             self.assertZoomNotBlocked(content, name)
 
-    def test_dashboard_loads_nx_design_system(self):
-        """داشبورد معلم باید modern.css را واقعاً بارگذاری کند (بلوک late_css)"""
-        self.client.force_login(self.teacher)
-        content = self.client.get(reverse('teacher_dashboard')).content.decode()
-        self.assertIn('css/modern.css', content, 'modern.css در داشبورد معلم بارگذاری نمی‌شود')
+    def test_dashboard_uses_the_unified_design_system(self):
+        """داشبوردها باید از همان سیستم طراحیِ بقیهٔ سایت استفاده کنند.
+
+        رگرسیون: قبلاً داشبوردها modern.css را جداگانه بارگذاری می‌کردند و
+        پوستهٔ کلاسیک base.html با کلاس‌های nx درونش ترکیب می‌شد؛ یعنی دو
+        سیستم طراحی موازی در یک صفحه. modern.css حذف شده است.
+        """
+        for user, name in [(self.teacher, 'teacher_dashboard'), (self.student, 'student_dashboard')]:
+            self.client.force_login(user)
+            content = self.client.get(reverse(name)).content.decode()
+            self.assertIn('css/site.css', content, f'{name}: site.css بارگذاری نمی‌شود')
+            self.assertNotIn('modern.css', content,
+                             f'{name}: modern.css حذف شده و نباید ارجاع شود')
+            self.assertNotRegex(content, r'\bnx-[a-z]',
+                                f'{name}: هنوز کلاس nx- دارد و با بقیهٔ سایت یکدست نیست')
+            # کامپوننت‌های کلاسیک مشترک باید واقعاً استفاده شوند
+            for cls in ('welcome-card', 'stat-card'):
+                self.assertIn(cls, content, f'{name}: کامپوننت مشترک {cls} استفاده نشده')
 
     def test_teacher_and_student_dashboards_agree_on_asset_versions(self):
         """نسخهٔ دارایی‌های مشترک باید در همهٔ قالب‌ها یکسان باشد تا کش مرورگر

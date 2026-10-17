@@ -1,47 +1,51 @@
-{% comment %}کارت آزمون در داشبورد معلم — رندر اولیه و «نمایش بیشتر»{% endcomment %}
+{% comment %}
+کارت آزمون در داشبورد معلم — هم رندر اولیه و هم پاسخ «نمایش بیشتر».
+از کامپوننت‌های مشترک site.css استفاده می‌کند (.exam-card / .badge / .progress-bar).
+{% endcomment %}
 {% for exam in exams %}
-<article class="nx-exam nx-reveal">
-    <div class="nx-exam-top">
-        <h3 class="nx-exam-title">{{ exam.title }}</h3>
+<article class="exam-card{% if exam.status == 'ongoing' %} status-ongoing{% elif exam.status == 'ended' %} status-completed{% elif exam.status == 'scheduled' %}{% else %} status-inactive{% endif %}" data-reveal>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <h3 class="exam-title">{{ exam.title }}</h3>
         {% if exam.status == 'ongoing' %}
-            <span class="nx-badge ok"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg>در حال برگزاری</span>
+            <span class="badge badge-warning">در حال برگزاری</span>
         {% elif exam.status == 'scheduled' %}
-            <span class="nx-badge info"><svg viewBox="0 0 24 24"><use href="#i-calendar"/></svg>زمان‌بندی‌شده</span>
+            <span class="badge">زمان‌بندی‌شده</span>
         {% elif exam.status == 'ended' %}
-            <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>پایان‌یافته</span>
+            <span class="badge badge-success">پایان‌یافته</span>
         {% else %}
-            <span class="nx-badge warn"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg>غیرفعال</span>
+            <span class="badge badge-secondary">غیرفعال</span>
         {% endif %}
     </div>
 
-    <div class="nx-exam-meta">
-        <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg>{{ exam.questions_count|fa_num }} سؤال</span>
-        <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-users"/></svg>{{ exam.students_count|fa_num }} دانش‌آموز</span>
-        <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-timer"/></svg>{{ exam.duration_minutes|fa_num }} دقیقه</span>
+    <div class="exam-details">
+        <span>{{ exam.questions_count|fa_num }} سؤال</span>
+        <span>{{ exam.students_count|fa_num }} دانش‌آموز</span>
+        <span>{{ exam.duration_minutes|fa_num }} دقیقه</span>
     </div>
 
     <div>
-        <div style="display:flex;justify-content:space-between;gap:8px;font-size:.68rem;color:var(--nx-muted);margin-bottom:5px">
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:.7rem;color:var(--ink3);margin-bottom:5px">
             <span>مشارکت</span>
-            <span class="nx-fa">{{ exam.submitted_count|fa_num }} از {{ exam.students_count|fa_num }}</span>
+            <span>{{ exam.submitted_count|fa_num }} از {{ exam.students_count|fa_num }}</span>
         </div>
-        <div class="nx-progress {% if exam.participation >= 70 %}ok{% elif exam.participation >= 30 %}{% else %}warn{% endif %}">
-            <i style="width:{{ exam.participation }}%"></i>
+        <div class="progress-bar">
+            <i class="progress-fill {% if exam.participation >= 70 %}ok{% elif exam.participation >= 30 %}{% else %}warn{% endif %}"
+               style="width:{{ exam.participation }}%"></i>
         </div>
     </div>
 
-    {% if exam.status == 'ongoing' %}
-        <span class="nx-countdown" data-deadline="{{ exam.end_ts }}000" data-start="{{ exam.start_ts }}">…</span>
-    {% elif exam.status == 'scheduled' %}
-        <span class="nx-countdown" data-deadline="{{ exam.end_ts }}000" data-start="{{ exam.start_ts }}">…</span>
+    {% if exam.status == 'ongoing' or exam.status == 'scheduled' %}
+    <div>
+        <span class="countdown" data-countdown
+              data-deadline="{{ exam.end_ts }}000" data-start="{{ exam.start_ts }}">…</span>
+    </div>
     {% endif %}
 
-    <div class="nx-exam-foot">
-        <a class="nx-btn nx-btn-soft nx-btn-sm" href="{% url 'edit_exam' exam_id=exam.id %}">سؤال‌ها<svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg></a>
-        <div style="display:flex;gap:6px">
-            <a class="nx-btn nx-btn-soft nx-btn-sm" href="{% url 'exam_results' exam_id=exam.id %}" title="نتایج">نتایج</a>
-            <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url 'grade_exam' exam_id=exam.id %}">تصحیح<svg viewBox="0 0 24 24"><use href="#i-pen"/></svg></a>
-        </div>
+    <div class="exam-actions">
+        <a class="btn" href="{% url 'edit_exam' exam_id=exam.id %}">سؤال‌ها</a>
+        <a class="btn" href="{% url 'exam_results' exam_id=exam.id %}">نتایج</a>
+        <a class="btn btn-primary" href="{% url 'grade_exam' exam_id=exam.id %}">تصحیح</a>
     </div>
 </article>
 {% endfor %}

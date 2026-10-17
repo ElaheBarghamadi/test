@@ -3,195 +3,232 @@
 
 {% block title %}داشبورد معلم | سامانه آزمون{% endblock %}
 
-{% block late_css %}
-<link rel="stylesheet" href="{% static 'css/modern.css' %}?v=2">
+{% block content %}
+{% include "_icons.html" %}
+<div class="container">
+
+    {# ===================== سربرگ ===================== #}
+    <div class="welcome-card">
+        <div style="min-width:0">
+            <span class="welcome-eyebrow">
+                <svg viewBox="0 0 24 24"><use href="#i-clipboard"/></svg>فضای معلم
+            </span>
+            <h1 class="welcome-title">{{ greeting }}، {{ user.display_name }}</h1>
+            <p class="welcome-subtitle">وضعیت آزمون‌ها، میزان مشارکت و صفِ تصحیح — بر پایهٔ داده‌های واقعیِ کلاس شما.</p>
+        </div>
+        <div class="welcome-actions">
+            <a class="btn" href="{% url 'question_bank' %}">بانک سؤال</a>
+            <a class="btn btn-primary" href="{% url 'create_exam' %}">ساخت آزمون</a>
+        </div>
+    </div>
+
+    {# ===================== آمار ===================== #}
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ counts.all|fa_num }}</div>
+            <div class="stat-label">کل آزمون‌ها · {{ counts.questions|fa_num }} سؤال</div>
+        </div>
+        <div class="stat-card ongoing">
+            <div class="stat-number">{{ counts.ongoing|fa_num }}</div>
+            <div class="stat-label">در حال برگزاری</div>
+        </div>
+        <div class="stat-card inactive">
+            <div class="stat-number">{{ counts.drafts|fa_num }}</div>
+            <div class="stat-label">غیرفعال · آمادهٔ انتشار</div>
+        </div>
+        <div class="stat-card active">
+            <div class="stat-number">{{ counts.ended|fa_num }}</div>
+            <div class="stat-label">پایان‌یافته</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ counts.students|fa_num }}</div>
+            <div class="stat-label">دانش‌آموزان</div>
+        </div>
+    </div>
+
+    <div class="grid-2" style="grid-template-columns:1.5fr 1fr;align-items:start">
+
+        {# ===================== ستون اصلی: آزمون‌ها ===================== #}
+        <section>
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" style="width:17px;height:17px"><use href="#i-layers"/></svg>
+                آزمون‌های من
+                <a class="btn btn-sm" href="{% url 'create_exam' %}" style="margin-inline-start:auto">آزمون جدید</a>
+            </h2>
+
+            {% if exams %}
+            <div class="exams-grid" id="examsGrid" style="grid-template-columns:1fr">
+                {% include "teacher_panel/_exams.html" %}
+            </div>
+            {% if exams_rest_count %}
+            <div style="text-align:center;margin-top:14px">
+                <button class="btn" type="button"
+                        data-load-more="#examsGrid"
+                        data-url="{% url 'teacher_exams_partial' %}?offset=8"
+                        data-left="{{ exams_rest_count }}">
+                    نمایش {{ exams_rest_count|fa_num }} آزمونِ دیگر
+                </button>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="empty-state">
+                <p><b>هنوز آزمونی نساخته‌اید</b></p>
+                <p>اولین آزمون را بسازید: سؤال‌ها، زمان‌بندی و دانش‌آموزان را مشخص کنید.</p>
+                <a class="btn btn-primary" href="{% url 'create_exam' %}">ساخت اولین آزمون</a>
+            </div>
+            {% endif %}
+
+            {# ---------- تحلیل و فعالیت‌ها (تنبل) ---------- #}
+            <h2 class="section-title">
+                <svg viewBox="0 0 24 24" style="width:17px;height:17px"><use href="#i-chart"/></svg>
+                تحلیل و فعالیت‌ها
+            </h2>
+            <div data-lazy-src="{% url 'teacher_overview_partial' %}">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="skel" style="height:15px;width:40%"></div>
+                        <div class="skel" style="height:9px;width:64%;margin-top:11px"></div>
+                        <div class="metric-grid" style="margin-top:16px">
+                            <div class="skel" style="height:66px"></div>
+                            <div class="skel" style="height:66px"></div>
+                            <div class="skel" style="height:66px"></div>
+                            <div class="skel" style="height:66px"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="skel" style="height:15px;width:46%"></div>
+                        <div class="skel" style="height:9px;width:70%;margin-top:11px"></div>
+                        <div class="skel" style="height:46px;margin-top:14px"></div>
+                        <div class="skel" style="height:46px;margin-top:9px"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="help-text" style="margin-top:8px">این بخش هنگام رسیدن به آن بارگذاری می‌شود تا صفحه سبک بماند.</p>
+        </section>
+
+        {# ===================== ستون کناری ===================== #}
+        <aside style="display:grid;gap:14px;align-content:start">
+            <div class="card" data-reveal>
+                <div class="card-head">
+                    <div>
+                        <h3 class="card-title">اقدام سریع</h3>
+                        <p class="card-sub">مسیرهای پُرتکرارِ فضای کاری</p>
+                    </div>
+                </div>
+                <div style="display:grid;gap:7px">
+                    <a class="btn btn-block" href="{% url 'create_exam' %}">ساخت آزمون جدید</a>
+                    <a class="btn btn-block" href="{% url 'question_bank' %}">مدیریت بانک سؤال</a>
+                    <a class="btn btn-block" href="{% url 'groups' %}">گروه‌های دانش‌آموزی</a>
+                    <button type="button" class="btn btn-block btn-primary" data-modal-open="annModal">ارسال اطلاعیه</button>
+                    <a class="btn btn-block" href="{% url 'download_question_template' %}">قالب اکسلِ سؤال‌ها</a>
+                </div>
+            </div>
+
+            {% if my_announcements %}
+            <div class="card" data-reveal>
+                <div class="card-head">
+                    <div>
+                        <h3 class="card-title">اطلاعیه‌های من</h3>
+                        <p class="card-sub">{{ my_announcements|length|fa_num }} اطلاعیهٔ اخیر</p>
+                    </div>
+                </div>
+                <div data-ann-list>
+                    {% for a in my_announcements %}
+                    <div class="list-row" data-ann-id="{{ a.id }}" style="align-items:flex-start">
+                        <span style="min-width:0">
+                            <span style="display:block;font-weight:700;color:var(--ink)">{{ a.title }}</span>
+                            <span class="muted">
+                                {% if a.grade %}{{ a.grade.get_name_display }}{% else %}همهٔ پایه‌ها{% endif %}
+                                · {{ a.created_at|to_jalali }}
+                            </span>
+                        </span>
+                        <button type="button" class="btn btn-sm btn-danger"
+                                data-modal-open="annDelModal"
+                                data-ann-title="{{ a.title }}"
+                                data-ann-url="{% url 'announcement_delete' ann_id=a.id %}">حذف</button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+
+{# ===================== مودال: ارسال اطلاعیه =====================
+   قبلاً یک فرم بزرگ وسط داشبورد بود و یک باکس اضافه می‌کرد. #}
+<div class="modal-backdrop" id="annModal" aria-hidden="true">
+    <div class="modal-card">
+        <form method="post" action="{% url 'announcement_create' %}">
+            {% csrf_token %}
+            <input type="hidden" name="back" value="teacher_dashboard">
+            <div class="modal-head">
+                <div>
+                    <h3 class="modal-title">ارسال اطلاعیه</h3>
+                    <p class="modal-sub">پیام شما بالای داشبوردِ دانش‌آموزان نمایش داده می‌شود.</p>
+                </div>
+                <button type="button" class="modal-close" data-modal-close aria-label="بستن">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="annTitle">عنوان</label>
+                    <input type="text" id="annTitle" name="title" maxlength="200" required placeholder="مثلاً: کلاس فوق‌العادهٔ ریاضی">
+                </div>
+                <div class="form-group">
+                    <label for="annBody">متن پیام</label>
+                    <textarea id="annBody" name="body" rows="4" placeholder="اختیاری"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="annGrade">برای پایهٔ</label>
+                    <select id="annGrade" name="grade">
+                        <option value="">همهٔ پایه‌ها</option>
+                        {% for g in grades %}<option value="{{ g.id }}">{{ g.get_name_display }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-modal-close>انصراف</button>
+                <button type="submit" class="btn btn-primary">ارسال اطلاعیه</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ===================== مودال: تأیید حذف اطلاعیه ===================== #}
+<div class="modal-backdrop" id="annDelModal" aria-hidden="true">
+    <div class="modal-card sm">
+        <form method="post" id="annDelForm" action="">
+            {% csrf_token %}
+            <div class="modal-head">
+                <div><h3 class="modal-title">حذف اطلاعیه</h3></div>
+                <button type="button" class="modal-close" data-modal-close aria-label="بستن">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:6px">اطلاعیهٔ «<b id="annDelTitle"></b>» حذف شود؟</p>
+                <p class="help-text">این اطلاعیه از داشبوردِ دانش‌آموزان هم برداشته می‌شود و این کار برگشت‌پذیر نیست.</p>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-modal-close>انصراف</button>
+                <button type="submit" class="btn btn-danger">حذف کن</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
-{% block content %}
-<div class="nx">
-{% include "_icons.html" %}
-<div class="nx-wrap">
-
-    <!-- ===================== سربرگ ===================== -->
-    <div class="nx-pagehead">
-        <div>
-            <span class="nx-eyebrow"><svg viewBox="0 0 24 24" style="width:13px;height:13px"><use href="#i-clipboard"/></svg>فضای معلم</span>
-            <h1 class="nx-title">{{ greeting }}، {{ user.get_full_name|default:user.username }}</h1>
-            <p class="nx-desc">وضعیت آزمون‌ها، میزان مشارکت و صفِ تصحیح — بر پایهٔ داده‌های واقعیِ کلاس شما.</p>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="nx-btn nx-btn-outline nx-btn-sm" href="{% url 'question_bank' %}">بانک سؤال<svg viewBox="0 0 24 24"><use href="#i-folder"/></svg></a>
-            <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url 'create_exam' %}">ساخت آزمون<svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></a>
-        </div>
-    </div>
-
-    <!-- ===================== کارت‌های آمار ===================== -->
-    <div class="nx-stats">
-        <div class="nx-stat nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ counts.all|fa_num }}</div>
-            <div class="nx-stat-lbl">کل آزمون‌ها</div>
-            <div class="nx-stat-hint">{{ counts.questions|fa_num }} سؤال طراحی کرده‌اید</div>
-        </div>
-        <div class="nx-stat teal nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ counts.ongoing|fa_num }}</div>
-            <div class="nx-stat-lbl">در حال برگزاری</div>
-            <div class="nx-stat-hint">{{ counts.active|fa_num }} آزمون فعال و زمان‌بندی‌شده</div>
-        </div>
-        <div class="nx-stat amber nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-pen"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ counts.drafts|fa_num }}</div>
-            <div class="nx-stat-lbl">غیرفعال</div>
-            <div class="nx-stat-hint">آمادهٔ تکمیل و انتشار</div>
-        </div>
-        <div class="nx-stat violet nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ counts.ended|fa_num }}</div>
-            <div class="nx-stat-lbl">پایان‌یافته</div>
-            <div class="nx-stat-hint">منتظرِ انتشارِ نتیجه</div>
-        </div>
-        <div class="nx-stat emerald nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-users"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ counts.students|fa_num }}</div>
-            <div class="nx-stat-lbl">دانش‌آموزان</div>
-            <div class="nx-stat-hint">کل دانش‌آموزانِ سامانه</div>
-        </div>
-    </div>
-
-    <!-- ===================== آزمون‌ها + کنار ===================== -->
-    <div class="nx-dash">
-        <div class="nx-dash-2" style="margin-top:16px">
-
-            <!-- ستون اصلی: آزمون‌ها -->
-            <section>
-                <div class="nx-sec-head">
-                    <div>
-                        <h2 class="nx-sec-title">آزمون‌های من</h2>
-                        <p class="nx-sec-sub">جدیدترین آزمون‌های ساخته‌شده و وضعیتِ برگزاریِ هرکدام.</p>
-                    </div>
-                    <a class="nx-btn nx-btn-ghost nx-btn-sm" href="{% url 'create_exam' %}">آزمون جدید<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
-                </div>
-
-                {% if exams %}
-                <div class="nx-exams" id="examsGrid">
-                    {% include "teacher_panel/_exams.html" %}
-                </div>
-                {% if exams_rest_count %}
-                <div class="nx-more">
-                    <button class="nx-btn nx-btn-outline nx-btn-sm" type="button"
-                            data-nx-more="#examsGrid"
-                            data-nx-url="{% url 'teacher_exams_partial' %}?offset=8">
-                        نمایش {{ exams_rest_count|fa_num }} آزمونِ دیگر<svg viewBox="0 0 24 24"><use href="#i-plus"/></svg>
-                    </button>
-                </div>
-                {% endif %}
-                {% else %}
-                <div class="nx-empty">
-                    <div class="nx-empty-ic"><svg viewBox="0 0 24 24"><use href="#i-file-plus"/></svg></div>
-                    <div class="nx-empty-t">هنوز آزمونی نساخته‌اید</div>
-                    <div class="nx-empty-d">اولین آزمون را بسازید: سؤال‌ها، زمان‌بندی و دانش‌آموزان را مشخص کنید.</div>
-                    <a class="nx-btn nx-btn-primary nx-btn-sm" style="margin-top:14px" href="{% url 'create_exam' %}">ساخت اولین آزمون<svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></a>
-                </div>
-                {% endif %}
-            </section>
-
-            <!-- ستون کناری -->
-            <aside style="display:grid;gap:16px;align-content:start">
-                <div class="nx-card nx-reveal">
-                    <div class="nx-card-head">
-                        <div>
-                            <h3 class="nx-card-title">اقدام سریع</h3>
-                            <p class="nx-card-sub">مسیرهای پُرتکرارِ فضای کاری</p>
-                        </div>
-                    </div>
-                    <div class="nx-card-body">
-                        <div class="nx-quick">
-                            <a class="nx-btn nx-btn-soft" href="{% url 'create_exam' %}">ساخت آزمون جدید<svg viewBox="0 0 24 24"><use href="#i-file-plus"/></svg></a>
-                            <a class="nx-btn nx-btn-soft" href="{% url 'question_bank' %}">مدیریت بانک سؤال<svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg></a>
-                            <a class="nx-btn nx-btn-soft" href="{% url 'groups' %}">گروه‌های دانش‌آموزی<svg viewBox="0 0 24 24"><use href="#i-users"/></svg></a>
-                            <a class="nx-btn nx-btn-soft" href="{% url 'download_question_template' %}">قالب اکسلِ سؤال‌ها<svg viewBox="0 0 24 24"><use href="#i-save"/></svg></a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- اطلاعیهٔ جدید -->
-                <div class="nx-card nx-reveal">
-                    <div class="nx-card-head">
-                        <div>
-                            <h3 class="nx-card-title">ارسال اطلاعیه</h3>
-                            <p class="nx-card-sub">پیام شما بالای داشبوردِ دانش‌آموزان نمایش داده می‌شود.</p>
-                        </div>
-                    </div>
-                    <div class="nx-card-body">
-                        <form method="post" action="{% url 'announcement_create' %}" style="display:grid;gap:8px">
-                            {% csrf_token %}
-                            <input type="hidden" name="back" value="teacher_dashboard">
-                            <input class="nx-inp" type="text" name="title" maxlength="200" required placeholder="عنوان اطلاعیه…">
-                            <textarea class="nx-inp" name="body" rows="3" placeholder="متن پیام (اختیاری)"></textarea>
-                            <select class="nx-inp" name="grade">
-                                <option value="">همهٔ پایه‌ها</option>
-                                {% for g in grades %}<option value="{{ g.id }}">{{ g.get_name_display }}</option>{% endfor %}
-                            </select>
-                            <button class="nx-btn nx-btn-primary nx-btn-block nx-btn-sm" type="submit">ارسال اطلاعیه<svg viewBox="0 0 24 24"><use href="#i-bell"/></svg></button>
-                        </form>
-
-                        {% if my_announcements %}
-                        <div class="nx-rows" style="margin-top:12px">
-                            {% for a in my_announcements %}
-                            <div class="nx-row" style="align-items:flex-start">
-                                <span class="nx-row-ic"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg></span>
-                                <span class="nx-row-main">
-                                    <span class="nx-row-t">{{ a.title }}</span>
-                                    <span class="nx-row-s">{% if a.grade %}{{ a.grade.get_name_display }}{% else %}همهٔ پایه‌ها{% endif %} · {{ a.created_at|to_jalali }}</span>
-                                </span>
-                                <form method="post" action="{% url 'announcement_delete' ann_id=a.id %}" style="margin:0">
-                                    {% csrf_token %}
-                                    <button class="nx-ann-x" style="position:static" type="submit" aria-label="حذف اطلاعیه">
-                                        <svg viewBox="0 0 24 24" style="width:14px;height:14px"><use href="#i-x"/></svg>
-                                    </button>
-                                </form>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </aside>
-        </div>
-
-        <!-- ===================== تحلیل و فعالیت‌ها (تنبل) ===================== -->
-        <section class="nx-section" id="overview" style="margin-top:18px">
-            <div class="nx-sec-head">
-                <div>
-                    <h2 class="nx-sec-title">تحلیل و فعالیت‌ها</h2>
-                    <p class="nx-sec-sub">این بخش هنگام رسیدن به آن بارگذاری می‌شود تا صفحه سبک بماند.</p>
-                </div>
-            </div>
-            <div class="nx-defer" data-nx-src="{% url 'teacher_overview_partial' %}">
-                <div class="nx-dash-2">
-                    <div class="nx-card"><div class="nx-card-body">
-                        <div class="nx-skel" style="height:15px;width:40%"></div>
-                        <div class="nx-skel" style="height:9px;width:64%;margin-top:11px"></div>
-                        <div class="nx-metric-grid" style="margin-top:16px">
-                            <div class="nx-skel" style="height:66px"></div>
-                            <div class="nx-skel" style="height:66px"></div>
-                            <div class="nx-skel" style="height:66px"></div>
-                            <div class="nx-skel" style="height:66px"></div>
-                        </div>
-                    </div></div>
-                    <div class="nx-card"><div class="nx-card-body">
-                        <div class="nx-skel" style="height:15px;width:46%"></div>
-                        <div class="nx-skel" style="height:9px;width:70%;margin-top:11px"></div>
-                        <div class="nx-skel" style="height:46px;margin-top:14px"></div>
-                        <div class="nx-skel" style="height:46px;margin-top:9px"></div>
-                        <div class="nx-skel" style="height:46px;margin-top:9px"></div>
-                    </div></div>
-                </div>
-            </div>
-        </section>
-    </div>
-
-</div>
-</div>
+{% block late_js %}
+<script>
+    // آدرس و عنوانِ اطلاعیهٔ انتخاب‌شده در مودال تأیید حذف نوشته می‌شود.
+    (function () {
+        var form = document.getElementById('annDelForm');
+        if (!form) return;
+        var titleEl = document.getElementById('annDelTitle');
+        document.querySelectorAll('[data-ann-url]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                form.action = btn.getAttribute('data-ann-url');
+                titleEl.textContent = btn.getAttribute('data-ann-title') || '';
+            });
+        });
+    })();
+</script>
 {% endblock %}

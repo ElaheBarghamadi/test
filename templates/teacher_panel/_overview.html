@@ -1,70 +1,74 @@
-{% comment %}بخش تنبلِ «تحلیل و فعالیت‌های اخیر» در داشبورد معلم{% endcomment %}
-<div class="nx-card nx-reveal">
-    <div class="nx-card-head">
-        <div>
-            <h3 class="nx-card-title">وضعیت مشارکت و عملکرد</h3>
-            <p class="nx-card-sub">همهٔ عددها از تلاش‌های واقعیِ دانش‌آموزان به‌دست آمده است.</p>
-        </div>
-    </div>
-    <div class="nx-card-body">
-        <div class="nx-metric-grid">
-            <div class="nx-metric">
-                <div class="nx-metric-l">تلاش‌ها</div>
-                <div class="nx-metric-v nx-fa">{{ ov.finalized|fa_num }} از {{ ov.attempts|fa_num }}</div>
-                <div class="nx-metric-h">{{ ov.participants|fa_num }} دانش‌آموز مشارکت کرده‌اند</div>
-            </div>
-            <div class="nx-metric">
-                <div class="nx-metric-l">نرخ تکمیل</div>
-                <div class="nx-metric-v nx-fa">{{ ov.completion|fa_num }}٪</div>
-                <div class="nx-metric-h">تلاش‌های نهایی‌شده از کلِ شروع‌شده‌ها</div>
-            </div>
-            <div class="nx-metric">
-                <div class="nx-metric-l">میانگین درصد</div>
-                <div class="nx-metric-v nx-fa">{% if ov.average is not None %}{{ ov.average|fa_num }}٪{% else %}—{% endif %}</div>
-                <div class="nx-metric-h">بر پایهٔ {{ ov.graded_results|fa_num }} نتیجهٔ نمره‌گرفته</div>
-            </div>
-            <div class="nx-metric">
-                <div class="nx-metric-l">در انتظار تصحیح</div>
-                <div class="nx-metric-v nx-fa">{{ ov.pending_manual|fa_num }}</div>
-                <div class="nx-metric-h">پاسخِ تشریحی و کوتاهِ بدون نمره</div>
+{% comment %}
+بخش تنبلِ «تحلیل و فعالیت‌های اخیر» در داشبورد معلم.
+خودش گرید دوستونی را می‌سازد چون جای اسکلتِ بارگذاری را پر می‌کند.
+{% endcomment %}
+<div class="grid-2">
+
+    <div class="card" data-reveal>
+        <div class="card-head">
+            <div>
+                <h3 class="card-title">وضعیت مشارکت و عملکرد</h3>
+                <p class="card-sub">همهٔ عددها از تلاش‌های واقعیِ دانش‌آموزان به‌دست آمده است.</p>
             </div>
         </div>
 
-        <div class="nx-progress" style="margin-top:14px" role="progressbar" aria-valuenow="{{ ov.completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="نرخ تکمیل">
-            <i style="width:{{ ov.completion }}%"></i>
+        <div class="metric-grid">
+            <div class="metric">
+                <div class="metric-l">تلاش‌ها</div>
+                <div class="metric-v">{{ ov.finalized|fa_num }}/{{ ov.attempts|fa_num }}</div>
+                <div class="metric-h">{{ ov.participants|fa_num }} دانش‌آموز مشارکت کرده‌اند</div>
+            </div>
+            <div class="metric">
+                <div class="metric-l">نرخ تکمیل</div>
+                <div class="metric-v">{{ ov.completion|fa_num }}٪</div>
+                <div class="metric-h">تلاش‌های نهایی‌شده از کلِ شروع‌شده‌ها</div>
+            </div>
+            <div class="metric">
+                <div class="metric-l">میانگین درصد</div>
+                <div class="metric-v">{% if ov.average is not None %}{{ ov.average|fa_num }}٪{% else %}—{% endif %}</div>
+                <div class="metric-h">بر پایهٔ {{ ov.graded_results|fa_num }} نتیجهٔ نمره‌گرفته</div>
+            </div>
+            <div class="metric">
+                <div class="metric-l">در انتظار تصحیح</div>
+                <div class="metric-v">{{ ov.pending_manual|fa_num }}</div>
+                <div class="metric-h">پاسخِ تشریحی و کوتاهِ بدون نمره</div>
+            </div>
         </div>
-        <p class="nx-metric-h" style="margin-top:7px">
+
+        <div class="progress-bar" style="margin-top:14px" role="progressbar"
+             aria-valuenow="{{ ov.completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="نرخ تکمیل">
+            <i class="progress-fill {% if ov.completion >= 70 %}ok{% elif ov.completion >= 30 %}{% else %}warn{% endif %}"
+               style="width:{{ ov.completion }}%"></i>
+        </div>
+        <p class="metric-h" style="margin-top:7px">
             {% if ov.pending_manual %}{{ ov.pending_manual|fa_num }} پاسخ برای نمرهٔ دستی باقی مانده است.{% else %}پاسخِ تصحیح‌نشده ندارید.{% endif %}
         </p>
     </div>
-</div>
 
-<div class="nx-card nx-reveal">
-    <div class="nx-card-head">
-        <div>
-            <h3 class="nx-card-title">فعالیت‌های اخیر</h3>
-            <p class="nx-card-sub">آخرین تلاش‌های ثبت‌شده در آزمون‌های شما</p>
+    <div class="card" data-reveal>
+        <div class="card-head">
+            <div>
+                <h3 class="card-title">فعالیت‌های اخیر</h3>
+                <p class="card-sub">آخرین تلاش‌های ثبت‌شده در آزمون‌های شما</p>
+            </div>
         </div>
-    </div>
-    <div class="nx-card-body">
+
         {% if activity %}
-        <div class="nx-rows">
+        <div>
             {% for a in activity %}
-            <a class="nx-row" href="{% url 'exam_results' exam_id=a.exam_id %}">
-                <span class="nx-row-ic" style="{% if a.is_open %}color:var(--nx-primary){% else %}color:var(--nx-success){% endif %}"><svg viewBox="0 0 24 24"><use href="#i-users"/></svg></span>
-                <span class="nx-row-main">
-                    <span class="nx-row-t">{{ a.student }} · {{ a.exam }}</span>
-                    <span class="nx-row-s">{{ a.state }} · {{ a.at }}</span>
+            <a class="list-row" href="{% url 'exam_results' exam_id=a.exam_id %}" style="text-decoration:none;color:inherit">
+                <span style="min-width:0">
+                    <span style="display:block;font-weight:700;color:var(--ink)">{{ a.student }} · {{ a.exam }}</span>
+                    <span class="muted">{{ a.state }} · {{ a.at }}</span>
                 </span>
-                <span class="nx-badge {% if a.is_open %}info{% else %}ok{% endif %}">{{ a.state }}</span>
+                <span class="badge {% if a.is_open %}{% else %}badge-success{% endif %}">{{ a.state }}</span>
             </a>
             {% endfor %}
         </div>
         {% else %}
-        <div class="nx-empty" style="padding:24px 14px">
-            <div class="nx-empty-ic"><svg viewBox="0 0 24 24"><use href="#i-inbox"/></svg></div>
-            <div class="nx-empty-t">هنوز تلاشی ثبت نشده است</div>
-            <div class="nx-empty-d">وقتی دانش‌آموزان وارد آزمون شوند، فعالیت‌ها اینجا نمایش داده می‌شود.</div>
+        <div class="empty-state">
+            <p><b>هنوز تلاشی ثبت نشده است</b></p>
+            <p>وقتی دانش‌آموزان وارد آزمون شوند، فعالیت‌ها اینجا نمایش داده می‌شود.</p>
         </div>
         {% endif %}
     </div>

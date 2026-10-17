@@ -204,9 +204,18 @@
             radial-gradient(circle at 96% -30%, rgba(99, 102, 241, .16), transparent 55%),
             linear-gradient(135deg, var(--card), var(--card2));
         position: relative; overflow: hidden;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 14px; flex-wrap: wrap; margin-bottom: 16px;
     }
     .welcome-title { font-size: 1.15rem; font-weight: 800; color: var(--ink); }
-    .welcome-subtitle { font-size: .82rem; color: var(--ink2); }
+    .welcome-subtitle { font-size: .82rem; color: var(--ink2); margin-top: 4px; }
+    .welcome-eyebrow {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: .7rem; font-weight: 800; color: var(--brand-3);
+        background: var(--brand-soft); border-radius: 999px; padding: 2px 10px; margin-bottom: 6px;
+    }
+    .welcome-eyebrow svg { width: 13px; height: 13px; }
+    .welcome-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .section-title, .page-title, h2.title {
         display: flex; align-items: center; gap: 9px;
@@ -876,3 +885,198 @@ span.label, .exam-details .label { font-size: .72rem; }
     .picker-list { max-height: 44vh; }
     .toolbar { align-items: flex-start; }
 }
+
+/* ==================== شمارش معکوس آزمون ====================
+   توسط static/js/app.js هر ثانیه به‌روزرسانی می‌شود (data-countdown). */
+.countdown {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-variant-numeric: tabular-nums; font-weight: 800; font-size: .78rem;
+    color: var(--brand-2); background: var(--brand-soft);
+    border: 1px solid #c7cbfa; border-radius: 999px; padding: 3px 11px;
+}
+.countdown.warn { background: var(--warnsoft); color: var(--warn); border-color: var(--warnline); }
+.countdown.end { background: var(--card2); color: var(--ink3); border-color: var(--line); }
+
+/* ==================== آشکارسازی تدریجی هنگام اسکرول ====================
+   با data-reveal فعال می‌شود و app.js کلاس in را اضافه می‌کند.
+   کاربرانی که کاهش حرکت را ترجیح داده‌اند انیمیشن نمی‌بینند. */
+[data-reveal] {
+    opacity: 0; transform: translateY(14px);
+    transition: opacity .5s cubic-bezier(.22, 1, .36, 1), transform .5s cubic-bezier(.22, 1, .36, 1);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+    [data-reveal] { opacity: 1; transform: none; transition: none; }
+}
+
+/* اسکلت بارگذاری برای بخش‌هایی که تنبل بارگذاری می‌شوند */
+.skel {
+    background: linear-gradient(90deg, var(--card2) 25%, var(--line2) 37%, var(--card2) 63%);
+    background-size: 400% 100%; border-radius: var(--r-sm);
+    animation: skelShimmer 1.4s ease infinite;
+}
+@keyframes skelShimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+@media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+
+/* ==================== نوار پیشرفت ====================
+   قبلاً فقط override با !important اینجا بود و تعریف پایه در دو قالب
+   (bulk_upload و grade_exam) کپی شده بود. حالا یک تعریف مشترک. */
+.progress-bar {
+    height: 8px; border-radius: 999px; background: var(--line2);
+    border: 1px solid var(--line); overflow: hidden;
+}
+.progress-fill {
+    display: block; height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--brand), var(--brand-3));
+    transition: width .4s ease;
+}
+.progress-fill.ok { background: linear-gradient(90deg, #35b569, var(--ok)); }
+.progress-fill.warn { background: linear-gradient(90deg, #f0b429, var(--warn)); }
+.progress-fill.err { background: linear-gradient(90deg, #e88888, var(--err)); }
+
+/* ==================== چیدمان‌های عمومی ==================== */
+/* گرید دوستونی که در عرض کم به یک ستون می‌شود. .admin-cols نام قدیمی‌ست. */
+.grid-2, .admin-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .grid-2, .admin-cols { grid-template-columns: 1fr; } }
+
+/* دکمهٔ تمام‌عرض */
+.btn-block { display: flex; width: 100%; }
+
+/* سرتیترِ کارت: عنوان + توضیح در یک سو، کنش‌ها در سویدگر */
+.card-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.card-title { font-size: .95rem; font-weight: 800; color: var(--ink); margin: 0; }
+.card-sub { font-size: .76rem; color: var(--ink3); margin-top: 3px; }
+
+/* کاشی کوچکِ عدد/برچسب برای نمای کلی */
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.metric {
+    background: var(--card2); border: 1px solid var(--line2);
+    border-radius: var(--r-md); padding: 10px; text-align: center;
+}
+.metric-l { font-size: .7rem; color: var(--ink3); font-weight: 600; }
+.metric-v {
+    font-size: 1.2rem; font-weight: 800; color: var(--brand-3);
+    font-variant-numeric: tabular-nums; line-height: 1.5; margin: 2px 0;
+}
+.metric-h { font-size: .68rem; color: var(--ink3); }
+
+/* =====================================================================
+   صفحهٔ فرود — همان توکن‌ها و همان کامپوننت‌های بقیهٔ سایت.
+   عمداً تا حد ممکن از .card / .stats / .stat-card / .badge / .btn
+   بازاستفاده می‌کند تا CSS تازه و موازی ساخته نشود.
+   ===================================================================== */
+
+/* --- نوار بخش (band) --- */
+.band { padding: 34px 0; }
+.band.alt { background: linear-gradient(180deg, transparent, var(--card2) 18%, var(--card2) 82%, transparent); }
+.band-head { text-align: center; max-width: 620px; margin: 0 auto 22px; }
+.band-kicker {
+    display: inline-block; font-size: .7rem; font-weight: 800; color: var(--brand-3);
+    background: var(--brand-soft); border: 1px solid #c7cbfa;
+    border-radius: 999px; padding: 3px 12px; margin-bottom: 9px;
+}
+.band-h { font-size: 1.3rem; font-weight: 800; color: var(--ink); line-height: 1.7; margin: 0; }
+.band-p { font-size: .84rem; color: var(--ink2); line-height: 2; margin-top: 7px; }
+
+/* --- هیرو --- */
+.hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 26px; align-items: center; padding: 34px 0 22px; }
+.hero-h1 { font-size: 1.95rem; font-weight: 800; color: var(--ink); line-height: 1.65; margin: 10px 0 0; }
+.hero-h1 span {
+    background: linear-gradient(135deg, var(--brand), var(--brand-3));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero-lead { font-size: .88rem; color: var(--ink2); line-height: 2.1; margin-top: 12px; }
+.hero-cta { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 16px; }
+.hero-notes { display: flex; gap: 8px 16px; flex-wrap: wrap; margin-top: 14px; }
+.hero-notes span {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: .74rem; font-weight: 600; color: var(--ink2);
+}
+.hero-notes svg { width: 14px; height: 14px; color: var(--ok); flex: 0 0 auto; }
+
+/* --- پنجرهٔ نمایشیِ آزمون (تزئینی) --- */
+.mock {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
+    box-shadow: var(--sh2); overflow: hidden;
+}
+.mock-bar {
+    display: flex; align-items: center; gap: 6px; padding: 10px 13px;
+    background: var(--card2); border-bottom: 1px solid var(--line2);
+}
+.mock-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.mock-title { font-size: .72rem; font-weight: 700; color: var(--ink3); margin-inline-start: 6px; }
+.mock-body { padding: 14px; }
+.mock-q { font-size: .84rem; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+.mock-opts { display: grid; gap: 6px; }
+.mock-opt {
+    display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--ink2);
+    background: var(--card2); border: 1px solid var(--line2); border-radius: var(--r-md); padding: 8px 10px;
+}
+.mock-opt.on { background: var(--brand-soft); border-color: #c7cbfa; color: var(--brand-3); font-weight: 700; }
+.mock-num {
+    flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--card); border: 1px solid var(--line); font-size: .66rem; font-weight: 800;
+}
+.mock-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-top: 11px; padding-top: 10px; border-top: 1px dashed var(--line);
+}
+.mock-timer { font-size: .78rem; font-weight: 800; color: var(--ink2); font-variant-numeric: tabular-nums; }
+
+/* --- کارت امکان (feature) --- */
+.features { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 13px; }
+.feature-ic {
+    width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center;
+    background: var(--brand-soft); color: var(--brand-3); border: 1px solid #c7cbfa; margin-bottom: 10px;
+}
+.feature-ic svg { width: 19px; height: 19px; }
+.feature-h { font-size: .9rem; font-weight: 800; color: var(--ink); margin: 0 0 5px; }
+.feature-p { font-size: .78rem; color: var(--ink2); line-height: 2; margin: 0; }
+
+/* --- گام‌ها --- */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 13px; }
+.step-n {
+    width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--brand), var(--brand-3)); color: #fff;
+    font-size: .84rem; font-weight: 800; margin-bottom: 9px;
+}
+.step-h { font-size: .88rem; font-weight: 800; color: var(--ink); margin: 0 0 5px; }
+.step-p { font-size: .77rem; color: var(--ink2); line-height: 2; margin: 0; }
+
+/* --- فراخوان پایانی --- */
+.cta {
+    background:
+        radial-gradient(circle at 88% -20%, rgba(255, 255, 255, .18), transparent 55%),
+        linear-gradient(135deg, var(--brand), var(--brand-3));
+    color: #fff; border-radius: var(--r-lg); padding: 30px 24px; text-align: center;
+    box-shadow: var(--sh2);
+}
+.cta-h { font-size: 1.2rem; font-weight: 800; margin: 0; line-height: 1.8; }
+.cta-p { font-size: .84rem; opacity: .93; line-height: 2.1; margin: 9px auto 0; max-width: 620px; }
+.cta-btns { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+.btn-onDark { background: #fff; color: var(--brand-3); border-color: transparent; }
+.btn-onDark:hover { background: #fff; color: var(--brand-3); filter: brightness(.97); }
+.btn-glass { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .42); }
+.btn-glass:hover { background: rgba(255, 255, 255, .24); color: #fff; border-color: rgba(255, 255, 255, .6); }
+
+@media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 20px; padding-top: 24px; }
+    .hero-h1 { font-size: 1.55rem; }
+    .band { padding: 26px 0; }
+    .band-h { font-size: 1.12rem; }
+}
+@media (max-width: 480px) {
+    .hero-h1 { font-size: 1.32rem; }
+    .hero-cta .btn, .cta-btns .btn { flex: 1 1 100%; }
+    .cta { padding: 24px 16px; }
+}
+
+/* اندازهٔ آیکن‌ها در اجزای مشترک — تا قالب‌ها style درون‌خطی ننویسند */
+.badge svg, .status-badge svg, .section-title svg, .welcome-eyebrow svg,
+.list-row svg, .btn svg, .card-title svg { width: 15px; height: 15px; flex: 0 0 auto; }

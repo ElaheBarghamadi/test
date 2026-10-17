@@ -3,21 +3,18 @@
 
 {% block title %}داشبورد دانش‌آموز | سامانه آزمون{% endblock %}
 
-{% block late_css %}
-<link rel="stylesheet" href="{% static 'css/modern.css' %}?v=2">
-{% endblock %}
-
 {% block content %}
-<div class="nx">
 {% include "_icons.html" %}
-<div class="nx-wrap">
+<div class="container">
 
-    <!-- ===================== سربرگ ===================== -->
-    <div class="nx-pagehead">
-        <div>
-            <span class="nx-eyebrow"><svg viewBox="0 0 24 24" style="width:13px;height:13px"><use href="#i-graduation"/></svg>پنل دانش‌آموز</span>
-            <h1 class="nx-title">{{ greeting }}، {{ user.get_full_name|default:user.username }}</h1>
-            <p class="nx-desc">
+    {# ===================== سربرگ ===================== #}
+    <div class="welcome-card">
+        <div style="min-width:0">
+            <span class="welcome-eyebrow">
+                <svg viewBox="0 0 24 24"><use href="#i-graduation"/></svg>پنل دانش‌آموز
+            </span>
+            <h1 class="welcome-title">{{ greeting }}، {{ user.display_name }}</h1>
+            <p class="welcome-subtitle">
                 {% if next_exam %}
                     آزمونِ «{{ next_exam.exam.title }}» آماده است — وقت را از دست ندهید.
                 {% else %}
@@ -25,136 +22,106 @@
                 {% endif %}
             </p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="nx-btn nx-btn-outline nx-btn-sm" href="{% url 'student_results' %}">کارنامهٔ کامل<svg viewBox="0 0 24 24"><use href="#i-chart"/></svg></a>
+        <div class="welcome-actions">
+            <a class="btn" href="{% url 'student_results' %}">کارنامهٔ کامل</a>
             {% if next_exam %}
-            <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url 'take_exam' hashed_exam_id=next_exam.hashed_id %}">
-                {% if next_exam.attempt %}ادامهٔ آزمون{% else %}شروع آزمون{% endif %}<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg>
+            <a class="btn btn-primary" href="{% url 'take_exam' hashed_exam_id=next_exam.hashed_id %}">
+                {% if next_exam.attempt %}ادامهٔ آزمون{% else %}شروع آزمون{% endif %}
             </a>
             {% endif %}
         </div>
     </div>
 
-    <!-- ===================== آمار ===================== -->
-    <div class="nx-stats">
-        <div class="nx-stat nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ stats.total|default:0|fa_num }}</div>
-            <div class="nx-stat-lbl">آزمون‌های من</div>
-            <div class="nx-stat-hint">تعریف‌شده برای شما</div>
+    {# ===================== آمار ===================== #}
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total|default:0|fa_num }}</div>
+            <div class="stat-label">آزمون‌های من</div>
         </div>
-        <div class="nx-stat teal nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ stats.ongoing|default:0|fa_num }}</div>
-            <div class="nx-stat-lbl">در حال برگزاری</div>
-            <div class="nx-stat-hint">همین حالا می‌توانید شرکت کنید</div>
+        <div class="stat-card ongoing">
+            <div class="stat-number">{{ stats.ongoing|default:0|fa_num }}</div>
+            <div class="stat-label">در حال برگزاری</div>
         </div>
-        <div class="nx-stat violet nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
-            <div class="nx-stat-val nx-fa">{{ stats.submitted|default:0|fa_num }}</div>
-            <div class="nx-stat-lbl">تحویل‌شده</div>
-            <div class="nx-stat-hint">آزمون‌های ثبت‌شدهٔ شما</div>
+        <div class="stat-card active">
+            <div class="stat-number">{{ stats.submitted|default:0|fa_num }}</div>
+            <div class="stat-label">تحویل‌شده</div>
         </div>
-        <div class="nx-stat emerald nx-reveal">
-            <div class="nx-stat-ic"><svg viewBox="0 0 24 24"><use href="#i-trend"/></svg></div>
-            <div class="nx-stat-val nx-fa">{% if stats.avg_pct is not None %}{{ stats.avg_pct|fa_num }}<small>٪</small>{% else %}—{% endif %}</div>
-            <div class="nx-stat-lbl">میانگین نمره‌ها</div>
-            <div class="nx-stat-hint">{% if stats.avg_of_20 is not None %}معادل {{ stats.avg_of_20|fa_num }} از ۲۰{% else %}پس از اعلام نتایج{% endif %}</div>
+        <div class="stat-card">
+            <div class="stat-number">
+                {% if stats.avg_pct is not None %}{{ stats.avg_pct|fa_num }}<small>٪</small>{% else %}—{% endif %}
+            </div>
+            <div class="stat-label">
+                میانگین نمره‌ها{% if stats.avg_of_20 is not None %} · {{ stats.avg_of_20|fa_num }} از ۲۰{% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- ===================== اطلاعیه‌ها ===================== -->
+    {# ===================== اطلاعیه‌ها ===================== #}
     {% if announcements %}
-    <section class="nx-section nx-reveal" id="announcements">
-        <div class="nx-card">
-            <div class="nx-card-head">
-                <div>
-                    <h2 class="nx-card-title">اطلاعیه‌ها</h2>
-                    <p class="nx-card-sub">تازه‌ترین پیام‌های معلم و مدیر — با بستن، دیگر نمایش داده نمی‌شود.</p>
+    <h2 class="section-title">
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px"><use href="#i-bell"/></svg>
+        اطلاعیه‌ها
+        {% if unread_count %}<span class="badge badge-danger">{{ unread_count|fa_num }} جدید</span>{% endif %}
+    </h2>
+    <div class="card">
+        <div class="announce-list" data-ann-list>
+            {% for a in announcements %}
+            <div class="announce-item" data-ann-id="{{ a.id }}">
+                <div style="min-width:0;flex:1">
+                    <b>{{ a.title }}{% if a.is_new %} <span class="badge badge-danger">جدید</span>{% endif %}</b>
+                    {% if a.body %}<div class="announce-body">{{ a.body|truncatechars:260 }}</div>{% endif %}
+                    <div class="announce-time">{{ a.author }} · {{ a.grade_label }} · {{ a.date_jalali }}</div>
                 </div>
-                {% if unread_count %}<span class="nx-badge err"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg>{{ unread_count|fa_num }} جدید</span>{% endif %}
+                <button class="btn btn-sm" type="button" data-ann-close aria-label="بستن این اطلاعیه">✕</button>
             </div>
-            <div class="nx-card-body">
-                <div class="nx-anns">
-                {% for a in announcements %}
-                    <div class="nx-ann" data-ann-id="{{ a.id }}">
-                        <span class="nx-ann-ic"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg></span>
-                        <div style="min-width:0;flex:1;padding-inline-end:24px">
-                            <div class="nx-ann-t">
-                                {{ a.title }}
-                                {% if a.is_new %}<span class="nx-ann-new">جدید</span>{% endif %}
-                            </div>
-                            {% if a.body %}<div class="nx-ann-b">{{ a.body|truncatechars:260 }}</div>{% endif %}
-                            <div class="nx-ann-d">{{ a.author }} · {{ a.grade_label }} · {{ a.date_jalali }}</div>
-                        </div>
-                        <button class="nx-ann-x" type="button" aria-label="بستن این اطلاعیه">
-                            <svg viewBox="0 0 24 24" style="width:14px;height:14px"><use href="#i-x"/></svg>
-                        </button>
-                    </div>
-                {% endfor %}
-                </div>
-            </div>
+            {% endfor %}
         </div>
-    </section>
+        <p class="help-text" style="margin-top:10px">با بستن هر اطلاعیه، دیگر نمایش داده نمی‌شود.</p>
+    </div>
     {% endif %}
 
-    <!-- ===================== آزمون‌ها ===================== -->
-    <section class="nx-section" id="exams">
-        <div class="nx-sec-head">
-            <div>
-                <h2 class="nx-sec-title">آزمون‌های من</h2>
-                <p class="nx-sec-sub">{% if exams_total %}«در حال برگزاری» در اولویت هستند.{% else %}هنوز آزمونی ندارید.{% endif %}</p>
-            </div>
-            <span class="nx-badge"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg>{{ exams_total|fa_num }} آزمون</span>
-        </div>
+    {# ===================== آزمون‌ها ===================== #}
+    <h2 class="section-title">
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px"><use href="#i-layers"/></svg>
+        آزمون‌های من
+        <span class="badge">{{ exams_total|fa_num }} آزمون</span>
+    </h2>
 
-        <div class="nx-exams" id="examsGrid">
-            {% include "student_panel/_exams.html" %}
-        </div>
+    <div class="exams-grid" id="examsGrid">
+        {% include "student_panel/_exams.html" %}
+    </div>
 
-        {% if exams_rest_count %}
-        <div class="nx-more">
-            <button class="nx-btn nx-btn-outline nx-btn-sm" type="button"
-                    data-nx-more="#examsGrid"
-                    data-nx-url="{% url 'student_exams_partial' %}?offset={{ 6 }}">
-                نمایش {{ exams_rest_count|fa_num }} آزمونِ دیگر<svg viewBox="0 0 24 24"><use href="#i-plus"/></svg>
-            </button>
-        </div>
-        {% endif %}
-    </section>
+    {% if exams_rest_count %}
+    <div style="text-align:center;margin-top:14px">
+        <button class="btn" type="button"
+                data-load-more="#examsGrid"
+                data-url="{% url 'student_exams_partial' %}?offset=6"
+                data-left="{{ exams_rest_count }}">
+            نمایش {{ exams_rest_count|fa_num }} آزمونِ دیگر
+        </button>
+    </div>
+    {% endif %}
 
-    <!-- ===================== نمای کلی و کارنامه (تنبل) ===================== -->
-    <section class="nx-section" id="overview">
-        <div class="nx-sec-head">
-            <div>
-                <h2 class="nx-sec-title">نمای کلی و کارنامه</h2>
-                <p class="nx-sec-sub">این بخش هنگام رسیدن به آن بارگذاری می‌شود تا صفحه سبک بماند.</p>
-            </div>
-            <a class="nx-btn nx-btn-ghost nx-btn-sm" href="{% url 'student_results' %}">نتایج من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
-        </div>
+    {# ===================== نمای کلی و کارنامه (تنبل) ===================== #}
+    <h2 class="section-title">
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px"><use href="#i-chart"/></svg>
+        نمای کلی و کارنامه
+        <a class="btn btn-sm" href="{% url 'student_results' %}" style="margin-inline-start:auto">نتایج من</a>
+    </h2>
 
-        <div class="nx-defer" data-nx-src="{% url 'student_overview_partial' %}">
-            <div class="nx-dash-2">
-                <div class="nx-card"><div class="nx-card-body">
-                    <div class="nx-skel" style="height:15px;width:38%"></div>
-                    <div class="nx-skel" style="height:9px;width:62%;margin-top:11px"></div>
-                    <div class="nx-metric-grid" style="margin-top:16px">
-                        <div class="nx-skel" style="height:66px"></div>
-                        <div class="nx-skel" style="height:66px"></div>
-                        <div class="nx-skel" style="height:66px"></div>
-                        <div class="nx-skel" style="height:66px"></div>
-                    </div>
-                </div></div>
-                <div class="nx-card"><div class="nx-card-body">
-                    <div class="nx-skel" style="height:15px;width:44%"></div>
-                    <div class="nx-skel" style="height:9px;width:70%;margin-top:11px"></div>
-                    <div class="nx-skel" style="height:56px;margin-top:16px"></div>
-                    <div class="nx-skel" style="height:56px;margin-top:9px"></div>
-                </div></div>
+    <div data-lazy-src="{% url 'student_overview_partial' %}">
+        <div class="card">
+            <div class="skel" style="height:15px;width:38%"></div>
+            <div class="skel" style="height:9px;width:62%;margin-top:11px"></div>
+            <div class="stats" style="margin:16px 0 0">
+                <div class="skel" style="height:66px"></div>
+                <div class="skel" style="height:66px"></div>
+                <div class="skel" style="height:66px"></div>
+                <div class="skel" style="height:66px"></div>
             </div>
         </div>
-    </section>
+    </div>
+    <p class="help-text" style="margin-top:8px">این بخش هنگام رسیدن به آن بارگذاری می‌شود تا صفحه سبک بماند.</p>
 
-</div>
 </div>
 {% endblock %}

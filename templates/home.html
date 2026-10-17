@@ -1,317 +1,246 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>سامانه آزمون غیرحضوری | برگزاری آزمون آنلاین برای مدرسه و کلاس</title>
-<meta name="description" content="سامانهٔ آزمون غیرحضوری: ساخت آزمون با هفت نوع سؤال، برگزاری آنلاین با ذخیرهٔ خودکار پاسخ‌ها، تصحیح خودکار و کارنامهٔ تحلیلی برای معلم و دانش‌آموز.">
-<meta name="theme-color" content="#4f46e5">
-<meta name="robots" content="index, follow">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234f46e5'/%3E%3Cpath d='M22 20h20v6H22zm0 12h20v6H22zm0 12h12v6H22z' fill='white'/%3E%3C/svg%3E">
-<script>
-    try { var _t = localStorage.getItem('nx-theme'); if (_t) document.documentElement.setAttribute('data-theme', _t); } catch (e) {}
-</script>
+{% extends 'base.html' %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/modern.css' %}?v=2">
-</head>
-<body class="nx nx-home">
+
+{% block title %}سامانه آزمون غیرحضوری | برگزاری آزمون آنلاین برای مدرسه و کلاس{% endblock %}
+
+{% block meta %}
+<meta name="description" content="سامانهٔ آزمون غیرحضوری: ساخت آزمون با هفت نوع سؤال، برگزاری آنلاین با ذخیرهٔ خودکار پاسخ‌ها، تصحیح خودکار و کارنامهٔ تحلیلی برای معلم و دانش‌آموز.">
+<meta name="robots" content="index, follow">
+{% endblock %}
+
+{% comment %}
+  این صفحه از base.html ارث می‌برد، پس نوار بالا، منوی موبایل، پانوشت،
+  پیام‌ها و اسکریپت‌های مشترک را همان‌جا می‌گیرد و دیگر کپیِ جداگانهٔ
+  آن‌ها را با کلاس‌های موازی نمی‌سازد.
+{% endcomment %}
+
+{% block content %}
 {% include "_icons.html" %}
 
-<!-- ======================= نوار بالا ======================= -->
-<header class="nx-nav">
-    <div class="nx-wrap nx-nav-in">
-        <a class="nx-brand" href="{% url 'home' %}" aria-label="سامانه آزمون غیرحضوری">
-            <span class="nx-brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg></span>
-            <span>سامانه آزمون</span>
-        </a>
-
-        <nav class="nx-nav-links" aria-label="منوی اصلی">
-            <a href="#features">امکانات</a>
-            <a href="#question-types">انواع سؤال</a>
-            <a href="#how">چطور کار می‌کند</a>
-            <a href="#roles">نقش‌ها</a>
-            <a href="#security">امنیت</a>
-        </nav>
-
-        <div class="nx-nav-cta">
-            <button class="nx-theme" type="button" aria-label="تغییر حالت روشن/تاریک" aria-pressed="false" title="حالت تاریک / روشن">
-                <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-                <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-            </button>
-            {% if signed_in and panel_url_name %}
-                <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url panel_url_name %}">ورود به پنل من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
-            {% else %}
-                <a class="nx-btn nx-btn-ghost nx-btn-sm" href="{% url 'login' %}">ورود</a>
-                <a class="nx-btn nx-btn-primary nx-btn-sm" href="{% url 'login' %}">شروع آزمون<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
-            {% endif %}
-
-            {# 📱 دکمهٔ منوی موبایل — زیر ۹۰۰px جای .nx-nav-links را می‌گیرد #}
-            <button class="nx-nav-burger" type="button" id="nxNavBurger"
-                    aria-expanded="false" aria-controls="nxNavDrawer" aria-label="باز کردن منو">
-                <svg class="i-bars" viewBox="0 0 24 24"><use href="#i-bars"/></svg>
-                <svg class="i-x" viewBox="0 0 24 24"><use href="#i-x"/></svg>
-            </button>
-        </div>
-    </div>
-
-    {# 📱 کشوی ناوبری موبایل (همان پیوندهای .nx-nav-links + کنش ورود) #}
-    <div class="nx-nav-drawer" id="nxNavDrawer">
-        <div class="nx-wrap nx-nav-drawer-in">
-            <a href="#features"><svg viewBox="0 0 24 24"><use href="#i-sparkles"/></svg>امکانات</a>
-            <a href="#question-types"><svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg>انواع سؤال</a>
-            <a href="#how"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg>چطور کار می‌کند</a>
-            <a href="#roles"><svg viewBox="0 0 24 24"><use href="#i-users"/></svg>نقش‌ها</a>
-            <a href="#security"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg>امنیت</a>
-            <div class="nx-nav-drawer-sep"></div>
-            <div class="nx-nav-drawer-cta">
-                {% if signed_in and panel_url_name %}
-                    <a class="nx-btn nx-btn-primary" href="{% url panel_url_name %}">ورود به پنل من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
-                {% else %}
-                    <a class="nx-btn nx-btn-primary" href="{% url 'login' %}">شروع آزمون<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
-                    <a class="nx-btn nx-btn-outline" href="{% url 'login' %}">ورود<svg viewBox="0 0 24 24"><use href="#i-login"/></svg></a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</header>
-
-<main>
-<!-- ======================= هیرو ======================= -->
-<section class="nx-hero">
-    <div class="nx-wrap nx-hero-grid">
+{# ======================= هیرو ======================= #}
+<div class="container">
+    <section class="hero">
         <div>
-            <span class="nx-pill"><svg viewBox="0 0 24 24"><use href="#i-sparkles"/></svg>ارزیابی دیجیتال، دقیق و آرام</span>
+            <span class="badge">
+                <svg viewBox="0 0 24 24"><use href="#i-sparkles"/></svg>ارزیابی دیجیتال، دقیق و آرام
+            </span>
 
-            <h1 class="nx-h1">هر آزمون،<br><span>فرصتی برای یادگیری بهتر</span> است.</h1>
+            <h1 class="hero-h1">هر آزمون،<br><span>فرصتی برای یادگیری بهتر</span> است.</h1>
 
-            <p class="nx-lead">
+            <p class="hero-lead">
                 سامانهٔ آزمون غیرحضوری، کلِ چرخهٔ ارزیابی را یک‌جا جمع می‌کند: معلم آزمون می‌سازد،
                 دانش‌آموز با خیالِ راحت پاسخ می‌دهد، سؤال‌های عینی خودکار تصحیح می‌شوند و نتیجه
                 در قالب کارنامه و نمودار در اختیار هر دو طرف قرار می‌گیرد.
             </p>
 
-            <div class="nx-hero-cta">
+            <div class="hero-cta">
                 {% if signed_in and panel_url_name %}
-                    <a class="nx-btn nx-btn-primary nx-btn-lg" href="{% url panel_url_name %}">ورود به پنل من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
+                    <a class="btn btn-primary" href="{% url panel_url_name %}">
+                        ورود به پنل من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg>
+                    </a>
                 {% else %}
-                    <a class="nx-btn nx-btn-primary nx-btn-lg" href="{% url 'login' %}">ورود به سامانه<svg viewBox="0 0 24 24"><use href="#i-login"/></svg></a>
+                    <a class="btn btn-primary" href="{% url 'login' %}">
+                        ورود به سامانه<svg viewBox="0 0 24 24"><use href="#i-login"/></svg>
+                    </a>
                 {% endif %}
-                <a class="nx-btn nx-btn-outline nx-btn-lg" href="#features">آشنایی با امکانات<svg viewBox="0 0 24 24"><use href="#i-play"/></svg></a>
+                <a class="btn" href="#features">آشنایی با امکانات</a>
             </div>
 
-            <div class="nx-hero-notes">
+            <div class="hero-notes">
                 <span><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>کاملاً فارسی و راست‌چین</span>
                 <span><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>ذخیرهٔ خودکار پاسخ‌ها</span>
                 <span><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>تصحیح خودکار سؤال‌های عینی</span>
             </div>
         </div>
 
-        <!-- کارت نمایشیِ تجربهٔ آزمون -->
-        <div class="nx-mock" aria-hidden="true">
-            <div class="nx-mock-bar">
-                <span class="nx-dot" style="background:#f87171"></span>
-                <span class="nx-dot" style="background:#fbbf24"></span>
-                <span class="nx-dot" style="background:#34d399"></span>
-                <span class="nx-mock-title">آزمون فصل سوم — زیست‌شناسی</span>
+        {# کارت نمایشیِ تجربهٔ آزمون — تزئینی است، پس از درخت دسترس‌پذیری پنهان می‌شود #}
+        <div class="mock" aria-hidden="true">
+            <div class="mock-bar">
+                <span class="mock-dot" style="background:#f87171"></span>
+                <span class="mock-dot" style="background:#fbbf24"></span>
+                <span class="mock-dot" style="background:#34d399"></span>
+                <span class="mock-title">آزمون فصل سوم — زیست‌شناسی</span>
             </div>
-            <div class="nx-mock-body">
-                <p class="nx-mock-q">کدام گزینه دربارهٔ «میتوز» درست است؟</p>
-                <div class="nx-mock-opts">
-                    <div class="nx-mock-opt"><span class="nx-mock-num">۱</span>تقسیمی که تعداد کروموزوم‌ها را نصف می‌کند</div>
-                    <div class="nx-mock-opt on"><span class="nx-mock-num">۲</span>تقسیمی که دو سلولِ کاملاً مشابه می‌سازد</div>
-                    <div class="nx-mock-opt"><span class="nx-mock-num">۳</span>فقط در سلول‌های جنسی رخ می‌دهد</div>
+            <div class="mock-body">
+                <p class="mock-q">کدام گزینه دربارهٔ «میتوز» درست است؟</p>
+                <div class="mock-opts">
+                    <div class="mock-opt"><span class="mock-num">۱</span>تقسیمی که تعداد کروموزوم‌ها را نصف می‌کند</div>
+                    <div class="mock-opt on"><span class="mock-num">۲</span>تقسیمی که دو سلولِ کاملاً مشابه می‌سازد</div>
+                    <div class="mock-opt"><span class="mock-num">۳</span>فقط در سلول‌های جنسی رخ می‌دهد</div>
                 </div>
-                <div class="nx-mock-foot">
-                    <span class="nx-badge teal"><svg viewBox="0 0 24 24"><use href="#i-save"/></svg>پاسخ ذخیره شد</span>
-                    <span class="nx-mock-timer">۱۴:۲۶</span>
+                <div class="mock-foot">
+                    <span class="badge badge-success">
+                        <svg viewBox="0 0 24 24"><use href="#i-save"/></svg>پاسخ ذخیره شد
+                    </span>
+                    <span class="mock-timer">۱۴:۲۶</span>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- آمار واقعیِ همین نصب -->
-    <div class="nx-wrap">
-        <div class="nx-facts">
-            <div class="nx-fact nx-reveal">
-                <div class="nx-fact-v nx-fa">{{ counts.exams|fa_num }}</div>
-                <div class="nx-fact-l">آزمون ساخته‌شده</div>
-                <div class="nx-fact-n">در همین سامانه</div>
-            </div>
-            <div class="nx-fact nx-reveal">
-                <div class="nx-fact-v nx-fa">{{ counts.questions|fa_num }}</div>
-                <div class="nx-fact-l">سؤال ثبت‌شده</div>
-                <div class="nx-fact-n">در آزمون‌ها و بانک سؤال</div>
-            </div>
-            <div class="nx-fact nx-reveal">
-                <div class="nx-fact-v nx-fa">{{ counts.students|fa_num }}</div>
-                <div class="nx-fact-l">دانش‌آموز</div>
-                <div class="nx-fact-n">دارای حساب فعال</div>
-            </div>
-            <div class="nx-fact nx-reveal">
-                <div class="nx-fact-v nx-fa">{{ counts.teachers|fa_num }}</div>
-                <div class="nx-fact-l">معلم</div>
-                <div class="nx-fact-n">طراح و برگزارکنندهٔ آزمون</div>
-            </div>
+    {# آمار واقعیِ همین نصب — از .stats/.stat-card مشترک استفاده می‌کند #}
+    <div class="stats">
+        <div class="stat-card" data-reveal>
+            <div class="stat-number">{{ counts.exams|fa_num }}</div>
+            <div class="stat-label">آزمون ساخته‌شده</div>
+        </div>
+        <div class="stat-card" data-reveal>
+            <div class="stat-number">{{ counts.questions|fa_num }}</div>
+            <div class="stat-label">سؤال ثبت‌شده</div>
+        </div>
+        <div class="stat-card active" data-reveal>
+            <div class="stat-number">{{ counts.students|fa_num }}</div>
+            <div class="stat-label">دانش‌آموز</div>
+        </div>
+        <div class="stat-card ongoing" data-reveal>
+            <div class="stat-number">{{ counts.teachers|fa_num }}</div>
+            <div class="stat-label">معلم</div>
         </div>
     </div>
-</section>
+</div>
 
-<!-- ======================= امکانات ======================= -->
-<section class="nx-band nx-defer" id="features">
-    <div class="nx-wrap">
-        <div class="nx-band-head nx-reveal">
-            <div class="nx-band-kicker">امکانات</div>
-            <h2 class="nx-band-h">همه‌چیزِ یک آزمونِ جدی، بدون پیچیدگیِ اضافه</h2>
-            <p class="nx-band-p">از لحظهٔ ساختِ سؤال تا انتشار کارنامه، هر مرحله ابزارِ خودش را دارد.</p>
+{# ======================= امکانات ======================= #}
+<section class="band" id="features">
+    <div class="container">
+        <div class="band-head" data-reveal>
+            <span class="band-kicker">امکانات</span>
+            <h2 class="band-h">همه‌چیزِ یک آزمونِ جدی، بدون پیچیدگیِ اضافه</h2>
+            <p class="band-p">از لحظهٔ ساختِ سؤال تا انتشار کارنامه، هر مرحله ابزارِ خودش را دارد.</p>
         </div>
 
-        <div class="nx-cards">
-            <div class="nx-feature nx-reveal">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg></div>
-                <h3 class="nx-feature-h">ساخت آزمون در چند گام</h3>
-                <p class="nx-feature-p">اطلاعات پایه، تنظیمات برگزاری، انتخاب دانش‌آموزان و سؤال‌ها در یک مسیرِ مشخص؛ پیش‌نویس بسازید و هر وقت خواستید منتشر کنید.</p>
+        <div class="features">
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-layers"/></svg></div>
+                <h3 class="feature-h">ساخت آزمون در چند گام</h3>
+                <p class="feature-p">اطلاعات پایه، تنظیمات برگزاری، انتخاب دانش‌آموزان و سؤال‌ها در یک مسیرِ مشخص؛ پیش‌نویس بسازید و هر وقت خواستید منتشر کنید.</p>
             </div>
-            <div class="nx-feature nx-reveal t">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg></div>
-                <h3 class="nx-feature-h">هفت نوع سؤال</h3>
-                <p class="nx-feature-p">تستی، چندپاسخی، صحیح/غلط، جاخالی، پاسخ کوتاه، تشریحی، پاسخ تصویری و وصل‌کردنی — با امکانِ سؤالِ تصویری.</p>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-list-checks"/></svg></div>
+                <h3 class="feature-h">هفت نوع سؤال</h3>
+                <p class="feature-p">تستی، چندپاسخی، صحیح/غلط، جاخالی، پاسخ کوتاه، تشریحی، پاسخ تصویری و وصل‌کردنی — با امکانِ سؤالِ تصویری.</p>
             </div>
-            <div class="nx-feature nx-reveal v">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg></div>
-                <h3 class="nx-feature-h">تصحیح خودکار و دستی</h3>
-                <p class="nx-feature-p">سؤال‌های عینی همان لحظه نمره می‌گیرند؛ سؤال‌های تشریحی با بازخوردِ نوشتاریِ معلم و نمرهٔ دستی کامل می‌شوند.</p>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-zap"/></svg></div>
+                <h3 class="feature-h">تصحیح خودکار و دستی</h3>
+                <p class="feature-p">سؤال‌های عینی همان لحظه نمره می‌گیرند؛ سؤال‌های تشریحی با بازخوردِ نوشتاریِ معلم و نمرهٔ دستی کامل می‌شوند.</p>
             </div>
-            <div class="nx-feature nx-reveal">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-save"/></svg></div>
-                <h3 class="nx-feature-h">ذخیرهٔ خودکارِ پاسخ‌ها</h3>
-                <p class="nx-feature-p">هر پاسخ همان لحظه ثبت می‌شود؛ بسته‌شدنِ مرورگر یا قطعِ اینترنت، جلسهٔ آزمون را از بین نمی‌برد.</p>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-save"/></svg></div>
+                <h3 class="feature-h">ذخیرهٔ خودکارِ پاسخ‌ها</h3>
+                <p class="feature-p">هر پاسخ همان لحظه ثبت می‌شود؛ بسته‌شدنِ مرورگر یا قطعِ اینترنت، جلسهٔ آزمون را از بین نمی‌برد.</p>
             </div>
-            <div class="nx-feature nx-reveal a">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></div>
-                <h3 class="nx-feature-h">پایش جلسه و ضدتقلب</h3>
-                <p class="nx-feature-p">ثبت خروج از صفحه، کپی/پیست و تغییر تب — به انتخابِ معلم و فقط برای گزارش، نه برای تنبیه.</p>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></div>
+                <h3 class="feature-h">پایش جلسه و ضدتقلب</h3>
+                <p class="feature-p">ثبت خروج از صفحه، کپی/پیست و تغییر تب — به انتخابِ معلم و فقط برای گزارش، نه برای تنبیه.</p>
             </div>
-            <div class="nx-feature nx-reveal t">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-chart"/></svg></div>
-                <h3 class="nx-feature-h">گزارش و کارنامهٔ تحلیلی</h3>
-                <p class="nx-feature-p">میانگین، بهترین و ضعیف‌ترین نتیجه، درصد و روندِ هر دانش‌آموز؛ خروجی Excel همیشه در دسترس است.</p>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-chart"/></svg></div>
+                <h3 class="feature-h">گزارش و کارنامهٔ تحلیلی</h3>
+                <p class="feature-p">میانگین، بهترین و ضعیف‌ترین نتیجه، درصد و روندِ هر دانش‌آموز؛ خروجی Excel همیشه در دسترس است.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ======================= انواع سؤال ======================= -->
-<section class="nx-band alt nx-defer" id="question-types">
-    <div class="nx-wrap">
-        <div class="nx-band-head nx-reveal">
-            <div class="nx-band-kicker">انواع سؤال</div>
-            <h2 class="nx-band-h">هر نوع سؤالی که لازم دارید</h2>
-            <p class="nx-band-p">سؤال‌های عینی خودکار تصحیح می‌شوند؛ تشریحی‌ها منتظرِ نگاهِ معلم می‌مانند.</p>
+{# ======================= انواع سؤال ======================= #}
+<section class="band alt" id="question-types">
+    <div class="container">
+        <div class="band-head" data-reveal>
+            <span class="band-kicker">انواع سؤال</span>
+            <h2 class="band-h">هر نوع سؤالی که لازم دارید</h2>
+            <p class="band-p">سؤال‌های عینی خودکار تصحیح می‌شوند؛ تشریحی‌ها منتظرِ نگاهِ معلم می‌مانند.</p>
         </div>
 
-        <div class="nx-cards">
-            <div class="nx-feature nx-reveal"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-target"/></svg></div><h3 class="nx-feature-h">تستی (چهارگزینه‌ای)</h3><p class="nx-feature-p">گزینه‌ها می‌توانند متن یا تصویر باشند.</p></div>
-            <div class="nx-feature nx-reveal t"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-toggle"/></svg></div><h3 class="nx-feature-h">صحیح / غلط</h3><p class="nx-feature-p">سریع برای ساخت، دقیق در تصحیح.</p></div>
-            <div class="nx-feature nx-reveal v"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-cursor"/></svg></div><h3 class="nx-feature-h">جاخالی</h3><p class="nx-feature-p">هر جای خالی، چند پاسخِ قابل‌قبول دارد.</p></div>
-            <div class="nx-feature nx-reveal a"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-pen"/></svg></div><h3 class="nx-feature-h">پاسخ کوتاه و تشریحی</h3><p class="nx-feature-p">نمرهٔ دستی همراه با بازخوردِ معلم.</p></div>
-            <div class="nx-feature nx-reveal"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-image"/></svg></div><h3 class="nx-feature-h">پاسخ تصویری</h3><p class="nx-feature-p">دانش‌آموز عکسِ پاسخ را بارگذاری می‌کند.</p></div>
-            <div class="nx-feature nx-reveal t"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></div><h3 class="nx-feature-h">وصل‌کردنی</h3><p class="nx-feature-p">جفت‌کردنِ دو ستون با ترتیبِ مستقل.</p></div>
+        <div class="features">
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-target"/></svg></div><h3 class="feature-h">تستی (چهارگزینه‌ای)</h3><p class="feature-p">گزینه‌ها می‌توانند متن یا تصویر باشند.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-toggle"/></svg></div><h3 class="feature-h">صحیح / غلط</h3><p class="feature-p">سریع برای ساخت، دقیق در تصحیح.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-cursor"/></svg></div><h3 class="feature-h">جاخالی</h3><p class="feature-p">هر جای خالی، چند پاسخِ قابل‌قبول دارد.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-pen"/></svg></div><h3 class="feature-h">پاسخ کوتاه و تشریحی</h3><p class="feature-p">نمرهٔ دستی همراه با بازخوردِ معلم.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-image"/></svg></div><h3 class="feature-h">پاسخ تصویری</h3><p class="feature-p">دانش‌آموز عکسِ پاسخ را بارگذاری می‌کند.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-link"/></svg></div><h3 class="feature-h">وصل‌کردنی</h3><p class="feature-p">جفت‌کردنِ دو ستون با ترتیبِ مستقل.</p></div>
         </div>
     </div>
 </section>
 
-<!-- ======================= مراحل ======================= -->
-<section class="nx-band nx-defer" id="how">
-    <div class="nx-wrap">
-        <div class="nx-band-head nx-reveal">
-            <div class="nx-band-kicker">چطور کار می‌کند</div>
-            <h2 class="nx-band-h">چهار گام تا انتشار نتیجه</h2>
+{# ======================= مراحل ======================= #}
+<section class="band" id="how">
+    <div class="container">
+        <div class="band-head" data-reveal>
+            <span class="band-kicker">چطور کار می‌کند</span>
+            <h2 class="band-h">چهار گام تا انتشار نتیجه</h2>
         </div>
-        <div class="nx-steps">
-            <div class="nx-step nx-reveal"><div class="nx-step-n">۱</div><h3 class="nx-step-h">معلم آزمون می‌سازد</h3><p class="nx-step-p">سؤال‌ها را از بانک برمی‌دارد یا تازه می‌نویسد، زمان‌بندی و مخاطب را مشخص می‌کند.</p></div>
-            <div class="nx-step nx-reveal"><div class="nx-step-n">۲</div><h3 class="nx-step-h">دانش‌آموز وارد می‌شود</h3><p class="nx-step-p">فقط آزمون‌هایی را می‌بیند که برای او تعریف شده؛ با شمارندهٔ زمان و ذخیرهٔ خودکار.</p></div>
-            <div class="nx-step nx-reveal"><div class="nx-step-n">۳</div><h3 class="nx-step-h">تصحیح انجام می‌شود</h3><p class="nx-step-p">سؤال‌های عینی خودکار، تشریحی‌ها توسط معلم با ثبت بازخورد.</p></div>
-            <div class="nx-step nx-reveal"><div class="nx-step-n">۴</div><h3 class="nx-step-h">نتیجه منتشر می‌شود</h3><p class="nx-step-p">دانش‌آموز کارنامه می‌بیند و معلم تحلیلِ کلاس را در اختیار دارد.</p></div>
-        </div>
-    </div>
-</section>
-
-<!-- ======================= نقش‌ها ======================= -->
-<section class="nx-band alt nx-defer" id="roles">
-    <div class="nx-wrap">
-        <div class="nx-band-head nx-reveal">
-            <div class="nx-band-kicker">نقش‌ها</div>
-            <h2 class="nx-band-h">هر کس، فضای خودش را دارد</h2>
-        </div>
-        <div class="nx-cards">
-            <div class="nx-feature nx-reveal">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-graduation"/></svg></div>
-                <h3 class="nx-feature-h">دانش‌آموز</h3>
-                <p class="nx-feature-p">نمای کلیِ آزمون‌ها، شمارندهٔ زمان، پاسخ‌گوییِ مرحله‌به‌مرحله و کارنامهٔ کامل به‌همراه نمودار.</p>
-            </div>
-            <div class="nx-feature nx-reveal v">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-clipboard"/></svg></div>
-                <h3 class="nx-feature-h">معلم</h3>
-                <p class="nx-feature-p">ساخت آزمون، بانک سؤال، گروه‌بندی دانش‌آموزان، تصحیح، گزارش تقلب و خروجی Excel.</p>
-            </div>
-            <div class="nx-feature nx-reveal t">
-                <div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-settings"/></svg></div>
-                <h3 class="nx-feature-h">مدیر</h3>
-                <p class="nx-feature-p">مدیریت کاربران و آزمون‌ها، تنظیمات سامانه، لاگ رویدادها و تحلیلِ عملکرد.</p>
-            </div>
+        <div class="steps">
+            <div class="card" data-reveal><div class="step-n">۱</div><h3 class="step-h">معلم آزمون می‌سازد</h3><p class="step-p">سؤال‌ها را از بانک برمی‌دارد یا تازه می‌نویسد، زمان‌بندی و مخاطب را مشخص می‌کند.</p></div>
+            <div class="card" data-reveal><div class="step-n">۲</div><h3 class="step-h">دانش‌آموز وارد می‌شود</h3><p class="step-p">فقط آزمون‌هایی را می‌بیند که برای او تعریف شده؛ با شمارندهٔ زمان و ذخیرهٔ خودکار.</p></div>
+            <div class="card" data-reveal><div class="step-n">۳</div><h3 class="step-h">تصحیح انجام می‌شود</h3><p class="step-p">سؤال‌های عینی خودکار، تشریحی‌ها توسط معلم با ثبت بازخورد.</p></div>
+            <div class="card" data-reveal><div class="step-n">۴</div><h3 class="step-h">نتیجه منتشر می‌شود</h3><p class="step-p">دانش‌آموز کارنامه می‌بیند و معلم تحلیلِ کلاس را در اختیار دارد.</p></div>
         </div>
     </div>
 </section>
 
-<!-- ======================= امنیت ======================= -->
-<section class="nx-band nx-defer" id="security">
-    <div class="nx-wrap">
-        <div class="nx-band-head nx-reveal">
-            <div class="nx-band-kicker">امنیت و آرامشِ خیال</div>
-            <h2 class="nx-band-h">چیزهایی که پشتِ صحنه مراقب‌اند</h2>
+{# ======================= نقش‌ها ======================= #}
+<section class="band alt" id="roles">
+    <div class="container">
+        <div class="band-head" data-reveal>
+            <span class="band-kicker">نقش‌ها</span>
+            <h2 class="band-h">هر کس، فضای خودش را دارد</h2>
         </div>
-        <div class="nx-cards">
-            <div class="nx-feature nx-reveal"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg></div><h3 class="nx-feature-h">دسترسی بر پایهٔ نقش</h3><p class="nx-feature-p">هر صفحه نقشِ خودش را می‌پرسد؛ معلمِ دیگر به آزمونِ شما راه ندارد.</p></div>
-            <div class="nx-feature nx-reveal t"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></div><h3 class="nx-feature-h">ثبت رویدادها</h3><p class="nx-feature-p">ورودها، تلاش‌های ناموفق و رویدادهای جلسه ثبت و قابل مرور هستند.</p></div>
-            <div class="nx-feature nx-reveal v"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></div><h3 class="nx-feature-h">محدودیتِ تلاشِ ورود</h3><p class="nx-feature-p">تلاش‌های پشت‌سرهمِ ناموفق، موقتاً مسدود می‌شوند.</p></div>
-            <div class="nx-feature nx-reveal a"><div class="nx-feature-ic"><svg viewBox="0 0 24 24"><use href="#i-folder"/></svg></div><h3 class="nx-feature-h">فایل‌های محافظت‌شده</h3><p class="nx-feature-p">تصویرهای سؤال و پاسخ فقط برای کاربرِ مجاز سرو می‌شوند.</p></div>
-        </div>
-    </div>
-</section>
-
-<!-- ======================= فراخوان ======================= -->
-<section class="nx-band nx-defer">
-    <div class="nx-wrap">
-        <div class="nx-cta nx-reveal">
-            <h2 class="nx-cta-h">آماده‌اید آزمون بعدی‌تان را همین‌جا برگزار کنید؟</h2>
-            <p class="nx-cta-p">وارد شوید و آزمون‌های پیش‌رو، نتایج و کارنامه‌تان را در یک نگاه ببینید — یا اگر حساب ندارید، از مدیرِ سامانه بخواهید برایتان ساخته شود.</p>
-            <div class="nx-cta-btns">
-                <a class="nx-btn nx-btn-white nx-btn-lg" href="{% url 'login' %}">ورود به سامانه<svg viewBox="0 0 24 24"><use href="#i-login"/></svg></a>
-                <a class="nx-btn nx-btn-glass nx-btn-lg" href="#features">دربارهٔ امکانات<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></a>
+        <div class="features">
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-graduation"/></svg></div>
+                <h3 class="feature-h">دانش‌آموز</h3>
+                <p class="feature-p">نمای کلیِ آزمون‌ها، شمارندهٔ زمان، پاسخ‌گوییِ مرحله‌به‌مرحله و کارنامهٔ کامل به‌همراه نمودار.</p>
+            </div>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-clipboard"/></svg></div>
+                <h3 class="feature-h">معلم</h3>
+                <p class="feature-p">ساخت آزمون، بانک سؤال، گروه‌بندی دانش‌آموزان، تصحیح، گزارش تقلب و خروجی Excel.</p>
+            </div>
+            <div class="card" data-reveal>
+                <div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-settings"/></svg></div>
+                <h3 class="feature-h">مدیر</h3>
+                <p class="feature-p">مدیریت کاربران و آزمون‌ها، تنظیمات سامانه، لاگ رویدادها و تحلیلِ عملکرد.</p>
             </div>
         </div>
     </div>
 </section>
-</main>
 
-<footer class="nx-foot">
-    <div class="nx-wrap nx-foot-in">
-        <div>
-            <div class="nx-brand" style="margin-bottom:6px">
-                <span class="nx-brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2.5 9 2.5 12 0v-5"/></svg></span>
-                <span>سامانه آزمون غیرحضوری</span>
-            </div>
-            <div class="nx-foot-t">طراحی‌شده برای برگزاریِ آزمونِ آنلاین در مدرسه، کلاس و آموزشگاه.</div>
+{# ======================= امنیت ======================= #}
+<section class="band" id="security">
+    <div class="container">
+        <div class="band-head" data-reveal>
+            <span class="band-kicker">امنیت و آرامشِ خیال</span>
+            <h2 class="band-h">چیزهایی که پشتِ صحنه مراقب‌اند</h2>
         </div>
-        <nav class="nx-foot-links" aria-label="پیوندهای پانوشت">
-            <a href="{% url 'login' %}">ورود</a>
-            <a href="#features">امکانات</a>
-            <a href="#question-types">انواع سؤال</a>
-            <a href="#security">امنیت</a>
-        </nav>
+        <div class="features">
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-lock"/></svg></div><h3 class="feature-h">دسترسی بر پایهٔ نقش</h3><p class="feature-p">هر صفحه نقشِ خودش را می‌پرسد؛ معلمِ دیگر به آزمونِ شما راه ندارد.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-eye"/></svg></div><h3 class="feature-h">ثبت رویدادها</h3><p class="feature-p">ورودها، تلاش‌های ناموفق و رویدادهای جلسه ثبت و قابل مرور هستند.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-shield"/></svg></div><h3 class="feature-h">محدودیتِ تلاشِ ورود</h3><p class="feature-p">تلاش‌های پشت‌سرهمِ ناموفق، موقتاً مسدود می‌شوند.</p></div>
+            <div class="card" data-reveal><div class="feature-ic"><svg viewBox="0 0 24 24"><use href="#i-folder"/></svg></div><h3 class="feature-h">فایل‌های محافظت‌شده</h3><p class="feature-p">تصویرهای سؤال و پاسخ فقط برای کاربرِ مجاز سرو می‌شوند.</p></div>
+        </div>
     </div>
-</footer>
+</section>
 
-<script src="{% static 'js/modern.js' %}?v=4" defer></script>
-</body>
-</html>
+{# ======================= فراخوان ======================= #}
+<section class="band">
+    <div class="container">
+        <div class="cta" data-reveal>
+            <h2 class="cta-h">آماده‌اید آزمون بعدی‌تان را همین‌جا برگزار کنید؟</h2>
+            <p class="cta-p">وارد شوید و آزمون‌های پیش‌رو، نتایج و کارنامه‌تان را در یک نگاه ببینید — یا اگر حساب ندارید، از مدیرِ سامانه بخواهید برایتان ساخته شود.</p>
+            <div class="cta-btns">
+                {% if signed_in and panel_url_name %}
+                    <a class="btn btn-onDark" href="{% url panel_url_name %}">
+                        ورود به پنل من<svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg>
+                    </a>
+                {% else %}
+                    <a class="btn btn-onDark" href="{% url 'login' %}">
+                        ورود به سامانه<svg viewBox="0 0 24 24"><use href="#i-login"/></svg>
+                    </a>
+                {% endif %}
+                <a class="btn btn-glass" href="#features">دربارهٔ امکانات</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
