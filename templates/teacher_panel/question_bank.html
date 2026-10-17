@@ -6,8 +6,6 @@
     /* چیدمان خاص صفحه — فاصله‌ها یکدست و تنفس‌دار */
     .bank-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
     .bank-topbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .collapsible { display: none; margin-bottom: 14px; }
-    .collapsible.show { display: block; animation: popIn .18s ease; }
     .bank-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .bank-form .full { grid-column: 1 / -1; }
     .bank-form label { font-size: .76rem; font-weight: 700; color: var(--ink2); display: block; margin-bottom: 5px; }
@@ -81,8 +79,6 @@
     .bank-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); flex: 0 0 auto; }
     .qopts-json, .qblanks-json { display: none; }
     /* ---------- چیدمان جدید: درخت پوشه + محتوا ---------- */
-    .newf-form { display: flex; gap: 10px; flex-wrap: wrap; }
-    .newf-form input { flex: 2 1 200px; } .newf-form select { flex: 1 1 180px; }
     .bank-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 10px; margin-bottom: 14px; }
     .bstat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: grid; gap: 2px; }
     .bstat b { font-size: 1.25rem; color: var(--brand-3); font-weight: 800; }
@@ -162,7 +158,7 @@
         .bstat b { font-size: 1rem; }
         .subfolders { grid-template-columns: 1fr 1fr; gap: 8px; }
         .subfolder { padding: 10px 12px; }
-        .bank-filter input, .bank-filter select, .newf-form input, .newf-form select { font-size: 16px; }
+        .bank-filter input, .bank-filter select { font-size: 16px; }
         .bank-opts { padding-right: 12px; }
     }
 </style>
@@ -173,7 +169,7 @@
     <div class="page-title" style="margin:0;">بانک سوال مشترک</div>
     <div class="actions">
         <a class="btn btn-gold" href="{% url 'bank_question_new' %}{% if folder_id %}?folder={{ folder_id }}{% endif %}">سوال جدید</a>
-        <button class="btn btn-secondary" id="btnNewF" type="button">پوشه جدید</button>
+        <button class="btn btn-secondary" type="button" data-modal-open="newFModal">پوشه جدید</button>
         <form method="post" action="{% url 'bank_seed_sample' %}" style="display:inline;">
             {% csrf_token %}
             <button class="btn btn-secondary" type="submit"
@@ -183,19 +179,41 @@
 </div>
 
 <!-- فرم پوشه جدید -->
-<div class="card collapsible" id="newFBox">
-    <div class="section-title">ساخت پوشه جدید</div>
-    <form method="post" action="{% url 'bank_folder_add' %}" class="newf-form">
-        {% csrf_token %}
-        <input type="text" name="name" required maxlength="80" placeholder="نام پوشه، مثلاً «فصل ۳ — کسرها»">
-        <select name="parent">
-            <option value="">در ریشهٔ بانک</option>
-            {% for f in folders %}
-            <option value="{{ f.id }}" {% if current_folder and current_folder.id == f.id %}selected{% endif %}>داخل: {{ f.path }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-gold">ساخت پوشه</button>
-    </form>
+{# مودال ساخت پوشهٔ جدید — پیش‌تر یک پنل بازشوندهٔ درون‌صفحه بود که
+   یک باکسِ همیشگی به صفحه اضافه می‌کرد و CSS/JS جداگانه هم داشت. #}
+<div class="modal-backdrop" id="newFModal" aria-hidden="true">
+    <div class="modal-card">
+        <form method="post" action="{% url 'bank_folder_add' %}">
+            {% csrf_token %}
+            <div class="modal-head">
+                <div>
+                    <h3 class="modal-title">ساخت پوشه جدید</h3>
+                    <p class="modal-sub">پوشه‌ها بانک سؤال را مرتب نگه می‌دارند.</p>
+                </div>
+                <button type="button" class="modal-close" data-modal-close aria-label="بستن">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newFName">نام پوشه</label>
+                    <input type="text" id="newFName" name="name" required maxlength="80"
+                           placeholder="مثلاً «فصل ۳ — کسرها»" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="newFParent">محل</label>
+                    <select id="newFParent" name="parent">
+                        <option value="">در ریشهٔ بانک</option>
+                        {% for f in folders %}
+                        <option value="{{ f.id }}" {% if current_folder and current_folder.id == f.id %}selected{% endif %}>داخل: {{ f.path }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn" data-modal-close>انصراف</button>
+                <button type="submit" class="btn btn-primary">ساخت پوشه</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- آمار کلی -->
@@ -399,16 +417,11 @@
 </div>
 
 <script>
-const newF = document.getElementById('newFBox');
 const FA = '۰۱۲۳۴۵۶۷۸۹';
 const faNum = n => String(n).replace(/\d/g, d => FA[d]);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-function showOnly(box) {
-    newF.classList.remove('show');
-    if (box) { box.classList.add('show'); box.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-}
-document.getElementById('btnNewF').addEventListener('click', () => showOnly(newF.classList.contains('show') ? null : newF));
+// ساخت پوشهٔ جدید حالا مودال است و رفتارش از static/js/modal.js می‌آید
+// (data-modal-open)، پس دیگر showOnly و newFBox لازم نیست.
 
 /* ---------- انتخاب گروهی ---------- */
 (function () {

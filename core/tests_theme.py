@@ -317,3 +317,114 @@ class StaticAssetTests(ThemeTestCase):
         for weight in ['Regular', 'Medium', 'Bold', 'ExtraBold']:
             self.assertTrue((static_root / f'Vazirmatn-{weight}.woff2').exists(),
                             f'فونت Vazirmatn-{weight}.woff2 موجود نیست')
+
+
+class UnifiedDesignSystemTests(ThemeTestCase):
+    """یکدستی سایت: یک سیستم طراحی، و دیالوگ‌های تم‌دار به‌جای بومیِ مرورگر.
+
+    این تست‌ها جلوی بازگشتِ مشکلاتی را می‌گیرند که در ممیزی پیدا شد:
+    دو سیستم طراحی موازی (nx و کلاسیک)، و confirm()/alert() بومی در ۸ قالب.
+    """
+
+    @staticmethod
+    def _strip_comments(src):
+        """حذف توضیحات جنگو/HTML/JS تا فقط کدِ واقعی سنجیده شود.
+
+        بدون این، اشاره به نامِ یک رنگ یا تابع داخل توضیحات، تست را
+        به اشتباه می‌شکست.
+        """
+        src = re.sub(r'\{#.*?#\}', '', src, flags=re.S)
+        src = re.sub(r'<!--.*?-->', '', src, flags=re.S)
+        src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
+        src = re.sub(r'//[^\n]*', '', src)
+        return src
+
+    # (نام url، کاربری که باید وارد شود) — صفحاتی که از base.html ارث می‌برند
+    BASE_PAGES = [
+        ('home', None),
+        ('teacher_dashboard', 'teacher'),
+        ('student_dashboard', 'student'),
+        ('groups', 'teacher'),
+        ('question_bank', 'teacher'),
+        ('manage_users', 'admin'),
+    ]
+
+    def _get(self, name, who):
+        """ورود با نقشِ درست و سپس درخواست؛ صفحات نقش‌محور بدون ورود ۳۰۲ می‌شوند."""
+        if who:
+            self.client.force_login(getattr(self, who))
+        else:
+            self.client.logout()
+        return self.client.get(reverse(name))
+
+    def test_shared_dialog_infrastructure_present(self):
+        """هر صفحه‌ای که از base.html ارث می‌برد باید مودال تأیید و ظرف اعلان را داشته باشد."""
+        checked = 0
+        for name, who in self.BASE_PAGES:
+            res = self._get(name, who)
+            self.assertEqual(res.status_code, 200, f'{name}: انتظار ۲۰۰ بود، شد {res.status_code}')
+            content = res.content.decode()
+            self.assertIn('site-footer', content, f'{name}: از base.html ارث نمی‌برد')
+            self.assertIn('id="appConfirm"', content, f'{name}: مودال تأییدِ مشترک ندارد')
+            self.assertIn('id="appToasts"', content, f'{name}: ظرف اعلانِ مشترک ندارد')
+            self.assertIn('js/modal.js', content, f'{name}: modal.js بارگذاری نمی‌شود')
+            checked += 1
+        self.assertGreaterEqual(checked, 5, 'صفحاتِ کمی بررسی شد — الگوی تست اشتباه است')
+
+    def test_no_native_browser_dialogs(self):
+        """confirm()/alert()/prompt() بومی نباید در قالب‌ها بماند.
+
+        تنها استثنای مجاز: fallback در base.html برای وقتی که modal.js نرسیده.
+        """
+        offenders = []
+        for path in (settings.BASE_DIR / 'templates').rglob('*.html'):
+            src = self._strip_comments(path.read_text(encoding='utf-8'))
+            for m in re.finditer(r'(?<![.\w])(confirm|alert|prompt)\s*\(', src):
+                snippet = src[max(0, m.start() - 20):m.start() + 40]
+                if path.name == 'base.html' and 'window.confirm' in snippet:
+                    continue        # fallback عمدی
+                offenders.append(f'{path.name}:{src[:m.start()].count(chr(10)) + 1} {m.group(0).strip()}')
+        self.assertEqual(offenders, [],
+                         'دیالوگ بومی مرورگر پیدا شد (باید AppConfirm/AppToast باشد):\n'
+                         + '\n'.join(offenders))
+
+    def test_parallel_nx_design_system_is_gone(self):
+        """سیستم طراحی موازی nx حذف شده و نباید برگردد."""
+        self.assertFalse((settings.BASE_DIR / 'static' / 'css' / 'modern.css').exists(),
+                         'modern.css باید حذف شده باشد')
+        self.assertFalse((settings.BASE_DIR / 'static' / 'js' / 'modern.js').exists(),
+                         'modern.js باید حذف شده باشد')
+        roots = [(settings.BASE_DIR / 'templates').rglob('*.html'),
+                 (settings.BASE_DIR / 'static').rglob('*.css'),
+                 (settings.BASE_DIR / 'static').rglob('*.js')]
+        for it in roots:
+            for path in it:
+                src = path.read_text(encoding='utf-8', errors='ignore')
+                self.assertNotRegex(src, r'\bnx-[a-z]',
+                                    f'{path.name}: هنوز کلاس nx- دارد؛ '
+                                    'سایت باید یک سیستم طراحی داشته باشد')
+
+    def test_groups_page_renders_student_list_once(self):
+        """رگرسیون: صفحهٔ گروه‌ها قبلاً برای هر گروه یک چک‌باکس به ازای هر
+        دانش‌آموز رندر می‌کرد (N×M باکس). حالا فهرست باید فقط یک‌بار،
+        داخل یک مودال مشترک، رندر شود."""
+        self.client.force_login(self.teacher)
+        content = self.client.get(reverse('groups')).content.decode()
+        self.assertEqual(content.count('data-picker-list'), 1,
+                         'فهرست دانش‌آموزان باید دقیقاً یک‌بار رندر شود')
+        self.assertIn('id="grpModal"', content, 'مودال ساخت/ویرایش گروه نیست')
+        self.assertIn('id="grpDelModal"', content, 'مودال تأیید حذف گروه نیست')
+        self.assertIn('data-picker-search', content, 'جست‌وجوی دانش‌آموز در مودال گروه نیست')
+        # تعداد چک‌باکس باید برابر تعداد دانش‌آموزان باشد، نه ضرب‌درِ تعداد گروه‌ها
+        boxes = content.count('name="students"') - 1   # یک بار هم در JS به آن اشاره شده
+        self.assertEqual(boxes, User.objects.filter(role='student').count(),
+                         'تعداد چک‌باکس باید برابر تعداد دانش‌آموزان باشد')
+
+    def test_message_colors_use_design_tokens(self):
+        """رنگِ پیام‌ها باید از توکن‌های مشترک بیاید، نه مقدار hardcode."""
+        src = self._strip_comments(
+            (settings.BASE_DIR / 'templates' / 'base.html').read_text(encoding='utf-8'))
+        for token in ['var(--ok)', 'var(--err)', 'var(--warn)']:
+            self.assertIn(token, src, f'base.html از توکن {token} برای پیام‌ها استفاده نمی‌کند')
+        for legacy in ['#7a9c3e', '#9f1239', '#92400e', '#f5a623']:
+            self.assertNotIn(legacy, src, f'رنگ قدیمی hardcode {legacy} هنوز در base.html است')
